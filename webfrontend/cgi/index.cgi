@@ -80,7 +80,7 @@ our $header_already_sent=0;
 ##########################################################################
 
 # Version of this script
-$version = "0.0.7";
+$version = "0.0.8";
 
 # Figure out in which subfolder we are installed
 $psubfolder = abs_path($0);
@@ -401,7 +401,7 @@ foreach (split(/&/,$ENV{'QUERY_STRING'}))
 	sub lbheader 
 	{
 		 # Create Help page
-	  $helplink = "http://www.loxwiki.eu:80/x/o4CO";
+	  $helplink = "http://www.loxwiki.eu:80/display/LOXBERRY/Miniserverbackup";
 	  open(F,"$installfolder/templates/plugins/$psubfolder/$lang/help.html") || die "Missing template plugins/$psubfolder/$lang/help.html";
 	    @help = <F>;
 	    foreach (@help)
