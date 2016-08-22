@@ -70,7 +70,6 @@ our $installfolder;
 our $home = File::HomeDir->my_home;
 our @Eintraege;
 our @files;
-our $subfolder;
 our $i;
 our $msno;
 our $useclouddns;
@@ -93,7 +92,7 @@ our $foundfiles;
 ##########################################################################
 
 # Version of this script
-my $version = "0.0.10";
+my $version = "0.0.11";
 
 # Figure out in which subfolder we are installed
 $psubfolder = abs_path($0);
@@ -113,7 +112,6 @@ $maxdwltries     = 15; # Maximale wget Wiederholungen
 $pcfg            = new Config::Simple("$installfolder/config/plugins/$psubfolder/miniserverbackup.cfg");
 $debug           = $pcfg->param("MSBACKUP.DEBUG");
 $maxfiles        = $pcfg->param("MSBACKUP.MAXFILES");
-#$subfolder       = $pcfg->param("MSBACKUP.SUBFOLDER");
 
 $languagefileplugin = "$installfolder/templates/plugins/$psubfolder/$lang/language.dat";
 our $phraseplugin 	= new Config::Simple($languagefileplugin);
@@ -375,7 +373,7 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   
   # Moving ZIP to files section
   move("/tmp/$bkpdir.zip","$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpdir.zip");
-  if (!-e "$installfolder/webfrontend/html/plugins/$subfolder/files/$bkpdir.zip") 
+  if (!-e "$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpdir.zip") 
   {
     $error=1;
   	$logmessage = $phraseplugin->param("TXT2005")." ($bkpdir.zip)" ; &error; # "Moving Error!"
