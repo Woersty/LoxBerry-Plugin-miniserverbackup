@@ -32,9 +32,10 @@ TXT1023=von
 TXT1024=Mit Versuch 
 TXT1025=konnte die/das folgende Datei/Verzeichnis erfolgreich heruntergeladen werden:
 TXT1026=Versuche lokale Miniserver-IP auszulesen
-TXT1027=Miniserver-IP (lokal): 
+TXT1027=Miniserver-IP (LAN/lokal): 
 TXT1028=Der lokale Miniserver-FTP-Port sollte besser 21 sein. Der Router kann sonst eventuell den Datenverkehr nicht als FTP-Verkehr erkennen und umschreiben! Bitte in der Portfreigabe den Port von extern xxxx auf intern 21 zuordnen. 
 TXT1029=Bitte die Einstellung -Nur Lokaler Zugriff- auf der Miniserver Admin-Webseite beachten!
+TXT1030=Miniserver-IP (Internet): 
 ;FEHLERMELDUNGEN
 TXT2001=ERR#2001: Kann Miniserver-Firmware-Version nicht auslesen. Gebe auf!
 TXT2002=ERR#2002: Kann Miniserver-FTP-Port nicht auslesen. Gebe auf!

@@ -92,7 +92,7 @@ our $foundfiles;
 ##########################################################################
 
 # Version of this script
-my $version = "0.0.11";
+my $version = "0.0.12";
 
 # Figure out in which subfolder we are installed
 $psubfolder = abs_path($0);
@@ -283,6 +283,10 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   $dayver  = sprintf("%02d", $fields[3]);
   $logmessage = $phraseplugin->param("TXT1027").$xml->{value}; &log($green_css); # Miniserver IP local
   $local_miniserver_ip = $xml->{value};
+  if ( $useclouddns eq "1" ) 
+	{
+	  $logmessage = $phraseplugin->param("TXT1030").$miniserverip; &log($green_css); # Miniserver IP public
+	} 	
 
   # Get FTP Port from Miniserver
   $url = "http://$miniserveradmin:$miniserverpass\@$miniserverip\:$miniserverport/dev/cfg/ftp";
@@ -315,7 +319,27 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   $rawxml = $response->decoded_content();
   $xml = XMLin($rawxml, KeyAttr => { LL => 'value' }, ForceArray => [ 'LL', 'value' ]);
   $miniserverftpport = $xml->{value};
-  if ($miniserverftpport ne "21" ) { $logmessage = $phraseplugin->param("TXT1028"); &log($red_css); } #Warning if local FTP-Port is not 21 
+  if ($miniserverftpport ne "21") { $logmessage = $phraseplugin->param("TXT1028"); &log($red_css); } #Warning if local FTP-Port is not 21 
+ 	
+ 	# If CloudDNS is used, switch to configured public FTP Port
+ 	if ( $useclouddns eq "1" ) 
+ 	{ 
+ 		if (  sprintf("%d", $miniservercloudurlftpport) ne 0) 
+ 		{ 
+ 			$miniserverftpport = $miniservercloudurlftpport; 
+ 		}
+ 		else
+ 		{ 
+ 			$miniserverftpport = 21; 
+ 		}
+ 	}
+	else
+ 	{
+ 		if ( sprintf("%d", $miniserverftpport) eq 0) 
+ 		{ 
+ 			$miniserverftpport = 21; 
+ 		}
+	}
   $logmessage = $phraseplugin->param("TXT1008").$miniserverftpport; &log($green_css); #Using this FTP-Port for Backup: xxx
   # Backing up to temorary directory
   ($dirsec,$dirmin,$dirhour,$dirmday,$dirmon,$diryear,$dirwday,$diryday,$dirisdst) = localtime();
