@@ -42,19 +42,19 @@ ARGV5=$5 # Fifth argument is Base folder of LoxBerry
 #echo "<INFO> Installation folder is: $ARGV5"
 
 echo "<INFO> Creating temporary folders for upgrading"
-mkdir /tmp/$ARGV1\_upgrade
-mkdir /tmp/$ARGV1\_upgrade/config
-mkdir /tmp/$ARGV1\_upgrade/log
-mkdir /tmp/$ARGV1\_upgrade/files
+mkdir -p /tmp/$ARGV1\_upgrade
+mkdir -p /tmp/$ARGV1\_upgrade/config
+mkdir -p /tmp/$ARGV1\_upgrade/log
+mkdir -p /tmp/$ARGV1\_upgrade/files
 
 echo "<INFO> Backing up existing config files"
-cp -v -r $ARGV5/config/plugins/$ARGV3/ /tmp/$ARGV1\_upgrade/config
+cp -p -v -r $ARGV5/config/plugins/$ARGV3/ /tmp/$ARGV1\_upgrade/config
 
 echo "<INFO> Backing up existing log files"
-cp -v -r $ARGV5/log/plugins/$ARGV3/ /tmp/$ARGV1\_upgrade/log
+cp -p -v -r $ARGV5/log/plugins/$ARGV3/ /tmp/$ARGV1\_upgrade/log
 
 echo "<INFO> Backing up existing backup archives"
-cp -v -r $ARGV5/webfrontend/html/plugins/$ARGV3/files/ /tmp/$ARGV1\_upgrade/files
+cp -p -v -r $ARGV5/webfrontend/html/plugins/$ARGV3/files/* /tmp/$ARGV1\_upgrade/files/
 
 # Exit with Status 0
 exit 0

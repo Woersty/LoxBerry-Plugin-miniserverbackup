@@ -8,13 +8,13 @@ ARGV4=$4 # Forth argument is Plugin version
 ARGV5=$5 # Fifth argument is Base folder of LoxBerry
 
 echo "<INFO> Copy back existing config files"
-cp -v -r /tmp/$ARGV1\_upgrade/config/$ARGV3/* $ARGV5/config/plugins/$ARGV3/ 
+cp -p -v -r /tmp/$ARGV1\_upgrade/config/$ARGV3/* $ARGV5/config/plugins/$ARGV3/ 
 
 echo "<INFO> Copy back existing log files"
-cp -v -r /tmp/$ARGV1\_upgrade/log/$ARGV3/* $ARGV5/log/plugins/$ARGV3/ 
+cp -p -v -r /tmp/$ARGV1\_upgrade/log/$ARGV3/* $ARGV5/log/plugins/$ARGV3/ 
 
 echo "<INFO> Copy back existing backup archives"
-cp -v -r /tmp/$ARGV1\_upgrade/files/$ARGV3/* $ARGV5/webfrontend/html/plugins/$ARGV3/files/ 
+cp -p -v -r /tmp/$ARGV1\_upgrade/files/* $ARGV5/webfrontend/html/plugins/$ARGV3/files/ 
 
 echo "<INFO> Remove temporary folders"
 rm -r /tmp/$ARGV1\_upgrade
