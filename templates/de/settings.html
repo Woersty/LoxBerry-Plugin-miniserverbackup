@@ -7,7 +7,7 @@
 											</tr>
 											<tr>
 												<td width="550px">
-													<a id="btnbackup" data-role="button" data-mini="true" onclick="$('#Logfile').append('<hr\><div style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'>##### Starte manuelles Backup #####</div><hr\>'); $('#response').html( 'Starte Backup - Bitte warten...' ); $('#response').fadeTo( 'fast', 1 ); $.get('./index.cgi?do=backup&lang=de', function(response) { setTimeout( function(){ $('#response').fadeTo( 'slow', 0 ); }, 5000); setTimeout( function(){ $('#response').html( '&nbsp;' ); }, 6500); $('#response').html(response);});">Backup jetzt starten!</a>
+													<a id="btnbackup" data-role="button" data-mini="true" onclick="$('#Logfiletextbox').append('<hr\><div style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'>##### Starte manuelles Backup #####</div><hr\>'); $('#response').html( 'Starte Backup - Bitte warten...' ); $('#response').fadeTo( 'fast', 1 ); $.get('./index.cgi?do=backup&lang=de', function(response) { setTimeout( function(){ $('#response').fadeTo( 'slow', 0 ); }, 5000); setTimeout( function(){ $('#response').html( '&nbsp;' ); }, 6500); $('#response').html(response);});">Backup jetzt starten!</a>
 												</td>
 												<td width="150px" cellpadding=10>
 													<a id="btndownloads" data-role="button" data-mini="true" href="/plugins/<!--$psubfolder-->/files" data-icon="grid" target="_blank">Downloads</a>
@@ -115,15 +115,15 @@
 											<tr>
 												<td width="200px%"><label id="LogLiveLabel"><input data-mini="true" type="checkbox" id="LogLive">Logdatei live anzeigen</label></td>
 												<td width="200px" id="LogScrolltd"><label><input data-mini="true" type="checkbox" checked id="LogScroll">Automatisch zum Ende springen</label></td>
-												<td width="200px" id="LogSessionReset"><a onclick="$('#Logfile').prop('innerHTML','<hr\><div style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'>##### Neue Sitzung gestartet #####</div><hr\>'); $.get('/plugins/<!--$psubfolder-->/logfile.php?ajax&new_session=1');" id="reset_session" data-role="button" data-mini="true" href="" data-icon="star" target="_blank">Debug-Sitzung neu starten</a></td>
+												<td width="200px" id="LogSessionReset"><a onclick="$('#Logfiletextbox').prop('innerHTML','<hr\><div style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'>##### Neue Sitzung gestartet #####</div><hr\>'); $.get('/plugins/<!--$psubfolder-->/logfile.php?ajax&new_session=1');" id="reset_session" data-role="button" data-mini="true" href="" data-icon="star" target="_blank">Debug-Sitzung neu starten</a></td>
 											</tr>
 										</table>
-										<div style="resize:vertical; overflow:auto; border: 1px solid #888;  background-color: transparent; font-family:monospace; color:#8080FF; overflow-y: scroll;" id="Logfile" contenteditable="true"></div>
+										<div style="resize:vertical; overflow:auto; border: 1px solid #888;  background-color: transparent; font-family:monospace; color:#8080FF; overflow-y: scroll;" id="Logfiletextbox" contenteditable="true"></div>
 									</div>
 									<script>
 										$.get('/plugins/<!--$psubfolder-->/logfile.php?ajax&new_session=1');
 										$("#LogScrolltd").fadeTo( "fast", 0 );
-										$("#Logfile").fadeTo( "fast", 0 );
+										$("#Logfiletextbox").fadeTo( "fast", 0 );
 										var liveviewtimer ="";
 										var $messages = $('#form-error-message');
 										$.validate({
@@ -137,7 +137,7 @@
 												var timeleft = 900000;
 												$("#LogLiveLabel").text("Logdatei aktualisieren");
 												$("#LogScrolltd").fadeTo( "slow", 1 );
-												$("#Logfile").fadeTo( "slow", 1 );
+												$("#Logfiletextbox").fadeTo( "slow", 1 );
 												setTimeout( function()
 												{
 													$('#response').fadeTo( 'slow', 1 );
@@ -178,13 +178,13 @@
 													}
 												$("#LogLiveLabel").text("Logdatei aktualisieren " + displaytime);
 												$.get('/plugins/<!--$psubfolder-->/logfile.php?ajax', function(data) {
-													$('#Logfile').append(data);
+													$('#Logfiletextbox').append(data);
 
-												 $('#Logfile').height("300");
+												 $('#Logfiletextbox').height("300");
 
 												if($("#LogScroll").is(":checked"))
 													{
-													$('#Logfile').scrollTop($('#Logfile')[0].scrollHeight);
+													$('#Logfiletextbox').scrollTop($('#Logfiletextbox')[0].scrollHeight);
 													}
 												 });
 													}, 500);
