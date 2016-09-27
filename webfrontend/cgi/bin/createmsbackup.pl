@@ -94,7 +94,7 @@ our $miniserverfoldername;
 ##########################################################################
 
 # Version of this script
-my $version = "0.14";
+my $version = "0.15";
 
 # Figure out in which subfolder we are installed
 $psubfolder = abs_path($0);
@@ -400,12 +400,19 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   $logmessage = $phraseplugin->param("TXT1013"); &log($green_css); #Moving Backup to Download folder..."
   
   # Moving ZIP to files section
-  $response = make_path ("$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder, {owner=>'loxberry', group=>'loxberry', chmod => 0777});
-  if ($response == 0) 
+  if (!-d "$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder) 
   {
-    $error=1;
-    $logmessage = $phraseplugin->param("TXT2009")." ".$bkpfolder; &error; # Could not create download folder.
-    next;
+  $response = make_path ("$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder, {owner=>'loxberry', group=>'loxberry', chmod => 0777});
+	  if ($response == 0) 
+	  {
+	    $error=1;
+	    $logmessage = $phraseplugin->param("TXT2009")." ".$bkpfolder; &error; # Could not create download folder.
+	    next;
+	  }
+  } 
+  else 
+  {
+    if ($verbose) { $logmessage = $phraseplugin->param("TXT2010")." $bkpfolder"; &log($green_css); }  # Folder exists => ok
   }
   move("/tmp/".$bkpfolder."/$bkpdir.zip","$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder."/"."$bkpdir.zip");
   if (!-e "$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder."/$bkpdir.zip") 
@@ -437,7 +444,7 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   
   foreach(@Eintraege) 
   {
-    if ($_ =~ m/$Backup_$local_miniserver_ip/) 
+    if ($_ =~ m/Backup_$local_miniserver_ip/) 
     {
      push(@files,$_);
     }

@@ -45,3 +45,5 @@ TXT2005=ERR#2005: Giving up! Can not move Backup to Download Area:
 TXT2006=ERR#2006: Can not download  
 TXT2007=ERR#2007: Giving up! Continous errors when downloading: 
 TXT2008=ERR#2008: Can not read local Miniserver-IP. Giving up!
+TXT2009=ERR#2009: Giving up! Error creating the Download directory
+TXT2010=ERR#2010: Directory already exists:
