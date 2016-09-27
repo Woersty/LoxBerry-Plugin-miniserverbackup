@@ -42,6 +42,7 @@ ARGV5=$5 # Fifth argument is Base folder of LoxBerry
 # Replace real subfolder and scriptname in config file and create subfolder.dat in CGI folder
 /bin/sed -i "s/REPLACEBYSUBFOLDER/$ARGV3/" $ARGV5/config/plugins/$ARGV3/miniserverbackup.cfg
 /bin/sed -i "s/REPLACEBYNAME/$ARGV2/" $ARGV5/config/plugins/$ARGV3/miniserverbackup.cfg
+/bin/sed -i "s/REPLACEBYSUBFOLDER/$ARGV3/" $ARGV5/webfrontend/html/plugins/$ARGV3/index.html
 
 # Exit with Status 0
 exit 0
