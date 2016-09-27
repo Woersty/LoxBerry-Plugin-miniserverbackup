@@ -24,6 +24,7 @@ use XML::Simple qw(:strict);
 use Config::Simple;
 #use Data::Dumper;
 use File::Copy;
+use File::Path qw(make_path remove_tree);
 #use strict;
 #use warnings;
 use File::HomeDir;
@@ -86,13 +87,14 @@ our $retry_error;
 our $maxdwltries;
 our $local_miniserver_ip;
 our $foundfiles;
+our $miniserverfoldername;
 
 ##########################################################################
 # Read Configuration
 ##########################################################################
 
 # Version of this script
-my $version = "0.0.12";
+my $version = "0.14";
 
 # Figure out in which subfolder we are installed
 $psubfolder = abs_path($0);
@@ -174,6 +176,7 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   $useclouddns        				= $cfg->param("MINISERVER$msno.USECLOUDDNS");
   $miniservercloudurl 				= $cfg->param("MINISERVER$msno.CLOUDURL");
   $miniservercloudurlftpport 	= $cfg->param("MINISERVER$msno.CLOUDURLFTPPORT");
+  $miniserverfoldername       = $cfg->param("MINISERVER$msno.FOLDERNAME");
 
   if ( ${useclouddns} eq "1" )
   {
@@ -351,15 +354,16 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   $dirmin = sprintf("%02d", $dirmin);
   $dirsec = sprintf("%02d", $dirsec);
   # Create temporary dir
+  $bkpfolder = sprintf("%03d", $msno)."_".$miniserverfoldername;
   $bkpdir = "Backup_$local_miniserver_ip\_$diryear$dirmon$dirmday$dirhour$dirmin$dirsec\_$mainver$subver$monver$dayver";
-  $response = mkdir("/tmp/$bkpdir",0777);
+  $response = make_path ("/tmp/".$bkpfolder."/".$bkpdir, {owner=>'loxberry', group=>'loxberry', chmod => 0777});
   if ($response == 0) 
   {
     $error=1;
-    $logmessage = $phraseplugin->param("TXT2003")." /tmp/$bkpdir"; &error; # Could not create temporary folder /tmp/$bkpdir. Giving up.
+    $logmessage = $phraseplugin->param("TXT2003")." /tmp/$bkpfolder/$bkpdir"; &error; # Could not create temporary folder /tmp/$bkpfolder/$bkpdir. Giving up.
     next;
   }
-  if ($verbose) { $logmessage = $phraseplugin->param("TXT1009")." /tmp/$bkpdir"; &log($green_css); } # "Temporary folder created: /tmp/$bkpdir."
+  if ($verbose) { $logmessage = $phraseplugin->param("TXT1009")." /tmp/$bkpfolder/$bkpdir"; &log($green_css); } # "Temporary folder created: /tmp/$bkpfolder/$bkpdir."
   $logmessage = $phraseplugin->param("TXT1010"); &log($green_css); # Starting Download
   # Download files from Miniserver
   # /log
@@ -382,7 +386,7 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   $logmessage = $phraseplugin->param("TXT1011")." $bkpdir.zip"; &log($green_css); # Compressing Backup xxx ...
   
   # Zipping
-  our @output = qx(cd /tmp && $zipbin -q -p -r $bkpdir.zip $bkpdir);
+  our @output = qx(cd /tmp/$bkpfolder && $zipbin -q -p -r $bkpdir.zip $bkpdir );
   if ($? ne 0) 
   {
     $error=1;
@@ -391,13 +395,20 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   } 
   else
   {
-    if ($verbose) { $logmessage = $phraseplugin->param("TXT1012"); &log($green_css); } # ZIP-Archive /tmp/$bkpdir/$bkpdir.zip created successfully.
+    if ($verbose) { $logmessage = $phraseplugin->param("TXT1012"); &log($green_css); } # ZIP-Archive /tmp/$bkpfolder/$bkpdir/$bkpdir.zip created successfully.
   }
   $logmessage = $phraseplugin->param("TXT1013"); &log($green_css); #Moving Backup to Download folder..."
   
   # Moving ZIP to files section
-  move("/tmp/$bkpdir.zip","$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpdir.zip");
-  if (!-e "$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpdir.zip") 
+  $response = make_path ("$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder, {owner=>'loxberry', group=>'loxberry', chmod => 0777});
+  if ($response == 0) 
+  {
+    $error=1;
+    $logmessage = $phraseplugin->param("TXT2009")." ".$bkpfolder; &error; # Could not create download folder.
+    next;
+  }
+  move("/tmp/".$bkpfolder."/$bkpdir.zip","$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder."/"."$bkpdir.zip");
+  if (!-e "$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder."/$bkpdir.zip") 
   {
     $error=1;
   	$logmessage = $phraseplugin->param("TXT2005")." ($bkpdir.zip)" ; &error; # "Moving Error!"
@@ -415,12 +426,12 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   {
     $logmessage = $phraseplugin->param("TXT1015"); &log($green_css);  # Cleaning up temporary and old stuff.
   }
-  @output = qx(rm -r /tmp/Backup_* > /dev/null 2>&1);
+  @output = qx(rm -r /tmp/$bkpfolder > /dev/null 2>&1);
   # Delete old backup archives
   $i 					= 0;
   @files 			= "";
   @Eintraege	= "";
-  opendir(DIR, "$installfolder/webfrontend/html/plugins/$psubfolder/files");
+  opendir(DIR, "$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder."/");
     @Eintraege = readdir(DIR);
   closedir(DIR);
   
@@ -435,8 +446,8 @@ for($msno = 1; $msno <= $miniservers; $msno++)
 
   $foundfiles = scalar(@files) - 1; # There seems to be one blank entry in @files? This is not a real file...
 
-  if ($verbose) { $logmessage = $foundfiles." ".$phraseplugin->param("TXT1016")." $installfolder/webfrontend/html/plugins/$psubfolder/files "; &log($green_css); } # x files found in dir y
-  if ($debug)   { $logmessage = "Files: $installfolder/webfrontend/html/plugins/$psubfolder/files :".join(" + ", @files); &log($green_css); }
+  if ($verbose) { $logmessage = $foundfiles." ".$phraseplugin->param("TXT1016")." $installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder "; &log($green_css); } # x files found in dir y
+  if ($debug)   { $logmessage = "Files: $installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder :".join(" + ", @files); &log($green_css); }
 
   foreach(@files) 
   {
@@ -445,7 +456,7 @@ for($msno = 1; $msno <= $miniservers; $msno++)
     if ($i > $maxfiles && $_ ne "") 
     {
       $logmessage = $phraseplugin->param("TXT1017")." $_"; &log($green_css); # Deleting old Backup $_
-      unlink("$installfolder/webfrontend/html/plugins/$psubfolder/files/$_");
+      unlink("$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$_");
   	} 
   }
 	if ($error eq 0) { $logmessage = $phraseplugin->param("TXT1018")." $bkpdir.zip "; &log($green_css); } # New Backup $bkpdir.zip created successfully.
@@ -530,7 +541,7 @@ sub download
   if ($verbose) { $logmessage = $phraseplugin->param("TXT1021")." $url ..."; &log($green_css); } # Downloading xxx ....
   for(my $versuche = 1; $versuche < 16; $versuche++) 
 	{
-				system("$wgetbin $quiet -a $home/log/plugins/miniserverbackup/backuplog.log --retry-connrefused --tries=$maxdwltries --waitretry=5 --timeout=10 --passive-ftp -nH -r $url -P /tmp/$bkpdir ");
+				system("$wgetbin $quiet -a $home/log/plugins/miniserverbackup/backuplog.log --retry-connrefused --tries=$maxdwltries --waitretry=5 --timeout=10 --passive-ftp -nH -r $url -P /tmp/$bkpfolder/$bkpdir ");
 			  if ($? ne 0) 
 			  {
 			    $logmessage = $phraseplugin->param("TXT2006")." $url ".$phraseplugin->param("TXT1022")." $versuche ".$phraseplugin->param("TXT1023")." $maxdwltries (Errorcode: $?)"; &log($red_css); # Try x of y failed 
