@@ -10,7 +10,8 @@
 													<a id="btnbackup" data-role="button" data-mini="true" onclick="$('#Logfiletextbox').append('<hr\><div style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'>##### Starte manuelles Backup #####</div><hr\>'); $('#response').html( 'Starte Backup - Bitte warten...' ); $('#response').fadeTo( 'fast', 1 ); $.get('./index.cgi?do=backup&lang=de', function(response) { setTimeout( function(){ $('#response').fadeTo( 'slow', 0 ); }, 5000); setTimeout( function(){ $('#response').html( '&nbsp;' ); }, 6500); $('#response').html(response);});">Backup jetzt starten!</a>
 												</td>
 												<td width="150px" cellpadding=10>
-													<a id="btndownloads" data-role="button" data-mini="true" href="/plugins/<!--$psubfolder-->/files" data-icon="grid" target="_blank">Downloads</a>
+													<input type="hidden" id="language" value="<!--$lang-->">
+													<a id="btndownloads" data-role="button" data-mini="true" onclick="window.open('/plugins/<!--$psubfolder-->/','Downloads','width=1000,height=420,status=no,scrollbars=yes,titlebar=no,toolbar=no,menubar=no,location=no');" data-icon="grid" target="_blank">Downloads</a>
 												</td>
 												<td width="150px%" id="LogSave"><a id="btnlogs" data-role="button" href="/admin/system/tools/logfile.cgi?logfile=plugins/<!--$psubfolder-->/backuplog.log&header=html&format=template" target="_blank" data-inline="true" data-mini="true" data-icon="arrow-d">Logdatei speichern</a></td>
 											</tr>
