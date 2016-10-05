@@ -38,5 +38,7 @@
 
 echo "<INFO> Nothing to do here."
 
+find /tmp/uploads/$ARGV1 -type f -print0 | xargs -0 dos2unix -q 
+
 # Exit with Status 0
 exit 0
