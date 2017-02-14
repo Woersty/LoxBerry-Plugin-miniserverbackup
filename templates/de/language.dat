@@ -39,6 +39,9 @@ TXT1030=Miniserver-IP (Internet):
 TXT1031=Verschiebe altes Backup für inkrementelles ZIP-Update: 
 TXT1032=Kopiere letztes Backup für inkrementelles ZIP-Update: 
 TXT1033=Backup-Lauf ohne bestehendem Backup. Neues Archiv wird erstellt.
+TXT1034=Firmware konnte nicht gelesen werden - ich mache kurz Pause und versuche es erneut...
+TXT1035=Lokale IP-Adresse konnte nicht gelesen werden - ich mache kurz Pause und versuche es erneut...
+TXT1036=Lokaler FTP-Port konnte nicht gelesen werden - ich mache kurz Pause und versuche es erneut...
 
 ;FEHLERMELDUNGEN
 TXT2001=ERR#2001: Kann Miniserver-Firmware-Version nicht auslesen. Gebe auf!
