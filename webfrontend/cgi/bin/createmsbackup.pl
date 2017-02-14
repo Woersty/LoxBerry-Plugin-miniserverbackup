@@ -66,6 +66,7 @@ our $dirisdst;
 our $bkpdir;
 our $bkpbase;
 our $lftpbin = "lftp";
+our $sevenzipbin = "7z";
 our $verbose;
 our $debug;
 our $maxfiles;
@@ -117,9 +118,17 @@ $pcfg            = new Config::Simple("$installfolder/config/plugins/$psubfolder
 $debug           = $pcfg->param("MSBACKUP.DEBUG");
 $maxfiles        = $pcfg->param("MSBACKUP.MAXFILES");
 $bkpbase		 = $pcfg->param("MSBACKUP.BASEDIR");
+$compressionlevel = $pcfg->param("MSBACKUP.COMPRESSION_LEVEL");
+$zipformat 		 = $pcfg->param("MSBACKUP.ZIPFORMAT");
 
 if (!$bkpbase) {
 	$bkpbase = "$installfolder/data/plugins/$psubfolder/currentbackup";
+}
+if (!$compressionlevel) {
+	$compressionlevel = 1;
+}
+if (!$zipformat) {
+	$zipformat = "7z";
 }
 
 
@@ -398,6 +407,10 @@ for($msno = 1; $msno <= $miniservers; $msno++)
 # Some performance tuning of ZIP creation
 # We do an archive cleanup and caching before
 #############################################
+#
+# Doesn't work as the subdirectory of the archive has changed!
+# Will always create a new archive....
+
   # Get the oldest zip archive
   $i = 0;
   @files = "";
@@ -425,12 +438,12 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   {
     s/[\n\r]//g;
     $i++;
-    if ($i > $maxfiles && $_ ne "") 
+    if ($i > ($maxfiles-1) && $_ ne "") 
     {
-      if (! -e "/tmp/miniserverbackup/$bkpdir.zip") {
+      if (! -e "/tmp/miniserverbackup/$bkpdir.$zipformat" && (split /./, $_)[1] eq $zipformat) {
 		# We use the first file that would be deleted to make an incremental ZIP update
 		$logmessage = $phraseplugin->param("TXT1031")." $_"; &log($green_css); # Moving old Backup $_
-		move("$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$_", "/tmp/miniserverbackup/$bkpdir.zip");
+		move("$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$_", "/tmp/miniserverbackup/$bkpdir.$zipformat");
 	  } else {
 		$logmessage = $phraseplugin->param("TXT1017")." $_"; &log($green_css); # Deleting old Backup $_
 		unlink("$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$_");
@@ -440,9 +453,9 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   # If we have no old file, take the last backup
   # print STDERR "DEBUG: Filename $files[0]\n";
 
-  if (! -e "/tmp/miniserverbackup/$bkpdir.zip" && -e "$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$files[0]") {
+  if (! -e "/tmp/miniserverbackup/$bkpdir.$zipformat" && -e "$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$files[0]" && (split /./, $files[0])[1] eq $zipformat) {
 	$logmessage = $phraseplugin->param("TXT1032")." $_"; &log($green_css); # Copying last Backup 
-	copy("$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$files[0]", "/tmp/miniserverbackup/$bkpdir.zip");
+	copy("$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$files[0]", "/tmp/miniserverbackup/$bkpdir.$zipformat");
   }
  # We now possibly have a backup file in /tmp/miniserverbackup
 #############################################
@@ -479,11 +492,24 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   $logmessage = $phraseplugin->param("TXT1011")." /tmp/miniserverbackup/$bkpdir.zip"; &log($green_css); # Compressing Backup xxx ...
   
   # Zipping
-  # Zip Syntax:
-  # zip [-options] [-b path] [-t mmddyyyy] [-n suffixes] [zipfile list] [-xi list]
   
-  #our @output = qx(cd $bkpbase/$bkpfolder && $zipbin -q -p -r $bkpdir.zip $bkpdir );
-  our @output = qx(cd /tmp/miniserverbackup && $zipbin -Z bzip2 -FS --quiet --paths --recurse-paths $bkpdir.zip $bkpdir );
+  # 7zip Example
+  #  7z u -l -uq0 -u!newarchive.7z -t7z -mx=3 -ms=off Backup_192.168.0.77_20170214024819_1921680077.7z Backup_192.168.0.77_20170214024819_1921680077/*
+
+  my $sevenzip_options = "-l -uq0 -t$zipformat -mx=$compressionlevel -ms=off";
+  our @output = qx(cd /tmp/miniserverbackup/$bkpdir && $sevenzipbin u $sevenzip_options -- /tmp/miniserverbackup/$bkpdir.$zipformat *);
+	
+
+
+
+  	# Zip Syntax (obsolete):
+	# zip [-options] [-b path] [-t mmddyyyy] [-n suffixes] [zipfile list] [-xi list]
+	#our @output = qx(cd $bkpbase/$bkpfolder && $zipbin -q -p -r $bkpdir.zip $bkpdir );
+	#our @output = qx(cd /tmp/miniserverbackup && $zipbin -Z bzip2 -FS --quiet --paths --recurse-paths $bkpdir.zip $bkpdir );
+
+	
+
+
   if ($? ne 0) 
   {
     $error=1;
@@ -511,16 +537,16 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   {
     if ($verbose) { $logmessage = $phraseplugin->param("TXT2010")." $bkpfolder"; &log($green_css); }  # Folder exists => ok
   }
-  move("/tmp/miniserverbackup/$bkpdir.zip","$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder."/"."$bkpdir.zip");
-  if (!-e "$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder."/$bkpdir.zip") 
+  move("/tmp/miniserverbackup/$bkpdir.$zipformat","$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder."/"."$bkpdir.$zipformat");
+  if (!-e "$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder."/$bkpdir.$zipformat") 
   {
     $error=1;
-  	$logmessage = $phraseplugin->param("TXT2005")." ($bkpdir.zip)" ; &error; # "Moving Error!"
+  	$logmessage = $phraseplugin->param("TXT2005")." ($bkpdir.$zipformat)" ; &error; # "Moving Error!"
     next;
   } 
   else 
   {
-    if ($verbose) { $logmessage = $phraseplugin->param("TXT1014")." ($bkpdir.zip)"; &log($green_css); }  # Moved ZIP-Archive to Files-Section successfully.
+    if ($verbose) { $logmessage = $phraseplugin->param("TXT1014")." ($bkpdir.$zipformat)"; &log($green_css); }  # Moved ZIP-Archive to Files-Section successfully.
   }
 
   ABBRUCH:
@@ -534,38 +560,41 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   # Incremental - do NOT cleanup backup, but /tmp/miniserverbackup
   @output = qx(rm -r /tmp/miniserverbackup > /dev/null 2>&1);
   
-  # Delete old backup archives
-  $i = 0;
-  @files = "";
-  @Eintraege = "";
-  opendir(DIR, "$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder."/");
-    @Eintraege = readdir(DIR);
-  closedir(DIR);
+  # # Delete old backup archives
+  # $i = 0;
+  # @files = "";
+  # @Eintraege = "";
+  # opendir(DIR, "$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder."/");
+    # @Eintraege = readdir(DIR);
+  # closedir(DIR);
   
-  foreach(@Eintraege) 
-  {
-    if ($_ =~ m/Backup_$local_miniserver_ip/) 
-    {
-     push(@files,$_);
-    }
-  }
-  @files = sort {$b cmp $a}(@files);
+  # foreach(@Eintraege) 
+  # {
+    # if ($_ =~ m/Backup_$local_miniserver_ip/) 
+    # {
+     # push(@files,$_);
+    # }
+  # }
+  # @files = sort {$b cmp $a}(@files);
 
-  $foundfiles = scalar(@files) - 1; # There seems to be one blank entry in @files? This is not a real file...
+  # $foundfiles = scalar(@files) - 1; # There seems to be one blank entry in @files? This is not a real file...
 
-  if ($verbose) { $logmessage = $foundfiles." ".$phraseplugin->param("TXT1016")." $installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder "; &log($green_css); } # x files found in dir y
-  if ($debug)   { $logmessage = "Files: $installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder :".join(" + ", @files); &log($green_css); }
+  # if ($verbose) { $logmessage = $foundfiles." ".$phraseplugin->param("TXT1016")." $installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder "; &log($green_css); } # x files found in dir y
+  # if ($debug)   { $logmessage = "Files: $installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder :".join(" + ", @files); &log($green_css); }
 
-  foreach(@files) 
-  {
-    s/[\n\r]//g;
-    $i++;
-    if ($i > $maxfiles && $_ ne "") 
-    {
-      $logmessage = $phraseplugin->param("TXT1017")." $_"; &log($green_css); # Deleting old Backup $_
-      unlink("$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$_");
-  	} 
-  }
+  # foreach(@files) 
+  # {
+    # s/[\n\r]//g;
+    # $i++;
+    # if ($i > $maxfiles && $_ ne "") 
+    # {
+      # $logmessage = $phraseplugin->param("TXT1017")." $_"; &log($green_css); # Deleting old Backup $_
+      # unlink("$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$_");
+  	# } 
+  # }
+  
+  
+  
   if ($error eq 0) { $logmessage = $phraseplugin->param("TXT1018")." $bkpdir.zip "; &log($green_css); } # New Backup $bkpdir.zip created successfully.
   $error = 0;
 }
