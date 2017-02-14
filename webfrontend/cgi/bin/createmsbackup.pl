@@ -19,6 +19,10 @@
 # Modules
 ##########################################################################
 
+#use lib '../perllib';
+#use LoxBerry::System;
+
+
 use LWP::UserAgent;
 use XML::Simple qw(:strict);
 use Config::Simple;
@@ -116,21 +120,10 @@ $lang            = $cfg->param("BASE.LANG");
 $maxdwltries     = 15; # Maximale wget Wiederholungen
 $pcfg            = new Config::Simple("$installfolder/config/plugins/$psubfolder/miniserverbackup.cfg");
 $debug           = $pcfg->param("MSBACKUP.DEBUG");
-$maxfiles        = $pcfg->param("MSBACKUP.MAXFILES");
-$bkpbase		 = $pcfg->param("MSBACKUP.BASEDIR");
-$compressionlevel = $pcfg->param("MSBACKUP.COMPRESSION_LEVEL");
-$zipformat 		 = $pcfg->param("MSBACKUP.ZIPFORMAT");
-
-if (!$bkpbase) {
-	$bkpbase = "$installfolder/data/plugins/$psubfolder/currentbackup";
-}
-if (!$compressionlevel) {
-	$compressionlevel = 1;
-}
-if (!$zipformat) {
-	$zipformat = "7z";
-}
-
+$maxfiles =	defined $pcfg->param("MSBACKUP.MAXFILES") ? $pcfg->param("MSBACKUP.MAXFILES") : 1;
+$bkpbase = defined $pcfg->param("MSBACKUP.BASEDIR") ? $pcfg->param("MSBACKUP.BASEDIR") : "$installfolder/data/plugins/$psubfolder/currentbackup";
+$compressionlevel = defined $pcfg->param("MSBACKUP.COMPRESSION_LEVEL") ? $pcfg->param("MSBACKUP.COMPRESSION_LEVEL") : 1;
+$zipformat = defined $pcfg->param("MSBACKUP.ZIPFORMAT") ? $pcfg->param("MSBACKUP.ZIPFORMAT") : "7z";
 
 $languagefileplugin = "$installfolder/templates/plugins/$psubfolder/$lang/language.dat";
 our $phraseplugin 	= new Config::Simple($languagefileplugin);
@@ -457,6 +450,10 @@ for($msno = 1; $msno <= $miniservers; $msno++)
 	$logmessage = $phraseplugin->param("TXT1032")." $_"; &log($green_css); # Copying last Backup 
 	copy("$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$files[0]", "/tmp/miniserverbackup/$bkpdir.$zipformat");
   }
+  if (! -e "/tmp/miniserverbackup/$bkpdir.$zipformat") {
+	$logmessage = $phraseplugin->param("TXT1033"); &log($green_css); # Tell the people that we have no backup yet
+  }
+  
  # We now possibly have a backup file in /tmp/miniserverbackup
 #############################################
 
@@ -489,7 +486,7 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   $remotepath = "/user";
   download();
 
-  $logmessage = $phraseplugin->param("TXT1011")." /tmp/miniserverbackup/$bkpdir.zip"; &log($green_css); # Compressing Backup xxx ...
+  $logmessage = $phraseplugin->param("TXT1011")." /tmp/miniserverbackup/$bkpdir.$zipformat"; &log($green_css); # Compressing Backup xxx ...
   
   # Zipping
   
@@ -504,8 +501,8 @@ for($msno = 1; $msno <= $miniservers; $msno++)
 
   	# Zip Syntax (obsolete):
 	# zip [-options] [-b path] [-t mmddyyyy] [-n suffixes] [zipfile list] [-xi list]
-	#our @output = qx(cd $bkpbase/$bkpfolder && $zipbin -q -p -r $bkpdir.zip $bkpdir );
-	#our @output = qx(cd /tmp/miniserverbackup && $zipbin -Z bzip2 -FS --quiet --paths --recurse-paths $bkpdir.zip $bkpdir );
+	#our @output = qx(cd $bkpbase/$bkpfolder && $zipbin -q -p -r $bkpdir.$zipformat $bkpdir );
+	#our @output = qx(cd /tmp/miniserverbackup && $zipbin -Z bzip2 -FS --quiet --paths --recurse-paths $bkpdir.$zipformat $bkpdir );
 
 	
 
@@ -518,7 +515,7 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   } 
   else
   {
-    if ($verbose) { $logmessage = $phraseplugin->param("TXT1012"); &log($green_css); } # ZIP-Archive /tmp/$bkpfolder/$bkpdir/$bkpdir.zip created successfully.
+    if ($verbose) { $logmessage = $phraseplugin->param("TXT1012"); &log($green_css); } # ZIP-Archive /tmp/$bkpfolder/$bkpdir/$bkpdir.$zipformat created successfully.
   }
   $logmessage = $phraseplugin->param("TXT1013"); &log($green_css); #Moving Backup to Download folder..."
   
@@ -595,7 +592,7 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   
   
   
-  if ($error eq 0) { $logmessage = $phraseplugin->param("TXT1018")." $bkpdir.zip "; &log($green_css); } # New Backup $bkpdir.zip created successfully.
+  if ($error eq 0) { $logmessage = $phraseplugin->param("TXT1018")." $bkpdir.$zipformat "; &log($green_css); } # New Backup $bkpdir.$zipformat created successfully.
   $error = 0;
 }
 $msno = "1 => #".($msno - 1); # Minisever x ... y saved

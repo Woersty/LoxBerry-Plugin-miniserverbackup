@@ -38,6 +38,8 @@ TXT1029=Bitte die Einstellung -Nur Lokaler Zugriff- auf der Miniserver Admin-Web
 TXT1030=Miniserver-IP (Internet): 
 TXT1031=Verschiebe altes Backup für inkrementelles ZIP-Update: 
 TXT1032=Kopiere letztes Backup für inkrementelles ZIP-Update: 
+TXT1033=Backup-Lauf ohne bestehendem Backup. Neues Archiv wird erstellt.
+
 ;FEHLERMELDUNGEN
 TXT2001=ERR#2001: Kann Miniserver-Firmware-Version nicht auslesen. Gebe auf!
 TXT2002=ERR#2002: Kann Miniserver-FTP-Port nicht auslesen. Gebe auf!
