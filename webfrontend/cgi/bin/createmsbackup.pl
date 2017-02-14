@@ -433,7 +433,9 @@ for($msno = 1; $msno <= $miniservers; $msno++)
     $i++;
     if ($i > ($maxfiles-1) && $_ ne "") 
     {
-      if (! -e "/tmp/miniserverbackup/$bkpdir.$zipformat" && (split /./, $_)[1] eq $zipformat) {
+	$ext = substr($_, rindex ($_, '.')+1); 
+    
+	  if (! -e "/tmp/miniserverbackup/$bkpdir.$zipformat" && $ext eq $zipformat) {
 		# We use the first file that would be deleted to make an incremental ZIP update
 		$logmessage = $phraseplugin->param("TXT1031")." $_"; &log($green_css); # Moving old Backup $_
 		move("$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$_", "/tmp/miniserverbackup/$bkpdir.$zipformat");
@@ -444,9 +446,14 @@ for($msno = 1; $msno <= $miniservers; $msno++)
 	} 
   }
   # If we have no old file, take the last backup
+  
+  #$logmessage = "DEBUG: Filename $files[0]"; &log($green_css); # DEBUG
   # print STDERR "DEBUG: Filename $files[0]\n";
 
-  if (! -e "/tmp/miniserverbackup/$bkpdir.$zipformat" && -e "$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$files[0]" && (split /./, $files[0])[1] eq $zipformat) {
+  $ext = substr($files[0], rindex ($files[0], '.')+1); 
+  
+  # print STDERR "DEBUG: Extension -->" . $ext . "<--\n";
+  if (! -e "/tmp/miniserverbackup/$bkpdir.$zipformat" && -e "$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$files[0]" && $ext eq $zipformat) {
 	$logmessage = $phraseplugin->param("TXT1032")." $_"; &log($green_css); # Copying last Backup 
 	copy("$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$files[0]", "/tmp/miniserverbackup/$bkpdir.$zipformat");
   }
@@ -494,10 +501,10 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   #  7z u -l -uq0 -u!newarchive.7z -t7z -mx=3 -ms=off Backup_192.168.0.77_20170214024819_1921680077.7z Backup_192.168.0.77_20170214024819_1921680077/*
 
   my $sevenzip_options = "-l -uq0 -t$zipformat -mx=$compressionlevel -ms=off";
-  our @output = qx(cd /tmp/miniserverbackup/$bkpdir && $sevenzipbin u $sevenzip_options -- /tmp/miniserverbackup/$bkpdir.$zipformat *);
-	
-
-
+  our $output = qx(cd /tmp/miniserverbackup/$bkpdir && $sevenzipbin u $sevenzip_options -- /tmp/miniserverbackup/$bkpdir.$zipformat *);
+  my $exitcode = $? >> 8;
+  if ($debug) { $logmessage = $output; &log($dwl_css); }
+  
 
   	# Zip Syntax (obsolete):
 	# zip [-options] [-b path] [-t mmddyyyy] [-n suffixes] [zipfile list] [-xi list]
@@ -507,10 +514,10 @@ for($msno = 1; $msno <= $miniservers; $msno++)
 	
 
 
-  if ($? ne 0) 
+  if ($exitcode ne 0) 
   {
     $error=1;
-  	$logmessage = $phraseplugin->param("TXT2004")." /tmp/miniserverbackup/$bkpdir (Errorcode: $?)"; &error; # Compressing error
+  	$logmessage = $phraseplugin->param("TXT2004")." /tmp/miniserverbackup/$bkpdir (Errorcode: $exitcode)"; &error; # Compressing error
     next;
   } 
   else
@@ -555,7 +562,7 @@ for($msno = 1; $msno <= $miniservers; $msno++)
   }
   
   # Incremental - do NOT cleanup backup, but /tmp/miniserverbackup
-  @output = qx(rm -r /tmp/miniserverbackup > /dev/null 2>&1);
+  $output = qx(rm -r /tmp/miniserverbackup > /dev/null 2>&1);
   
   # # Delete old backup archives
   # $i = 0;
@@ -662,7 +669,7 @@ sub download
 	if ($debug eq 1) 
 	{
 		#Debug
-		$quiet="debug -o $lftplog -t -c 3";
+		$quiet="debug -o $lftplog -t -c 3 ";
 	}
 	elsif  ($verbose eq 1) 
 	{
@@ -685,8 +692,8 @@ sub download
   for(my $versuche = 1; $versuche < 16; $versuche++) 
 	{
 			# system("$wgetbin $quiet -a $home/log/plugins/miniserverbackup/backuplog.log --retry-connrefused --tries=$maxdwltries --waitretry=5 --timeout=10 --passive-ftp -nH -r $url -P $bkpbase/$bkpfolder/$bkpdir ");
-			$lftpcommand = "$lftpbin -c \"$quiet; $lftpoptions; open -u $miniserveradmin,$miniserverpass -p $miniserverftpport $miniserverip; mirror --continue --use-cache --parallel=1 --delete $remotepath $bkpbase/$bkpfolder$remotepath\"";
-			$logmessage = $lftpcommand; &log($dwl_css);
+			$lftpcommand = "$lftpbin -c \"$quiet; $lftpoptions; open -u $miniserveradmin,$miniserverpass -p $miniserverftpport $miniserverip; mirror --continue --use-cache --parallel=1 --no-perms --no-umask --delete $remotepath $bkpbase/$bkpfolder$remotepath\"";
+			# $logmessage = $lftpcommand; &log($dwl_css);
 			system($lftpcommand);
 			if ($? ne 0) 
 			{
