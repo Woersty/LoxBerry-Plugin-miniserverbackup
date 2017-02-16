@@ -51,10 +51,10 @@ echo "<INFO> Backing up existing config files"
 cp -p -v -r $ARGV5/config/plugins/$ARGV3/ /tmp/$ARGV1\_upgrade/config
 
 echo "<INFO> Backing up existing log files"
-cp -p -v -r $ARGV5/log/plugins/$ARGV3/ /tmp/$ARGV1\_upgrade/log
+mv $ARGV5/log/plugins/$ARGV3/ /tmp/$ARGV1\_upgrade/log
 
 echo "<INFO> Backing up existing backup archives"
-cp -p -v -r $ARGV5/webfrontend/html/plugins/$ARGV3/files/* /tmp/$ARGV1\_upgrade/files/
+mv $ARGV5/webfrontend/html/plugins/$ARGV3/files/* /tmp/$ARGV1\_upgrade/files/
 
 # Exit with Status 0
 exit 0
