@@ -623,7 +623,7 @@ sub download
 
 
 	my $lftpoptions = "
-	set cmd:parallel 1; set ftp:passive-mode true; set ftp:sync-mode true;
+	set net:timeout 5; net:reconnect-interval-base 3; set net:max-retries 3; cmd:parallel 1; set ftp:passive-mode true; set ftp:sync-mode true;
 	set net:limit-total-rate 3M:3M; set ftp:stat-interval 10;
 	";
 	
