@@ -641,7 +641,7 @@ sub download
 			} 
 			else 
 			{
-				$logmessage = $phraseplugin->param("TXT1024")." $versuche ".$phraseplugin->param("TXT1023")." $maxdwltries ".$phraseplugin->param("TXT1025")." $url"; &log($dwl_css); # Download ok
+				$logmessage = $phraseplugin->param("TXT1024")." $versuche ".$phraseplugin->param("TXT1023")." $maxdwltries ".$phraseplugin->param("TXT1025")." $remotepath"; &log($dwl_css); # Download ok
 			    $retry_error = 0;
 			}
 			if ($retry_error eq 0) { last; }
@@ -649,7 +649,7 @@ sub download
 	if ($retry_error eq $maxdwltries)
 	{ 
       $error = 1;
- 	    $logmessage = $phraseplugin->param("TXT2007")." $remotepath (Errorcode: $?)"; &error; # "Wiederholter Fehler $? beim Speichern von $url. GEBE AUF!!"
+ 	    $logmessage = $phraseplugin->param("TXT2007")." $remotepath (Errorcode: $?)"; &error; # "Wiederholter Fehler $? beim Speichern von $remotepath. GEBE AUF!!"
     	if ( $retry_error eq $maxdwltries ) { goto ABBRUCH; }
 	}
   return ();
