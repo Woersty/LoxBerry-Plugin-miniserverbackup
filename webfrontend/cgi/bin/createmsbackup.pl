@@ -122,12 +122,29 @@ $pcfg            = new Config::Simple("$installfolder/config/plugins/$psubfolder
 $debug           = $pcfg->param("MSBACKUP.DEBUG");
 $maxfiles =	defined $pcfg->param("MSBACKUP.MAXFILES") ? $pcfg->param("MSBACKUP.MAXFILES") : 1;
 $bkpbase = defined $pcfg->param("MSBACKUP.BASEDIR") ? $pcfg->param("MSBACKUP.BASEDIR") : "$installfolder/data/plugins/$psubfolder/currentbackup";
+$bkpworkdir = defined $pcfg->param("MSBACKUP.WORKDIR") ? $pcfg->param("MSBACKUP.WORKDIR") : "$installfolder/data/plugins/$psubfolder/workdir";
+# $bkpziplinkdir = defined $pcfg->param("MSBACKUP.BACKUPDIR") ? $pcfg->param("MSBACKUP.BACKUPDIR") : undef;
 $compressionlevel = defined $pcfg->param("MSBACKUP.COMPRESSION_LEVEL") ? $pcfg->param("MSBACKUP.COMPRESSION_LEVEL") : 5;
 $zipformat = defined $pcfg->param("MSBACKUP.ZIPFORMAT") ? $pcfg->param("MSBACKUP.ZIPFORMAT") : "7z";
 
 $languagefileplugin = "$installfolder/templates/plugins/$psubfolder/$lang/language.dat";
 our $phraseplugin 	= new Config::Simple($languagefileplugin);
 
+# $bkzipdestdir is the static folder files/
+# $bkpziplinkdir is the folder we link to
+$bkpzipdestdir = "$installfolder/webfrontend/html/plugins/$psubfolder/files";
+# NOT implemented:
+# To use a different backup destination, 
+# 1. If $bkpziplinkdir IS set and $bkpzipdestdir IS NOT symlink
+#	- Check if $bkpziplinkdir is available and writeable
+# 	- Move $bkpzipdestdir to $bkpziplinkdir
+#	- Create symlink from $bkpzipdestdir to $bkpziplinkdir
+# 3. If $bkpziplinkdir IS NOT set and $bkpziplinkdir IS a symlink
+#   - Move files to workdir
+#	- Remove symlink
+#	- Move files back to $bkpzipdestdir
+# 4. If $bkpziplinkdir IS NOT set and $bkpziplinkdir IS NOT a symlink
+#   - Recreate .htaccess if not existing
 
 our $css = "";
 #Error Style
@@ -378,7 +395,7 @@ for($msno = 1; $msno <= $miniservers; $msno++)
 	  $i = 0;
 	  @files = "";
 	  @Eintraege = "";
-	  opendir(DIR, "$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder."/");
+	  opendir(DIR, "$bkpzipdestdir/$bkpfolder/");
 		@Eintraege = readdir(DIR);
 	  closedir(DIR);
 	  
@@ -394,8 +411,8 @@ for($msno = 1; $msno <= $miniservers; $msno++)
 	  $foundfiles = scalar(@files) - 1; # There seems to be one blank entry in @files? This is not a real file...
 	  
 	  # Now we have the filelist
-	  if ($verbose) { $logmessage = $foundfiles." ".$phraseplugin->param("TXT1016")." $installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder "; &log($green_css); } # x files found in dir y
-	  if ($debug)   { $logmessage = "Files: $installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder :".join(" + ", @files); &log($green_css); }
+	  if ($verbose) { $logmessage = $foundfiles." ".$phraseplugin->param("TXT1016")." $bkpzipdestdir/$bkpfolder "; &log($green_css); } # x files found in dir y
+	  if ($debug)   { $logmessage = "Files: $bkpzipdestdir/$bkpfolder :".join(" + ", @files); &log($green_css); }
 
 	  foreach(@files) 
 	  {
@@ -408,10 +425,10 @@ for($msno = 1; $msno <= $miniservers; $msno++)
 		  if (! -e "/tmp/miniserverbackup/$bkpdir.$zipformat" && $ext eq $zipformat) {
 			# We use the first file that would be deleted to make an incremental ZIP update
 			$logmessage = $phraseplugin->param("TXT1031")." $_"; &log($green_css); # Moving old Backup $_
-			move("$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$_", "/tmp/miniserverbackup/$bkpdir.$zipformat");
+			move("$bkpzipdestdir/$bkpfolder/$_", "/tmp/miniserverbackup/$bkpdir.$zipformat");
 		  } else {
 			$logmessage = $phraseplugin->param("TXT1017")." $_"; &log($green_css); # Deleting old Backup $_
-			unlink("$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$_");
+			unlink("$bkpzipdestdir/$bkpfolder/$_");
 		  }
 		} 
 	  }
@@ -423,9 +440,9 @@ for($msno = 1; $msno <= $miniservers; $msno++)
 	  $ext = substr($files[0], rindex ($files[0], '.')+1); 
 	  
 	  # print STDERR "DEBUG: Extension -->" . $ext . "<--\n";
-	  if (! -e "/tmp/miniserverbackup/$bkpdir.$zipformat" && -e "$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$files[0]" && $ext eq $zipformat) {
+	  if (! -e "/tmp/miniserverbackup/$bkpdir.$zipformat" && -e "$bkpzipdestdir/$bkpfolder/$files[0]" && $ext eq $zipformat) {
 		$logmessage = $phraseplugin->param("TXT1032")." $_"; &log($green_css); # Copying last Backup 
-		copy("$installfolder/webfrontend/html/plugins/$psubfolder/files/$bkpfolder/$files[0]", "/tmp/miniserverbackup/$bkpdir.$zipformat");
+		copy("$bkpzipdestdir/$bkpfolder/$files[0]", "/tmp/miniserverbackup/$bkpdir.$zipformat");
 	  }
 	  if (! -e "/tmp/miniserverbackup/$bkpdir.$zipformat") {
 		$logmessage = $phraseplugin->param("TXT1033"); &log($green_css); # Tell the people that we have no backup yet
@@ -497,9 +514,9 @@ for($msno = 1; $msno <= $miniservers; $msno++)
 	  $logmessage = $phraseplugin->param("TXT1013"); &log($green_css); #Moving Backup to Download folder..."
 	  
 	  # Moving ZIP to files section
-	  if (!-d "$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder) 
+	  if (!-d "$bkpzipdestdir/$bkpfolder") 
 	  {
-	  $response = make_path ("$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder, {owner=>'loxberry', group=>'loxberry', chmod => 0777});
+	  $response = make_path ("$bkpzipdestdir/$bkpfolder", {owner=>'loxberry', group=>'loxberry', chmod => 0777});
 		  if ($response == 0) 
 		  {
 			$error=1;
@@ -511,8 +528,8 @@ for($msno = 1; $msno <= $miniservers; $msno++)
 	  {
 		if ($verbose) { $logmessage = $phraseplugin->param("TXT2010")." $bkpfolder"; &log($green_css); }  # Folder exists => ok
 	  }
-	  move("/tmp/miniserverbackup/$bkpdir.$zipformat","$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder."/"."$bkpdir.$zipformat");
-	  if (!-e "$installfolder/webfrontend/html/plugins/$psubfolder/files/".$bkpfolder."/$bkpdir.$zipformat") 
+	  move("/tmp/miniserverbackup/$bkpdir.$zipformat","$bkpzipdestdir/$bkpfolder/$bkpdir.$zipformat");
+	  if (!-e "$bkpzipdestdir/$bkpfolder/$bkpdir.$zipformat") 
 	  {
 		$error=1;
 		$logmessage = $phraseplugin->param("TXT2005")." ($bkpdir.$zipformat)" ; &error; # "Moving Error!"
