@@ -122,6 +122,7 @@ $pcfg            = new Config::Simple("$installfolder/config/plugins/$psubfolder
 $debug           = $pcfg->param("MSBACKUP.DEBUG");
 $maxfiles =	defined $pcfg->param("MSBACKUP.MAXFILES") ? $pcfg->param("MSBACKUP.MAXFILES") : 1;
 $bkpbase = defined $pcfg->param("MSBACKUP.BASEDIR") ? $pcfg->param("MSBACKUP.BASEDIR") : "$installfolder/data/plugins/$psubfolder/currentbackup";
+$compressionlevel = defined $pcfg->param("MSBACKUP.COMPRESSION_LEVEL") ? $pcfg->param("MSBACKUP.COMPRESSION_LEVEL") : 5;
 $zipformat = defined $pcfg->param("MSBACKUP.ZIPFORMAT") ? $pcfg->param("MSBACKUP.ZIPFORMAT") : "7z";
 
 $languagefileplugin = "$installfolder/templates/plugins/$psubfolder/$lang/language.dat";
