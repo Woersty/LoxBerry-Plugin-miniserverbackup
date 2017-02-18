@@ -490,7 +490,10 @@ for($msno = 1; $msno <= $miniservers; $msno++)
 	  #  7z u -l -uq0 -u!newarchive.7z -t7z -mx=3 -ms=off Backup_192.168.0.77_20170214024819_1921680077.7z Backup_192.168.0.77_20170214024819_1921680077/*
 
 	  my $sevenzip_options = "-l -uq0 -t$zipformat -mx=$compressionlevel -ms=off";
-	  our $output = qx(cd $bkpbase/$bkpfolder && $sevenzipbin u $sevenzip_options -- $bkpworkdir/$bkpdir.$zipformat *);
+	  my $sevenzip_call = "$sevenzipbin u $sevenzip_options -- $bkpworkdir/$bkpdir.$zipformat *";
+	  
+	  if ($debug) { $logmessage = "7-ZIP Call: $sevenzip_call"; &log($green_css); }
+	  our $output = qx(cd $bkpbase/$bkpfolder && $sevenzip_call);
 	  my $exitcode = $? >> 8;
 	  if ($debug) { $logmessage = $output; &log($dwl_css); }
 	  
@@ -572,6 +575,8 @@ else
 {
   $logmessage = $phraseplugin->param("TXT1020"); &log($green_css); # All Backups created successfully. 
 }
+  $logmessage = "============================================================================================== "; &log($green_dwl); # All Backups created successfully. 
+
 # Remove Backup Flag
 open(F,">$installfolder/webfrontend/html/plugins/$psubfolder/backupstate.txt");
 print F "";
@@ -630,7 +635,7 @@ sub download
 	if ($debug eq 1) 
 	{
 		#Debug
-		$quiet="debug -o $lftplog -t -c 3 ";
+		$quiet="debug -o $lftplog -t -c 5 ";
 	}
 	elsif  ($verbose eq 1) 
 	{
@@ -644,17 +649,16 @@ sub download
 	}
 
 
-	my $lftpoptions = "
-	set net:timeout 5; set net:max-retries 3; set ftp:passive-mode true; set ftp:sync-mode true;
-	set net:limit-total-rate 3M:3M; set ftp:stat-interval 10;
-	";
+	my $lftpoptions = 
+	"set net:timeout 5; set net:max-retries 3; set ftp:passive-mode true; set ftp:sync-mode true; " .
+	"set net:limit-total-rate 3M:3M; set ftp:use-stat 0 ";
 	
   if ($verbose) { $logmessage = $phraseplugin->param("TXT1021")." $remotepath ..."; &log($green_css); } # Downloading xxx ....
   for(my $versuche = 1; $versuche < 16; $versuche++) 
 	{
 			# system("$wgetbin $quiet -a $home/log/plugins/miniserverbackup/backuplog.log --retry-connrefused --tries=$maxdwltries --waitretry=5 --timeout=10 --passive-ftp -nH -r $url -P $bkpbase/$bkpfolder/$bkpdir ");
 			$lftpcommand = "$lftpbin -c \"$quiet; $lftpoptions; open -u $miniserveradmin,$miniserverpass -p $miniserverftpport $miniserverip; mirror --continue --use-cache --parallel=1 --no-perms --no-umask --delete $remotepath $bkpbase/$bkpfolder$remotepath\"";
-			# $logmessage = $lftpcommand; &log($dwl_css);
+			if ($debug) { $logmessage = "LFTP Call: $lftpcommand"; &log($green_css); }
 			system($lftpcommand);
 			if ($? ne 0) 
 			{
