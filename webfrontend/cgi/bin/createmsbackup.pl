@@ -19,7 +19,9 @@
 # Modules
 ##########################################################################
 
-use lib '../perllib';
+use FindBin;
+use lib "$FindBin::Bin/../perllib";
+
 use LoxBerry::System;
 use LoxBerry::Web;
 
