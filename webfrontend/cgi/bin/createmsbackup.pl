@@ -23,17 +23,14 @@ use lib '../perllib';
 use LoxBerry::System;
 use LoxBerry::Web;
 
-
 use LWP::UserAgent;
 use XML::Simple qw(:strict);
 use Config::Simple;
 #use Data::Dumper;
 use File::Copy;
 use File::Path qw(make_path remove_tree);
-#use strict;
-#use warnings;
-use File::HomeDir;
-use Cwd 'abs_path';
+use strict;
+use warnings;
 
 ##########################################################################
 # Variables
@@ -41,15 +38,12 @@ use Cwd 'abs_path';
 
 our $cfg;
 our $pcfg;
-our $miniserverip;
-our $miniserverport;
-our $miniserveradmin;
-our $miniserverpass;
 our $miniservers;
 our $url;
 our $ua;
 our $response;
 our $error = 0;
+our $success;
 our $rawxml;
 our $xml;
 our @fields;
@@ -58,8 +52,6 @@ our $subver;
 our $monver;
 our $dayver;
 our $miniserverftpport;
-our $wgetbin;
-our $zipbin;
 our $diryear;
 our $dirmday;
 our $dirhour;
@@ -76,26 +68,24 @@ our $verbose;
 our $debug;
 our $maxfiles;
 # our $installfolder;
-our $home = File::HomeDir->my_home;
 our @Eintraege;
 our @files;
 our $i;
 our $msno;
-our $useclouddns;
 our $miniservercloudurl;
 our $miniservercloudurlftpport;
-our $curlbin;
-our $grepbin;
-our $awkbin;
 our $logmessage;
 our $clouddns;
 our $quiet;
 our $something_wrong;
-our $retry_error;
+our $retry_error = 0;
 our $maxdwltries;
 our $local_miniserver_ip;
 our $foundfiles;
-our $miniserverfoldername;
+our $remotepath;
+our $ext;
+our $bkpfolder;
+our $mscounter = 0;
 
 ##########################################################################
 # Read Configuration
@@ -114,40 +104,39 @@ print STDERR "Datadir:     $lbdatadir\n";
 print STDERR "Logdir:      $lblogdir\n";
 print STDERR "Configdir:   $lbconfigdir\n";
 
-my $bins = LoxBerry::System::get_binaries();
+our $bins = LoxBerry::System::get_binaries();
 # print STDERR "grepbin: $bins->{GREP}\n";
 
 our %miniservers = LoxBerry::System::get_miniservers();
 
-# exit (0);
+print STDERR "Number of Miniservers: " . keys(%miniservers) . "\n";
 
-$cfg             = new Config::Simple("$home/config/system/general.cfg");
-# $installfolder   = $cfg->param("BASE.INSTALLFOLDER");
-$miniservers     = $cfg->param("BASE.MINISERVERS");
-$clouddns        = $cfg->param("BASE.CLOUDDNS");
-$wgetbin         = $cfg->param("BINARIES.WGET");
-$zipbin          = $cfg->param("BINARIES.ZIP");
-$curlbin         = $cfg->param("BINARIES.CURL");
-$grepbin         = $cfg->param("BINARIES.GREP");
-$awkbin          = $cfg->param("BINARIES.AWK");
-$lang            = $cfg->param("BASE.LANG");
-$maxdwltries     = 15; # Maximale wget Wiederholungen
+our $lang = lblanguage();
+
+print STDERR "Language: $lang\n";
+
+
+# $cfg             = new Config::Simple("$home/config/system/general.cfg");
+# $clouddns        = $cfg->param("BASE.CLOUDDNS");
+# $lang            = $cfg->param("BASE.LANG");
+$maxdwltries     = 15; # Maximale Download-Wiederholungen
+
 $pcfg            = new Config::Simple("$lbconfigdir/miniserverbackup.cfg");
 $debug           = $pcfg->param("MSBACKUP.DEBUG");
 $maxfiles =	defined $pcfg->param("MSBACKUP.MAXFILES") ? $pcfg->param("MSBACKUP.MAXFILES") : 1;
 $bkpbase = defined $pcfg->param("MSBACKUP.BASEDIR") ? $pcfg->param("MSBACKUP.BASEDIR") : "$lbdatadir/currentbackup";
-$bkpworkdir = defined $pcfg->param("MSBACKUP.WORKDIR") ? $pcfg->param("MSBACKUP.WORKDIR") : "$lbdatadir/workdir";
-# $bkpziplinkdir = defined $pcfg->param("MSBACKUP.BACKUPDIR") ? $pcfg->param("MSBACKUP.BACKUPDIR") : undef;
-$compressionlevel = defined $pcfg->param("MSBACKUP.COMPRESSION_LEVEL") ? $pcfg->param("MSBACKUP.COMPRESSION_LEVEL") : 5;
-$zipformat = defined $pcfg->param("MSBACKUP.ZIPFORMAT") ? $pcfg->param("MSBACKUP.ZIPFORMAT") : "7z";
-# $mailreport = defined $pcfg->param("MSBACKUP.MAILREPORT") ? $pcfg->param("MSBACKUP.MAILREPORT") : undef;
+my $bkpworkdir = defined $pcfg->param("MSBACKUP.WORKDIR") ? $pcfg->param("MSBACKUP.WORKDIR") : "$lbdatadir/workdir";
+my $bkpziplinkdir = defined $pcfg->param("MSBACKUP.BACKUPDIR") ? $pcfg->param("MSBACKUP.BACKUPDIR") : undef;
+my $compressionlevel = defined $pcfg->param("MSBACKUP.COMPRESSION_LEVEL") ? $pcfg->param("MSBACKUP.COMPRESSION_LEVEL") : 5;
+my $zipformat = defined $pcfg->param("MSBACKUP.ZIPFORMAT") ? $pcfg->param("MSBACKUP.ZIPFORMAT") : "7z";
+my $mailreport = defined $pcfg->param("MSBACKUP.MAILREPORT") ? $pcfg->param("MSBACKUP.MAILREPORT") : undef;
 
-$languagefileplugin = "$lbtemplatedir/$lang/language.dat";
+my $languagefileplugin = "$lbtemplatedir/$lang/language.dat";
 our $phraseplugin 	= new Config::Simple($languagefileplugin);
 
 # $bkzipdestdir is the static folder files/
 # $bkpziplinkdir is the folder we link to
-$bkpzipdestdir = "$lbhtmldir/files";
+my $bkpzipdestdir = "$lbhtmldir/files";
 # NOT implemented:
 # To use a different backup destination, 
 # 1. If $bkpziplinkdir IS set and $bkpzipdestdir IS NOT symlink
@@ -200,239 +189,186 @@ else
 }
 
 # Start
-if ($verbose) { $logmessage = $miniservers." ".$phraseplugin->param("TXT1001")." $0($version)"; &log($green_css); } # ### Miniserver insgesamt - Starte Backup mit Script / Version 
+if ($verbose) { $logmessage = keys(%miniservers) . " " . $phraseplugin->param("TXT1001") . " $0($version)"; &log($green_css); } # ### Miniserver insgesamt - Starte Backup mit Script / Version 
 # Start Backup of all Miniservers
 
-for($msno = 1; $msno <= $miniservers; $msno++) 
+for $msno (sort keys %miniservers)
 {
 	# Set Backup Flag
-		open(F,">$lbhtmldir/backupstate.txt");
-	  print F "$msno";
-	  close (F);
+	open(F,">$lbhtmldir/backupstate.txt");
+	print F "$msno";
+	close (F);
 
-	  $logmessage = $phraseplugin->param("TXT1002").$msno; &log($green_css); #Starte Backup for Miniserver 
+	$logmessage = $phraseplugin->param("TXT1002") . " $msno ($miniservers{$msno}{Name})"; &log($green_css); #Starte Backup for Miniserver 
 
-	  $miniserverip       				= $cfg->param("MINISERVER$msno.IPADDRESS");
-	  $miniserveradmin    				= $cfg->param("MINISERVER$msno.ADMIN");
-	  $miniserverpass     				= $cfg->param("MINISERVER$msno.PASS");
-	  $miniserverport     				= $cfg->param("MINISERVER$msno.PORT");
-	  $useclouddns        				= $cfg->param("MINISERVER$msno.USECLOUDDNS");
-	  $miniservercloudurl 				= $cfg->param("MINISERVER$msno.CLOUDURL");
-	  $miniservercloudurlftpport 	= $cfg->param("MINISERVER$msno.CLOUDURLFTPPORT");
-	  # FOLDERNAME is not a setting in general.cfg
-	  # $miniserverfoldername       = $cfg->param("MINISERVER$msno.FOLDERNAME");
-	  $miniserverfoldername = $cfg->param("MINISERVER$msno.NAME");
+	# if ( ${useclouddns} eq "1" ) {
+		# $logmessage = $phraseplugin->param("TXT1003")." http://$clouddns/$miniservercloudurl ".$phraseplugin->param("TXT1004"); &log($green_css); # Using Cloud-DNS xxx for Backup 
+		# $dns_info = `$home/webfrontend/cgi/system/tools/showclouddns.pl $miniservercloudurl`;
+		# $logmessage = $phraseplugin->param("TXT1005")." $dns_info ($home/webfrontend/cgi/system/tools/showclouddns.pl $miniservercloudurl)"; &log($green_css); # DNS Data
+		# my @dns_info_pieces = split /:/, $dns_info;
+		# if ($dns_info_pieces[1]) {
+			# $dns_info_pieces[1] =~ s/^\s+|\s+$//g;
+			# $miniserverport = $dns_info_pieces[1];
+		# } else {
+		# 	$miniserverport  = 80;
+		# }
+		# if ($dns_info_pieces[0]) {
+			# $dns_info_pieces[0] =~ s/^\s+|\s+$//g;
+			# $miniserverip = $dns_info_pieces[0]; 
+		# } else {
+			# $miniserverip = "127.0.0.1"; 
+		# }
+	# } else {
+	   # if ( $miniserverport eq "" ) {
+			# $miniserverport = 80;
+	   # } 
+	# }
 	  
-	  if ( ${useclouddns} eq "1" ) {
-		   $logmessage = $phraseplugin->param("TXT1003")." http://$clouddns/$miniservercloudurl ".$phraseplugin->param("TXT1004"); &log($green_css); # Using Cloud-DNS xxx for Backup 
-		   $dns_info = `$home/webfrontend/cgi/system/tools/showclouddns.pl $miniservercloudurl`;
-		   $logmessage = $phraseplugin->param("TXT1005")." $dns_info ($home/webfrontend/cgi/system/tools/showclouddns.pl $miniservercloudurl)"; &log($green_css); # DNS Data
-		   my @dns_info_pieces = split /:/, $dns_info;
-		   if ($dns_info_pieces[1]) {
-				$dns_info_pieces[1] =~ s/^\s+|\s+$//g;
-				$miniserverport = $dns_info_pieces[1];
-		   } else {
-				$miniserverport  = 80;
-		   }
-		   if ($dns_info_pieces[0]) {
-				$dns_info_pieces[0] =~ s/^\s+|\s+$//g;
-				$miniserverip = $dns_info_pieces[0]; 
-		   } else {
-				$miniserverip = "127.0.0.1"; 
-		   }
-	  } else {
-		   if ( $miniserverport eq "" ) {
-				$miniserverport = 80;
-		   } 
-	    }
-	  
-	  # Get Miniserver Firmware version
-	  $url = "http://$miniserveradmin:$miniserverpass\@$miniserverip\:$miniserverport/dev/cfg/version";
-		if ( $useclouddns eq "1" ) { $logmessage = $phraseplugin->param("TXT1029");	&log($red_css);	} # Local Access Only Setting Info
-	  $logmessage = $phraseplugin->param("TXT1006"); &log($green_css); # Try to read MS Firmware Version
-	  $ua = LWP::UserAgent->new;
-	  $ua->timeout(10);
-	  foreach my $try (0..5) {
+	# Get Miniserver Firmware version
+	$url = "http://$miniservers{$msno}{Credentials}\@$miniservers{$msno}{IPAddress}\:$miniservers{$msno}{Port}/dev/cfg/version";
+	if ( is_enabled($miniservers{$msno}{UseCloudDNS}) ) { $logmessage = $phraseplugin->param("TXT1029");	&log($red_css);	} # Local Access Only Setting Info
+	$logmessage = $phraseplugin->param("TXT1006"); &log($green_css); # Try to read MS Firmware Version
+	$ua = LWP::UserAgent->new;
+	$ua->timeout(10);
+	foreach my $try (0..5) {
 		$response = $ua->get($url);
 		if (!$response->is_success) {
 			$success = undef;
 			$logmessage = "TRY $try: " . $phraseplugin->param("TXT1034"); # Unable to fetch Firmware Version. Retry.
+			sleep 3;
 		} else {
 			$success = 1;
 			last;
 		}
-	    sleep 3;
-	  }
-	  if (!$success) {
+	}
+	if (!$success) {
 		$error=1;
 		$something_wrong = 1;
 		$logmessage = $phraseplugin->param("TXT2001"); &error; # Unable to fetch Firmware Version. Giving up.
 		&error;  
 		next;
-	  }
-	  $success = undef;
-	  $rawxml  = $response->decoded_content();
-	  $xml     = XMLin($rawxml, KeyAttr => { LL => 'value' }, ForceArray => [ 'LL', 'value' ]);
-	  @fields  = split(/\./,$xml->{value});
-	  $mainver = sprintf("%02d", $fields[0]);
-	  $subver  = sprintf("%02d", $fields[1]);
-	  $monver  = sprintf("%02d", $fields[2]);
-	  $dayver  = sprintf("%02d", $fields[3]);
-	  $logmessage = $phraseplugin->param("TXT1007").$xml->{value}; &log($green_css); # Miniserver Version
+	}
+	$success = undef;
+	$rawxml  = $response->decoded_content();
+	$xml     = XMLin($rawxml, KeyAttr => { LL => 'value' }, ForceArray => [ 'LL', 'value' ]);
+	@fields  = split(/\./,$xml->{value});
+	$mainver = sprintf("%02d", $fields[0]);
+	$subver  = sprintf("%02d", $fields[1]);
+	$monver  = sprintf("%02d", $fields[2]);
+	$dayver  = sprintf("%02d", $fields[3]);
+	$logmessage = $phraseplugin->param("TXT1007").$xml->{value}; &log($green_css); # Miniserver Version
 
-	  # Get Miniserver Local IP
-	  $url = "http://$miniserveradmin:$miniserverpass\@$miniserverip\:$miniserverport/dev/cfg/ip";
-	  $logmessage = $phraseplugin->param("TXT1026"); &log($green_css); # Try to read MS Local IP
-	  $ua = LWP::UserAgent->new;
-	  $ua->timeout(10);
-  	  foreach my $try (0..5) {
+	# Get Miniserver Local IP
+	$url = "http://$miniservers{$msno}{Credentials}\@$miniservers{$msno}{IPAddress}\:$miniservers{$msno}{Port}/dev/cfg/ip";
+	$logmessage = $phraseplugin->param("TXT1026"); &log($green_css); # Try to read MS Local IP
+	$ua = LWP::UserAgent->new;
+	$ua->timeout(10);
+  	foreach my $try (0..5) {
 		$response = $ua->get($url);
 		if (!$response->is_success) {
 			$success = undef;
 			$logmessage = "TRY $try: " . $phraseplugin->param("TXT1035"); # Unable to fetch local IP. Retry.
+			sleep(3);
 		} else {
 		  $success = 1;
 		  last;
 		}
-	  }
-	  if (!$success) {
-			$error=1;
-			$something_wrong = 1;
-			$logmessage = $phraseplugin->param("TXT2008"); &error; # Unable to fetch local IP. Giving up.
-		next;
-	  }
-	  $success = undef;
-	  $rawxml  = $response->decoded_content();
-	  $xml     = XMLin($rawxml, KeyAttr => { LL => 'value' }, ForceArray => [ 'LL', 'value' ]);
-	  @fields  = split(/\./,$xml->{value});
-	  $mainver = sprintf("%02d", $fields[0]);
-	  $subver  = sprintf("%02d", $fields[1]);
-	  $monver  = sprintf("%02d", $fields[2]);
-	  $dayver  = sprintf("%02d", $fields[3]);
-	  $logmessage = $phraseplugin->param("TXT1027").$xml->{value}; &log($green_css); # Miniserver IP local
-	  $local_miniserver_ip = $xml->{value};
-	  if ( $useclouddns eq "1" ) 
-		{
-		  $logmessage = $phraseplugin->param("TXT1030").$miniserverip; &log($green_css); # Miniserver IP public
-		} 	
-
-	  # Get FTP Port from Miniserver
-	  $url = "http://$miniserveradmin:$miniserverpass\@$miniserverip\:$miniserverport/dev/cfg/ftp";
-	  $ua = LWP::UserAgent->new;
-	  $ua->timeout(10);
-	  foreach my $try (0..5) {
-		$response = $ua->get($url);
-		if (!$response->is_success) {
-		  $success = undef;
-		  $logmessage = $phraseplugin->param("TXT1036"); # Unable to fetch FTP Port. Retry.
-		} else {
-		  $success = 1;
-		  last;
-		}
-	  }
-	  if (!$success) {
+	}
+	if (!$success) {
 		$error=1;
 		$something_wrong = 1;
-		$logmessage = $phraseplugin->param("TXT2002"); &error; # Unable to fetch FTP Port. Giving up. 
+		$logmessage = $phraseplugin->param("TXT2008"); &error; # Unable to fetch local IP. Giving up.
 		next;
-	  }
-	  $success = undef;
-	  $rawxml = $response->decoded_content();
-	  $xml = XMLin($rawxml, KeyAttr => { LL => 'value' }, ForceArray => [ 'LL', 'value' ]);
-	  $miniserverftpport = $xml->{value};
-	  if ($miniserverftpport ne "21") { $logmessage = $phraseplugin->param("TXT1028"); &log($red_css); } #Warning if local FTP-Port is not 21 
-		
-		# If CloudDNS is used, switch to configured public FTP Port
-		if ( $useclouddns eq "1" ) 
-		{ 
-			if (  sprintf("%d", $miniservercloudurlftpport) ne 0) 
-			{ 
-				$miniserverftpport = $miniservercloudurlftpport; 
-			}
-			else
-			{ 
-				$miniserverftpport = 21; 
-			}
-		}
-		else
+	}
+	$success = undef;
+	$rawxml  = $response->decoded_content();
+	$xml     = XMLin($rawxml, KeyAttr => { LL => 'value' }, ForceArray => [ 'LL', 'value' ]);
+	@fields  = split(/\./,$xml->{value});
+	$mainver = sprintf("%02d", $fields[0]);
+	$subver  = sprintf("%02d", $fields[1]);
+	$monver  = sprintf("%02d", $fields[2]);
+	$dayver  = sprintf("%02d", $fields[3]);
+	$logmessage = $phraseplugin->param("TXT1027").$xml->{value}; &log($green_css); # Miniserver IP local
+	my $local_miniserver_ip = $xml->{value};
+	if ( is_enabled($miniservers{$msno}{UseCloudDNS}) ) 
 		{
-			if ( sprintf("%d", $miniserverftpport) eq 0) 
-			{ 
-				$miniserverftpport = 21; 
-			}
-		}
-	  $logmessage = $phraseplugin->param("TXT1008").$miniserverftpport; &log($green_css); #Using this FTP-Port for Backup: xxx
-	  # Backing up to temporary directory
-	  ($dirsec,$dirmin,$dirhour,$dirmday,$dirmon,$diryear,$dirwday,$diryday,$dirisdst) = localtime();
-	  $diryear = $diryear+1900;
-	  $dirmon = $dirmon+1;
-	  $dirmon = sprintf("%02d", $dirmon);
-	  $dirmday = sprintf("%02d", $dirmday);
-	  $dirhour = sprintf("%02d", $dirhour);
-	  $dirmin = sprintf("%02d", $dirmin);
-	  $dirsec = sprintf("%02d", $dirsec);
-	  # Create temporary dir
-	  $bkpfolder = sprintf("%03d", $msno)."_".$miniserverfoldername;
+		  $logmessage = $phraseplugin->param("TXT1030") . $miniservers{$msno}{IPAddress}; &log($green_css); # Miniserver IP public
+		} 	
+
+	# Get FTP Port from Miniserver
+	$miniserverftpport = LoxBerry::System::get_ftpport($msno);
+	if (! $miniserverftpport) {
+		$logmessage = $phraseplugin->param("TXT2002"); &error; # Unable to fetch FTP port. Giving up.
+		$error = 1;
+		$something_wrong = 1;
+		next;
+	}
+	
+	if ($miniserverftpport ne "21") { $logmessage = $phraseplugin->param("TXT1028"); &log($red_css); } #Warning if local FTP-Port is not 21 
+
+	$logmessage = $phraseplugin->param("TXT1008").$miniserverftpport; &log($green_css); #Using this FTP-Port for Backup: xxx
+	
+	# Backing up to temporary directory
+	my ($dirsec,$dirmin,$dirhour,$dirmday,$dirmon,$diryear,$dirwday,$diryday,$dirisdst) = localtime();
+	$diryear = $diryear+1900;
+	$dirmon = $dirmon+1;
+	$dirmon = sprintf("%02d", $dirmon);
+	$dirmday = sprintf("%02d", $dirmday);
+	$dirhour = sprintf("%02d", $dirhour);
+	$dirmin = sprintf("%02d", $dirmin);
+	$dirsec = sprintf("%02d", $dirsec);
+	# Create temporary dir
+	$bkpfolder = sprintf("%03d", $msno)."_".$miniservers{$msno}{Name};
 	  
-	  $bkpdir = "Backup_$local_miniserver_ip\_$diryear$dirmon$dirmday$dirhour$dirmin$dirsec\_$mainver$subver$monver$dayver";
+	$bkpdir = "Backup_$local_miniserver_ip\_$diryear$dirmon$dirmday$dirhour$dirmin$dirsec\_$mainver$subver$monver$dayver";
 	  
-	  $response = make_path ("$bkpbase/$bkpfolder", {owner=>'loxberry', group=>'loxberry', chmod => 0777});
-	  # This directory may already exist, therefore just check if it is writeable
-	  if (! -w "$bkpbase/$bkpfolder") {
+	$response = make_path ("$bkpbase/$bkpfolder", {owner=>'loxberry', group=>'loxberry', chmod => 0777});
+	# This directory may already exist, therefore just check if it is writeable
+	if (! -w "$bkpbase/$bkpfolder") {
 		$error=1;
 		$something_wrong = 1;
 		$logmessage = $phraseplugin->param("TXT2003")." $bkpbase/$bkpfolder"; &error; # Could not write to temporary folder $bkpbase/$bkpfolder. Giving up.
 		next;
-	  }
-	  $response = make_path ("$bkpworkdir", {owner=>'loxberry', group=>'loxberry', chmod => 0777});
-	  # This directory may already exist, therefore just check if it is writeable
-	  if (! -w "$bkpworkdir") {
+	}
+	$response = make_path ("$bkpworkdir", {owner=>'loxberry', group=>'loxberry', chmod => 0777});
+	# This directory may already exist, therefore just check if it is writeable
+	if (! -w "$bkpworkdir") {
 		$error=1;
 		$something_wrong = 1;
 		$logmessage = $phraseplugin->param("TXT2003")." $bkpworkdir"; &error; # Could not write temporary folder $bkpworkdir. Giving up.
 		next;
-	  }
+	}
 	   
-	  # my $response = eval { symlink("$bkpbase/$bkpfolder", "$symlinkpath/$bkpdir"); 1 };
-	  # if ($response == 0) {
-		# $error=1;
-		# $logmessage = $phraseplugin->param("TXT2003")." Symlink $bkpbase/$bkpfolder to $symlinkpath"; &error; # Could not create temporary folder /tmp/$bkpfolder/$bkpdir. Giving up.
-		# next;
-	  # }
-
 	#############################################
 	# Some performance tuning of ZIP creation
 	# We do an archive cleanup and caching before
 	#############################################
 	#
-	# Doesn't work as the subdirectory of the archive has changed!
-	# Will always create a new archive....
-
-	  # Get the oldest zip archive
-	  $i = 0;
-	  @files = "";
-	  @Eintraege = "";
-	  opendir(DIR, "$bkpzipdestdir/$bkpfolder/");
-		@Eintraege = readdir(DIR);
-	  closedir(DIR);
+	# Get the oldest zip archive
+	$i = 0;
+	@files = "";
+	@Eintraege = "";
+	opendir(DIR, "$bkpzipdestdir/$bkpfolder/");
+	@Eintraege = readdir(DIR);
+	closedir(DIR);
 	  
-	  foreach(@Eintraege) 
-	  {
+	foreach(@Eintraege) 
+	{
 		if ($_ =~ m/Backup_$local_miniserver_ip/) 
 		{
 		 push(@files,$_);
 		}
-	  }
-	  @files = sort {$b cmp $a}(@files);
+	}
+	@files = sort {$b cmp $a}(@files);
 
-	  $foundfiles = scalar(@files) - 1; # There seems to be one blank entry in @files? This is not a real file...
+	$foundfiles = scalar(@files) - 1; # There seems to be one blank entry in @files? This is not a real file...
 	  
-	  # Now we have the filelist
-	  if ($verbose) { $logmessage = $foundfiles." ".$phraseplugin->param("TXT1016")." $bkpzipdestdir/$bkpfolder "; &log($green_css); } # x files found in dir y
-	  if ($debug)   { $logmessage = "Files: $bkpzipdestdir/$bkpfolder :".join(" + ", @files); &log($green_css); }
+	# Now we have the filelist
+	if ($verbose) { $logmessage = $foundfiles." ".$phraseplugin->param("TXT1016")." $bkpzipdestdir/$bkpfolder "; &log($green_css); } # x files found in dir y
+	if ($debug)   { $logmessage = "Files: $bkpzipdestdir/$bkpfolder :".join(" + ", @files); &log($green_css); }
 
-	  foreach(@files) 
-	  {
+	foreach(@files) 
+	{
 		s/[\n\r]//g;
 		$i++;
 		if ($i > ($maxfiles-1) && $_ ne "") 
@@ -448,140 +384,130 @@ for($msno = 1; $msno <= $miniservers; $msno++)
 			unlink("$bkpzipdestdir/$bkpfolder/$_");
 		  }
 		} 
-	  }
-	  # If we have no old file, take the last backup
+	}
+	# If we have no old file, take the last backup
 	  
-	  #$logmessage = "DEBUG: Filename $files[0]"; &log($green_css); # DEBUG
-	  # print STDERR "DEBUG: Filename $files[0]\n";
+	#$logmessage = "DEBUG: Filename $files[0]"; &log($green_css); # DEBUG
+	# print STDERR "DEBUG: Filename $files[0]\n";
 
-	  $ext = substr($files[0], rindex ($files[0], '.')+1); 
+	$ext = substr($files[0], rindex ($files[0], '.')+1); 
 	  
-	  # print STDERR "DEBUG: Extension -->" . $ext . "<--\n";
-	  if (! -e "$bkpworkdir/$bkpdir.$zipformat" && -e "$bkpzipdestdir/$bkpfolder/$files[0]" && $ext eq $zipformat) {
+	# print STDERR "DEBUG: Extension -->" . $ext . "<--\n";
+	if (! -e "$bkpworkdir/$bkpdir.$zipformat" && -e "$bkpzipdestdir/$bkpfolder/$files[0]" && $ext eq $zipformat) {
 		$logmessage = $phraseplugin->param("TXT1032")." $_"; &log($green_css); # Copying last Backup 
 		copy("$bkpzipdestdir/$bkpfolder/$files[0]", "$bkpworkdir/$bkpdir.$zipformat");
-	  }
-	  if (! -e "$bkpworkdir/$bkpdir.$zipformat") {
+	}
+	if (! -e "$bkpworkdir/$bkpdir.$zipformat") {
 		$logmessage = $phraseplugin->param("TXT1033"); &log($green_css); # Tell the people that we have no backup yet
-	  }
+	}
 	  
 	 # We now possibly have a backup file in $bkpworkdir
 	#############################################
 
 	  
-	  if ($verbose) { $logmessage = $phraseplugin->param("TXT1009")." $bkpbase/$bkpfolder/$bkpdir"; &log($green_css); } # "Temporary folder created: /$bkpbase/$bkpfolder/$bkpdir."
-	  $logmessage = $phraseplugin->param("TXT1010"); &log($green_css); # Starting Download
-	  # Download files from Miniserver
-	  # /log
-	  $remotepath = "/log";
-	  download(); 
-	  # /prog
-	  $remotepath = "/prog";
-	  download();
-	  # /sys
-	  $remotepath = "/sys";
-	  download();
-	  # /stats
-	  $remotepath = "/stats";
-	  download();
-	  # /temp
-	  $remotepath = "/temp";
-	  download();
-	  # /update
-	  $remotepath = "/update";
-	  download();
-	  # /web
-	  $remotepath = "/web";
-	  download();
-	  # /user
-	  $remotepath = "/user";
-	  download();
+	if ($verbose) { $logmessage = $phraseplugin->param("TXT1009")." $bkpbase/$bkpfolder/$bkpdir"; &log($green_css); } # "Temporary folder created: /$bkpbase/$bkpfolder/$bkpdir."
+	$logmessage = $phraseplugin->param("TXT1010"); &log($green_css); # Starting Download
+	# Download files from Miniserver
+	# /log
+	$remotepath = "/log";
+	download(); 
+	# /prog
+	$remotepath = "/prog";
+	download();
+	# /sys
+	$remotepath = "/sys";
+	download();
+	# /stats
+	$remotepath = "/stats";
+	download();
+	# /temp
+	$remotepath = "/temp";
+	download();
+	# /update
+	$remotepath = "/update";
+	download();
+	# /web
+	$remotepath = "/web";
+	download();
+	# /user
+	$remotepath = "/user";
+	download();
 
-	  $logmessage = $phraseplugin->param("TXT1011")." $bkpworkdir/$bkpdir.$zipformat"; &log($green_css); # Compressing Backup xxx ...
+	$logmessage = $phraseplugin->param("TXT1011")." $bkpworkdir/$bkpdir.$zipformat"; &log($green_css); # Compressing Backup xxx ...
 	  
-	  # Zipping
-	  
-	  # 7zip Example
-	  #  7z u -l -uq0 -u!newarchive.7z -t7z -mx=3 -ms=off Backup_192.168.0.77_20170214024819_1921680077.7z Backup_192.168.0.77_20170214024819_1921680077/*
+	# Zipping
+	
+	# 7zip Example
+	#  7z u -l -uq0 -u!newarchive.7z -t7z -mx=3 -ms=off Backup_192.168.0.77_20170214024819_1921680077.7z Backup_192.168.0.77_20170214024819_1921680077/*
 
-	  my $sevenzip_options = "-l -uq0 -t$zipformat -mx=$compressionlevel -ms=off";
-	  my $sevenzip_call = "$sevenzipbin u $sevenzip_options -- $bkpworkdir/$bkpdir.$zipformat *";
-	  
-	  if ($debug) { $logmessage = "7-ZIP Call: $sevenzip_call"; &log($green_css); }
-	  our $output = qx(cd $bkpbase/$bkpfolder && $sevenzip_call);
-	  my $exitcode = $? >> 8;
-	  if ($debug) { $logmessage = $output; &log($dwl_css); }
-	  
-
-		# Zip Syntax (obsolete):
-		# zip [-options] [-b path] [-t mmddyyyy] [-n suffixes] [zipfile list] [-xi list]
-		#our @output = qx(cd $bkpbase/$bkpfolder && $zipbin -q -p -r $bkpdir.$zipformat $bkpdir );
-		#our @output = qx(cd /tmp/miniserverbackup && $zipbin -Z bzip2 -FS --quiet --paths --recurse-paths $bkpdir.$zipformat $bkpdir );
-
-		
-
-
-	  if ($exitcode ne 0) 
-	  {
+	my $sevenzip_options = "-l -uq0 -t$zipformat -mx=$compressionlevel -ms=off";
+	my $sevenzip_call = "$sevenzipbin u $sevenzip_options -- $bkpworkdir/$bkpdir.$zipformat *";
+	
+	if ($debug) { $logmessage = "7-ZIP Call: $sevenzip_call"; &log($green_css); }
+	our $output = qx(cd $bkpbase/$bkpfolder && $sevenzip_call);
+	my $exitcode = $? >> 8;
+	if ($debug) { $logmessage = $output; &log($dwl_css); }
+	if ($exitcode ne 0) 
+	{
 		$error=1;
 		$something_wrong = 1;
 		$logmessage = $phraseplugin->param("TXT2004")." $bkpworkdir/$bkpdir (Errorcode: $exitcode)"; &error; # Compressing error
 		next;
-	  } 
+	} 
 	  else
-	  {
+	{
 		if ($verbose) { $logmessage = $phraseplugin->param("TXT1012"); &log($green_css); } # ZIP-Archive created successfully.
-	  }
-	  $logmessage = $phraseplugin->param("TXT1013"); &log($green_css); #Moving Backup to Download folder..."
+	}
+	$logmessage = $phraseplugin->param("TXT1013"); &log($green_css); #Moving Backup to Download folder..."
 	  
-	  # Moving ZIP to files section
-	  if (!-d "$bkpzipdestdir/$bkpfolder") 
-	  {
-	  $response = make_path ("$bkpzipdestdir/$bkpfolder", {owner=>'loxberry', group=>'loxberry', chmod => 0777});
-		  if ($response == 0) 
-		  {
+	# Moving ZIP to files section
+	if (!-d "$bkpzipdestdir/$bkpfolder") 
+	{
+		$response = make_path ("$bkpzipdestdir/$bkpfolder", {owner=>'loxberry', group=>'loxberry', chmod => 0777});
+		if ($response == 0) 
+		{
 			$error=1;
 			$something_wrong = 1;
 			$logmessage = $phraseplugin->param("TXT2009")." ".$bkpfolder; &error; # Could not create download folder.
 			next;
-		  }
-	  } 
-	  else 
-	  {
+		}
+	} 
+	else 
+	{
 		if ($verbose) { $logmessage = $phraseplugin->param("TXT2010")." $bkpfolder"; &log($green_css); }  # Folder exists => ok
-	  }
-	  move("$bkpworkdir/$bkpdir.$zipformat","$bkpzipdestdir/$bkpfolder/$bkpdir.$zipformat");
-	  if (!-e "$bkpzipdestdir/$bkpfolder/$bkpdir.$zipformat") 
-	  {
+	}
+	move("$bkpworkdir/$bkpdir.$zipformat","$bkpzipdestdir/$bkpfolder/$bkpdir.$zipformat");
+	if (!-e "$bkpzipdestdir/$bkpfolder/$bkpdir.$zipformat") 
+	{
 		$error=1;
 		$something_wrong = 1;
 		$logmessage = $phraseplugin->param("TXT2005")." ($bkpdir.$zipformat)" ; &error; # "Moving Error!"
 		next;
-	  } 
-	  else 
-	  {
+	} 
+	else 
+	{
 		if ($verbose) { $logmessage = $phraseplugin->param("TXT1014")." ($bkpdir.$zipformat)"; &log($green_css); }  # Moved ZIP-Archive to Files-Section successfully.
-	  }
+	}
 
-	  ABBRUCH:
+	ABBRUCH:
 
-	  # Clean up $bkpworkdir folder
-	  if ($verbose) 
-	  {
+	# Clean up $bkpworkdir folder
+	if ($verbose) 
+	{
 		$logmessage = $phraseplugin->param("TXT1015"); &log($green_css);  # Cleaning up temporary and old stuff.
-	  }
+	}
 	  
-	  # Incremental - do NOT cleanup backup, but /tmp/miniserverbackup
-	  $output = qx(rm $bkpworkdir/* > /dev/null 2>&1);
-  
-	  if ($error eq 0) { $logmessage = $phraseplugin->param("TXT1018")." $bkpdir.$zipformat "; &log($green_css); } # New Backup $bkpdir.$zipformat created successfully.
-	  $error = 0;
+	# Incremental - do NOT cleanup backup, but /tmp/miniserverbackup
+	$output = qx(rm $bkpworkdir/* > /dev/null 2>&1);
+	if ($error eq 0) { 
+		$logmessage = $phraseplugin->param("TXT1018")." $bkpdir.$zipformat "; &log($green_css);  # New Backup $bkpdir.$zipformat created successfully.
+		$mscounter++;
+	}
+	$error = 0;
 
 }
 ## END of MINISERVER Loop
 
-
-$msno = "1 => #".($msno - 1); # Minisever x ... y saved
 if ($something_wrong eq 1)
 {
   $logmessage = $phraseplugin->param("TXT1019"); &log($red_css); # Not all Backups created without errors - see log. 
@@ -590,7 +516,7 @@ else
 {
   $logmessage = $phraseplugin->param("TXT1020"); &log($green_css); # All Backups created successfully. 
 }
-  $logmessage = "============================================================================================== "; &log($green_dwl); # All Backups created successfully. 
+  $logmessage = "============================================================================================== "; &log($dwl_css); # All Backups created successfully. 
 
 # Remove Backup Flag
 open(F,">$lbhtmldir/backupstate.txt");
@@ -624,7 +550,9 @@ sub log {
 	}
   # Logfile
   open(F,">>$lblogdir/backuplog.log");
-  print F "<$css> $year-$mon-$mday $hour:$min:$sec Miniserver #$msno: $logmessage</$css>\n";
+  
+  my $msnumber = defined $msno ? "Miniserver #$msno" : "";
+  print F "<$css> $year-$mon-$mday $hour:$min:$sec $msnumber: $logmessage</$css>\n";
   close (F);
 
   return ();
@@ -645,8 +573,8 @@ sub error {
 #################################################
 sub download 
 {
-	my $lftplog = "$home/log/plugins/miniserverbackup/backuplog.log";
-
+	my $lftplog = "$lblogdir/backuplog.log";
+	
 	if ($debug eq 1) 
 	{
 		#Debug
@@ -663,7 +591,6 @@ sub download
 		$quiet="debug off";
 	}
 
-
 	my $lftpoptions = 
 	"set net:timeout 5; set net:max-retries 3; set ftp:passive-mode true; set ftp:sync-mode true; " .
 	"set net:limit-total-rate 3M:3M; set ftp:use-stat 0 ";
@@ -671,8 +598,7 @@ sub download
   if ($verbose) { $logmessage = $phraseplugin->param("TXT1021")." $remotepath ..."; &log($green_css); } # Downloading xxx ....
   for(my $versuche = 1; $versuche < 16; $versuche++) 
 	{
-			# system("$wgetbin $quiet -a $home/log/plugins/miniserverbackup/backuplog.log --retry-connrefused --tries=$maxdwltries --waitretry=5 --timeout=10 --passive-ftp -nH -r $url -P $bkpbase/$bkpfolder/$bkpdir ");
-			$lftpcommand = "$lftpbin -c \"$quiet; $lftpoptions; open -u $miniserveradmin,$miniserverpass -p $miniserverftpport $miniserverip; mirror --continue --use-cache --parallel=1 --no-perms --no-umask --delete $remotepath $bkpbase/$bkpfolder$remotepath\"";
+			my $lftpcommand = "$lftpbin -c \"$quiet; $lftpoptions; open -u $miniservers{$msno}{Admin},$miniservers{$msno}{Pass} -p $miniserverftpport $miniservers{$msno}{IPAddress}; mirror --continue --use-cache --parallel=1 --no-perms --no-umask --delete $remotepath $bkpbase/$bkpfolder$remotepath\"";
 			if ($debug) { $logmessage = "LFTP Call: $lftpcommand"; &log($green_css); }
 			system($lftpcommand);
 			if ($? ne 0) 
