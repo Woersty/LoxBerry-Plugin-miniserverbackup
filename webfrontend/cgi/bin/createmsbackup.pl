@@ -21,6 +21,7 @@
 
 use lib '../perllib';
 use LoxBerry::System;
+use LoxBerry::Web;
 
 
 use LWP::UserAgent;
@@ -74,7 +75,7 @@ our $sevenzipbin = "7z";
 our $verbose;
 our $debug;
 our $maxfiles;
-our $installfolder;
+# our $installfolder;
 our $home = File::HomeDir->my_home;
 our @Eintraege;
 our @files;
@@ -103,12 +104,25 @@ our $miniserverfoldername;
 # Version of this script
 my $version = "0.2";
 
-# Figure out in which subfolder we are installed
-$psubfolder = abs_path($0);
-$psubfolder =~ s/(.*)\/(.*)\/bin\/(.*)$/$2/g;
+print STDERR "Global variables from LoxBerry::System\n";
+print STDERR "Homedir:     $lbhomedir\n";
+print STDERR "Plugindir:   $lbplugindir\n";
+print STDERR "CGIdir:      $lbcgidir\n";
+print STDERR "HTMLdir:     $lbhtmldir\n";
+print STDERR "Templatedir: $lbtemplatedir\n";
+print STDERR "Datadir:     $lbdatadir\n";
+print STDERR "Logdir:      $lblogdir\n";
+print STDERR "Configdir:   $lbconfigdir\n";
+
+my $bins = LoxBerry::System::get_binaries();
+# print STDERR "grepbin: $bins->{GREP}\n";
+
+our %miniservers = LoxBerry::System::get_miniservers();
+
+# exit (0);
 
 $cfg             = new Config::Simple("$home/config/system/general.cfg");
-$installfolder   = $cfg->param("BASE.INSTALLFOLDER");
+# $installfolder   = $cfg->param("BASE.INSTALLFOLDER");
 $miniservers     = $cfg->param("BASE.MINISERVERS");
 $clouddns        = $cfg->param("BASE.CLOUDDNS");
 $wgetbin         = $cfg->param("BINARIES.WGET");
@@ -118,22 +132,22 @@ $grepbin         = $cfg->param("BINARIES.GREP");
 $awkbin          = $cfg->param("BINARIES.AWK");
 $lang            = $cfg->param("BASE.LANG");
 $maxdwltries     = 15; # Maximale wget Wiederholungen
-$pcfg            = new Config::Simple("$installfolder/config/plugins/$psubfolder/miniserverbackup.cfg");
+$pcfg            = new Config::Simple("$lbconfigdir/miniserverbackup.cfg");
 $debug           = $pcfg->param("MSBACKUP.DEBUG");
 $maxfiles =	defined $pcfg->param("MSBACKUP.MAXFILES") ? $pcfg->param("MSBACKUP.MAXFILES") : 1;
-$bkpbase = defined $pcfg->param("MSBACKUP.BASEDIR") ? $pcfg->param("MSBACKUP.BASEDIR") : "$installfolder/data/plugins/$psubfolder/currentbackup";
-$bkpworkdir = defined $pcfg->param("MSBACKUP.WORKDIR") ? $pcfg->param("MSBACKUP.WORKDIR") : "$installfolder/data/plugins/$psubfolder/workdir";
+$bkpbase = defined $pcfg->param("MSBACKUP.BASEDIR") ? $pcfg->param("MSBACKUP.BASEDIR") : "$lbdatadir/currentbackup";
+$bkpworkdir = defined $pcfg->param("MSBACKUP.WORKDIR") ? $pcfg->param("MSBACKUP.WORKDIR") : "$lbdatadir/workdir";
 # $bkpziplinkdir = defined $pcfg->param("MSBACKUP.BACKUPDIR") ? $pcfg->param("MSBACKUP.BACKUPDIR") : undef;
 $compressionlevel = defined $pcfg->param("MSBACKUP.COMPRESSION_LEVEL") ? $pcfg->param("MSBACKUP.COMPRESSION_LEVEL") : 5;
 $zipformat = defined $pcfg->param("MSBACKUP.ZIPFORMAT") ? $pcfg->param("MSBACKUP.ZIPFORMAT") : "7z";
 # $mailreport = defined $pcfg->param("MSBACKUP.MAILREPORT") ? $pcfg->param("MSBACKUP.MAILREPORT") : undef;
 
-$languagefileplugin = "$installfolder/templates/plugins/$psubfolder/$lang/language.dat";
+$languagefileplugin = "$lbtemplatedir/$lang/language.dat";
 our $phraseplugin 	= new Config::Simple($languagefileplugin);
 
 # $bkzipdestdir is the static folder files/
 # $bkpziplinkdir is the folder we link to
-$bkpzipdestdir = "$installfolder/webfrontend/html/plugins/$psubfolder/files";
+$bkpzipdestdir = "$lbhtmldir/files";
 # NOT implemented:
 # To use a different backup destination, 
 # 1. If $bkpziplinkdir IS set and $bkpzipdestdir IS NOT symlink
@@ -192,7 +206,7 @@ if ($verbose) { $logmessage = $miniservers." ".$phraseplugin->param("TXT1001")."
 for($msno = 1; $msno <= $miniservers; $msno++) 
 {
 	# Set Backup Flag
-		open(F,">$installfolder/webfrontend/html/plugins/$psubfolder/backupstate.txt");
+		open(F,">$lbhtmldir/backupstate.txt");
 	  print F "$msno";
 	  close (F);
 
@@ -579,7 +593,7 @@ else
   $logmessage = "============================================================================================== "; &log($green_dwl); # All Backups created successfully. 
 
 # Remove Backup Flag
-open(F,">$installfolder/webfrontend/html/plugins/$psubfolder/backupstate.txt");
+open(F,">$lbhtmldir/backupstate.txt");
 print F "";
 close (F);
 exit;
@@ -609,7 +623,7 @@ sub log {
   	$logmessage =~ s/\/\/(.*)\:(.*)\@/\/\/xxx\:xxx\@/g;
 	}
   # Logfile
-  open(F,">>$installfolder/log/plugins/$psubfolder/backuplog.log");
+  open(F,">>$lblogdir/backuplog.log");
   print F "<$css> $year-$mon-$mday $hour:$min:$sec Miniserver #$msno: $logmessage</$css>\n";
   close (F);
 
