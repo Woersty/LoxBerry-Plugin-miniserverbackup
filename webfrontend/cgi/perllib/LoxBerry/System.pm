@@ -230,6 +230,8 @@ sub get_ftpport
 {
 	my ($msnr) = @_;
 	
+	$msnr = defined $msnr ? $msnr : 1;
+	
 	# If we have no MS list, read the config
 	if (! %miniservers) {
 		# print STDERR "get_ftpport: Readconfig\n";
@@ -251,6 +253,7 @@ sub get_ftpport
 		$ua->timeout(5);
 		my $response = $ua->get($url);
 		if (!$response->is_success) {
+			carp("Cannot query FTP port because Loxone Miniserver is not reachable.");
 			return undef;
 		} 
 		my $rawxml = $response->decoded_content();
