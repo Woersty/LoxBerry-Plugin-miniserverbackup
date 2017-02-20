@@ -14,14 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 ##########################################################################
 # Modules
 ##########################################################################
 
 use FindBin;
 use lib "$FindBin::Bin/../perllib";
-
 use LoxBerry::System;
 use LoxBerry::Web;
 
@@ -510,7 +508,7 @@ for $msno (sort keys %miniservers)
 }
 ## END of MINISERVER Loop
 
-if ($something_wrong eq 1)
+if ($something_wrong)
 {
   $logmessage = $phraseplugin->param("TXT1019"); &log($red_css); # Not all Backups created without errors - see log. 
 }
@@ -596,11 +594,14 @@ sub download
 	my $lftpoptions = 
 	"set net:timeout 5; set net:max-retries 3; set ftp:passive-mode true; set ftp:sync-mode true; " .
 	"set net:limit-total-rate 3M:3M; set ftp:use-stat 0 ";
-	
+  
+  my $ftppass = quotemeta($miniservers{$msno}{Pass_RAW});
+  my $ftpuser = quotemeta($miniservers{$msno}{Admin_RAW});
+    
   if ($verbose) { $logmessage = $phraseplugin->param("TXT1021")." $remotepath ..."; &log($green_css); } # Downloading xxx ....
   for(my $versuche = 1; $versuche < 16; $versuche++) 
 	{
-			my $lftpcommand = "$lftpbin -c \"$quiet; $lftpoptions; open -u $miniservers{$msno}{Admin},$miniservers{$msno}{Pass} -p $miniserverftpport $miniservers{$msno}{IPAddress}; mirror --continue --use-cache --parallel=1 --no-perms --no-umask --delete $remotepath $bkpbase/$bkpfolder$remotepath\"";
+			my $lftpcommand = "$lftpbin -c \"$quiet; $lftpoptions; open -u $ftpuser,$ftppass -p $miniserverftpport $miniservers{$msno}{IPAddress}; mirror --continue --use-cache --parallel=1 --no-perms --no-umask --delete $remotepath $bkpbase/$bkpfolder$remotepath\"";
 			if ($debug) { $logmessage = "LFTP Call: $lftpcommand"; &log($green_css); }
 			system($lftpcommand);
 			if ($? ne 0) 
