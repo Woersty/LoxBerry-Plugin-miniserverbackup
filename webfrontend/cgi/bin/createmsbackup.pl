@@ -119,7 +119,7 @@ print STDERR "Language: $lang\n";
 # $cfg             = new Config::Simple("$home/config/system/general.cfg");
 # $clouddns        = $cfg->param("BASE.CLOUDDNS");
 # $lang            = $cfg->param("BASE.LANG");
-$maxdwltries     = 15; # Maximale Download-Wiederholungen
+$maxdwltries     = 5; # Maximale Download-Wiederholungen
 
 $pcfg            = new Config::Simple("$lbconfigdir/miniserverbackup.cfg");
 $debug           = $pcfg->param("MSBACKUP.DEBUG");
@@ -131,7 +131,11 @@ my $compressionlevel = defined $pcfg->param("MSBACKUP.COMPRESSION_LEVEL") ? $pcf
 my $zipformat = defined $pcfg->param("MSBACKUP.ZIPFORMAT") ? $pcfg->param("MSBACKUP.ZIPFORMAT") : "7z";
 my $mailreport = defined $pcfg->param("MSBACKUP.MAILREPORT") ? $pcfg->param("MSBACKUP.MAILREPORT") : undef;
 
+if (! -e "$lbtemplatedir/$lang/language.dat") {
+	$lang = 'en';
+}
 my $languagefileplugin = "$lbtemplatedir/$lang/language.dat";
+
 our $phraseplugin 	= new Config::Simple($languagefileplugin);
 
 # $bkzipdestdir is the static folder files/
@@ -190,6 +194,7 @@ else
 
 # Start
 if ($verbose) { $logmessage = keys(%miniservers) . " " . $phraseplugin->param("TXT1001") . " $0($version)"; &log($green_css); } # ### Miniserver insgesamt - Starte Backup mit Script / Version 
+if ($debug) { $logmessage = "LoxBerry::System version: #$LoxBerry::System::VERSION#  LoxBerry::Web version: #$LoxBerry::Web::VERSION#"; &log($green_css); }
 # Start Backup of all Miniservers
 
 for $msno (sort keys %miniservers)
@@ -197,6 +202,7 @@ for $msno (sort keys %miniservers)
 	# Set Backup Flag
 	open(F,">$lbhtmldir/backupstate.txt");
 	print F "$msno";
+	print STDERR "LBHTMLDIR: $lbhtmldir - msno $msno\n";
 	close (F);
 
 	$logmessage = $phraseplugin->param("TXT1002") . " $msno ($miniservers{$msno}{Name})"; &log($green_css); #Starte Backup for Miniserver 
@@ -394,7 +400,7 @@ for $msno (sort keys %miniservers)
 	  
 	# print STDERR "DEBUG: Extension -->" . $ext . "<--\n";
 	if (! -e "$bkpworkdir/$bkpdir.$zipformat" && -e "$bkpzipdestdir/$bkpfolder/$files[0]" && $ext eq $zipformat) {
-		$logmessage = $phraseplugin->param("TXT1032")." $_"; &log($green_css); # Copying last Backup 
+		$logmessage = $phraseplugin->param("TXT1032"). " $files[0]"; &log($green_css); # Copying last Backup 
 		copy("$bkpzipdestdir/$bkpfolder/$files[0]", "$bkpworkdir/$bkpdir.$zipformat");
 	}
 	if (! -e "$bkpworkdir/$bkpdir.$zipformat") {
@@ -611,7 +617,7 @@ sub download
 			} 
 			else 
 			{
-				$logmessage = $phraseplugin->param("TXT1024")." $versuche ".$phraseplugin->param("TXT1023")." $maxdwltries ".$phraseplugin->param("TXT1025")." $remotepath"; &log($dwl_css); # Download ok
+				$logmessage = $phraseplugin->param("TXT1024") . " $remotepath ($versuche " . $phraseplugin->param("TXT1025") . " $maxdwltries)"; &log($dwl_css); # Download ok
 			    $retry_error = 0;
 			}
 			if ($retry_error eq 0) { last; }
