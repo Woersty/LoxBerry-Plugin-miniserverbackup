@@ -18,6 +18,10 @@
 ##########################################################################
 # Modules
 ##########################################################################
+use FindBin;
+use lib "$FindBin::Bin/./perllib";
+use LoxBerry::System;
+use LoxBerry::Web;
 
 use CGI::Carp qw(fatalsToBrowser);
 use CGI qw/:standard/;
@@ -32,18 +36,16 @@ no strict "refs"; # we need it for template system
 # Variables
 ##########################################################################
 
-our $cfg;
+our $pcfg;
 our $phrase;
 our $namef;
 our $value;
 our %query;
-our $lang;
 our $template_title;
 our $help;
 our @help;
 our $helptext;
 our $helplink;
-our $installfolder;
 our $languagefile;
 our $version;
 our $error;
@@ -52,8 +54,6 @@ our $output;
 our $message;
 our $nexturl;
 our $do="form";
-my  $home = File::HomeDir->my_home;
-our $psubfolder;
 our $pname;
 our $verbose;
 our $debug;
@@ -80,24 +80,26 @@ our $header_already_sent=0;
 ##########################################################################
 
 # Version of this script
-$version = "0.0.8";
+$version = "0.2";
 
-# Figure out in which subfolder we are installed
-$psubfolder = abs_path($0);
-$psubfolder =~ s/(.*)\/(.*)\/(.*)$/$2/g;
+our %miniservers = LoxBerry::System::get_miniservers();
+our $lang = lblanguage();
 
-$cfg             = new Config::Simple("$home/config/system/general.cfg");
-$installfolder   = $cfg->param("BASE.INSTALLFOLDER");
-$lang            = $cfg->param("BASE.LANG");
+$pcfg             = new Config::Simple("$lbconfigdir/miniserverbackup.cfg");
+$debug           = $pcfg->param("MSBACKUP.DEBUG");
+$maxfiles        = $pcfg->param("MSBACKUP.MAXFILES");
+$pname           = $pcfg->param("MSBACKUP.SCRIPTNAME");
+$autobkp         = $pcfg->param("MSBACKUP.AUTOBKP");
+$bkpcron         = $pcfg->param("MSBACKUP.CRON");
+$bkpcounts       = $pcfg->param("MSBACKUP.MAXFILES");
 
-$cfg             = new Config::Simple("$installfolder/config/plugins/$psubfolder/miniserverbackup.cfg");
-$debug           = $cfg->param("MSBACKUP.DEBUG");
-$maxfiles        = $cfg->param("MSBACKUP.MAXFILES");
-#$psubfolder       = $cfg->param("MSBACKUP.SUBFOLDER");
-$pname           = $cfg->param("MSBACKUP.SCRIPTNAME");
-$autobkp         = $cfg->param("MSBACKUP.AUTOBKP");
-$bkpcron         = $cfg->param("MSBACKUP.CRON");
-$bkpcounts       = $cfg->param("MSBACKUP.MAXFILES");
+my $bkpbase = defined $pcfg->param("MSBACKUP.BASEDIR") ? $pcfg->param("MSBACKUP.BASEDIR") : "$lbdatadir/currentbackup";
+my $bkpworkdir = defined $pcfg->param("MSBACKUP.WORKDIR") ? $pcfg->param("MSBACKUP.WORKDIR") : "$lbdatadir/workdir";
+my $bkpziplinkdir = defined $pcfg->param("MSBACKUP.BACKUPDIR") ? $pcfg->param("MSBACKUP.BACKUPDIR") : undef;
+my $compressionlevel = defined $pcfg->param("MSBACKUP.COMPRESSION_LEVEL") ? $pcfg->param("MSBACKUP.COMPRESSION_LEVEL") : 5;
+my $zipformat = defined $pcfg->param("MSBACKUP.ZIPFORMAT") ? $pcfg->param("MSBACKUP.ZIPFORMAT") : "7z";
+my $mailreport = defined $pcfg->param("MSBACKUP.MAILREPORT") ? $pcfg->param("MSBACKUP.MAILREPORT") : undef;
+
 
 #########################################################################
 # Parameter
@@ -131,26 +133,50 @@ foreach (split(/&/,$ENV{'QUERY_STRING'}))
 
 # Set parameters coming in - get over post
 	if ( !$query{'saveformdata'} ) { if ( param('saveformdata') ) { $saveformdata = quotemeta(param('saveformdata')); } else { $saveformdata = 0;      } } else { $saveformdata = quotemeta($query{'saveformdata'}); }
-	if ( !$query{'lang'} )         { if ( param('lang')         ) { $lang         = quotemeta(param('lang'));         } else { $lang         = "de";   } } else { $lang         = quotemeta($query{'lang'});         }
+#	if ( !$query{'lang'} )         { if ( param('lang')         ) { $lang         = quotemeta(param('lang'));         } else { $lang         = "de";   } } else { $lang         = quotemeta($query{'lang'});         }
 	if ( !$query{'do'} )           { if ( param('do')           ) { $do           = quotemeta(param('do'));           } else { $do           = "form"; } } else { $do           = quotemeta($query{'do'});           }
 
 # Clean up saveformdata variable
 	$saveformdata =~ tr/0-1//cd; $saveformdata = substr($saveformdata,0,1);
 
 # Init Language
-	# Clean up lang variable
-	$lang         =~ tr/a-z//cd; $lang         = substr($lang,0,2);
-  # If there's no language phrases file for choosed language, use german as default
-		if (!-e "$installfolder/templates/system/$lang/language.dat") 
-		{
-  		$lang = "de";
+#	# Clean up lang variable
+#	$lang         =~ tr/a-z//cd; $lang         = substr($lang,0,2);
+  # If there's no language phrases file for choosed language, use English as default
+if (! -e "$lbhomedir/templates/system/$lang/language.dat") 
+	{
+  		$lang = 'en';
 	}
-	# Read translations / phrases
-		$languagefile 			= "$installfolder/templates/system/$lang/language.dat";
-		$phrase 						= new Config::Simple($languagefile);
-		$languagefileplugin = "$installfolder/templates/plugins/$psubfolder/$lang/language.dat";
-		$phraseplugin 			= new Config::Simple($languagefileplugin);
 
+# Read English language as default
+# Missing phrases in foreign language will fall back to English	
+	$languagefile 			= "$lbhomedir/templates/system/en/language.dat";
+	$languagefileplugin 	= "$lbtemplatedir/en/language.dat";
+	$phrase = new Config::Simple($languagefile);
+	$phrase->import_names('T');
+	our $plglang = new Config::Simple($languagefileplugin);
+	$plglang->import_names('T');
+
+	
+#	$lang = 'en'; # DEBUG
+	
+# Read foreign language if exists and not English
+	$languagefile 			= "$lbhomedir/templates/system/$lang/language.dat";
+	$languagefileplugin 	= "$lbtemplatedir/$lang/language.dat";
+	if ((-e $languagefile) and ($lang ne 'en')) {
+		# Now overwrite phrase variables with user language
+		$phrase = new Config::Simple($languagefile);
+		$phrase->import_names('T');
+	}
+	if ((-e $languagefileplugin) and ($lang ne 'en')) {
+		# Now overwrite phrase variables with user language
+		$phraseplugin = new Config::Simple($languagefileplugin);
+		$phraseplugin->import_names('T');
+	}
+	
+#	$lang = 'de'; # DEBUG
+
+	
 ##########################################################################
 # Main program
 ##########################################################################
@@ -188,51 +214,19 @@ foreach (split(/&/,$ENV{'QUERY_STRING'}))
 		$bkpcron   = quotemeta($bkpcron);
 		$bkpcounts = quotemeta($bkpcounts);
 		
-		# Webinterface - Select Loglevel
-		if ($debug eq 1) 
-		{
-		  $selectedverbose = "selected=selected";
-		} 
-		elsif ($debug eq 2) 
-		{
-		  $selecteddebug = "selected=selected";
-		}
-		elsif ($debug eq 3) # Level 3 manual configurable in config file only
-		{
-		  $selecteddebug = "selected=selected";
-		}
-		
-		# Prepare form defaults
-		if ($autobkp eq "on") 
-		{
-		  $selectedauto2 = "selected=selected";
-		} 
-		else 
-		{
-		  $selectedauto1 = "selected=selected";
-		}
-		
-		if 		($bkpcron eq "15min") { $selectedcron1 = "selected=selected"; }
-		elsif ($bkpcron eq "30min") { $selectedcron2 = "selected=selected"; }
-		elsif ($bkpcron eq "60min") { $selectedcron3 = "selected=selected"; } 
-		elsif ($bkpcron eq "1d") 		{ $selectedcron4 = "selected=selected"; }
-		elsif ($bkpcron eq "1w") 		{ $selectedcron5 = "selected=selected"; }
-		elsif ($bkpcron eq "1m")  	{ $selectedcron6 = "selected=selected"; }
-		
 		if ( !$header_already_sent ) { print "Content-Type: text/html\n\n"; }
 		
-		$template_title = $phrase->param("TXT0000") . ": " . $phrase->param("TXT0040");
-		
 		# Print Template
-		&lbheader;
-		open(F,"$installfolder/templates/plugins/$psubfolder/$lang/settings.html") || die "Missing template plugins/$psubfolder/$lang/settings.html";
+		LoxBerry::Web::lbheader("Miniserver Backup", "http://www.loxwiki.eu:80/x/jIKO", "help.html");
+		
+		open(F,"$lbtemplatedir/multi/settings.html") || die "Missing template $lbtemplatedir/$lang/settings.html";
 		  while (<F>) 
 		  {
 		    $_ =~ s/<!--\$(.*?)-->/${$1}/g;
 		    print $_;
 		  }
 		close(F);
-		&footer;
+		LoxBerry::Web::lbfooter();
 		exit;
 	}
 
@@ -255,78 +249,78 @@ foreach (split(/&/,$ENV{'QUERY_STRING'}))
 		$debug     = quotemeta($debug);
 		
 		# Write configuration file(s)
-		$cfg->param("MSBACKUP.AUTOBKP", "$autobkp");
-		$cfg->param("MSBACKUP.CRON",	"$bkpcron");
-		$cfg->param("MSBACKUP.MAXFILES","$bkpcounts");
-		$cfg->param("MSBACKUP.DEBUG", 	"$debug");
-		$cfg->save();
+		$pcfg->param("MSBACKUP.AUTOBKP", "$autobkp");
+		$pcfg->param("MSBACKUP.CRON",	"$bkpcron");
+		$pcfg->param("MSBACKUP.MAXFILES","$bkpcounts");
+		$pcfg->param("MSBACKUP.DEBUG", 	"$debug");
+		$pcfg->save();
 		
 		# Create Cronjob
-		if ($autobkp eq "on") 
+		if (is_enabled($autobkp)) 
 		{
 		  if ($bkpcron eq "15min") 
 		  {
-		    system ("ln -s $installfolder/webfrontend/cgi/plugins/$psubfolder/bin/createmsbackup.pl $installfolder/system/cron/cron.15min/$pname");
-		    unlink ("$installfolder/system/cron/cron.30min/$pname");
-		    unlink ("$installfolder/system/cron/cron.hourly/$pname");
-		    unlink ("$installfolder/system/cron/cron.daily/$pname");
-		    unlink ("$installfolder/system/cron/cron.weekly/$pname");
-		    unlink ("$installfolder/system/cron/cron.monthly/$pname");
+		    system ("ln -s $lbcgidir/bin/createmsbackup.pl $lbhomedir/system/cron/cron.15min/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.30min/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.hourly/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.daily/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.weekly/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.monthly/$pname");
 		  }
 		  if ($bkpcron eq "30min") 
 		  {
-		    system ("ln -s $installfolder/webfrontend/cgi/plugins/$psubfolder/bin/createmsbackup.pl $installfolder/system/cron/cron.30min/$pname");
-		    unlink ("$installfolder/system/cron/cron.15min/$pname");
-		    unlink ("$installfolder/system/cron/cron.hourly/$pname");
-		    unlink ("$installfolder/system/cron/cron.daily/$pname");
-		    unlink ("$installfolder/system/cron/cron.weekly/$pname");
-		    unlink ("$installfolder/system/cron/cron.monthly/$pname");
+		    system ("ln -s $lbcgidir/bin/createmsbackup.pl $lbhomedir/system/cron/cron.30min/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.15min/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.hourly/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.daily/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.weekly/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.monthly/$pname");
 		  }
 		  if ($bkpcron eq "60min") 
 		  {
-		    system ("ln -s $installfolder/webfrontend/cgi/plugins/$psubfolder/bin/createmsbackup.pl $installfolder/system/cron/cron.hourly/$pname");
-		    unlink ("$installfolder/system/cron/cron.15min/$pname");
-		    unlink ("$installfolder/system/cron/cron.30min/$pname");
-		    unlink ("$installfolder/system/cron/cron.daily/$pname");
-		    unlink ("$installfolder/system/cron/cron.weekly/$pname");
-		    unlink ("$installfolder/system/cron/cron.monthly/$pname");
+		    system ("ln -s $lbcgidir/bin/createmsbackup.pl $lbhomedir/system/cron/cron.hourly/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.15min/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.30min/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.daily/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.weekly/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.monthly/$pname");
 		  }
 		  if ($bkpcron eq "1d") 
 		  {
-		    system ("ln -s $installfolder/webfrontend/cgi/plugins/$psubfolder/bin/createmsbackup.pl $installfolder/system/cron/cron.daily/$pname");
-		    unlink ("$installfolder/system/cron/cron.15min/$pname");
-		    unlink ("$installfolder/system/cron/cron.30min/$pname");
-		    unlink ("$installfolder/system/cron/cron.hourly/$pname");
-		    unlink ("$installfolder/system/cron/cron.weekly/$pname");
-		    unlink ("$installfolder/system/cron/cron.monthly/$pname");
+		    system ("ln -s $lbcgidir/bin/createmsbackup.pl $lbhomedir/system/cron/cron.daily/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.15min/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.30min/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.hourly/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.weekly/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.monthly/$pname");
 		  }
 		  if ($bkpcron eq "1w") 
 		  {
-		    system ("ln -s $installfolder/webfrontend/cgi/plugins/$psubfolder/bin/createmsbackup.pl $installfolder/system/cron/cron.weekly/$pname");
-		    unlink ("$installfolder/system/cron/cron.15min/$pname");
-		    unlink ("$installfolder/system/cron/cron.30min/$pname");
-		    unlink ("$installfolder/system/cron/cron.hourly/$pname");
-		    unlink ("$installfolder/system/cron/cron.daily/$pname");
-		    unlink ("$installfolder/system/cron/cron.monthly/$pname");
+		    system ("ln -s $lbcgidir/bin/createmsbackup.pl $lbhomedir/system/cron/cron.weekly/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.15min/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.30min/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.hourly/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.daily/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.monthly/$pname");
 		  }
 		  if ($bkpcron eq "1m") 
 		  {
-		    system ("ln -s $installfolder/webfrontend/cgi/plugins/$psubfolder/bin/createmsbackup.pl $installfolder/system/cron/cron.monthly/$pname");
-		    unlink ("$installfolder/system/cron/cron.15min/$pname");
-		    unlink ("$installfolder/system/cron/cron.30min/$pname");
-		    unlink ("$installfolder/system/cron/cron.hourly/$pname");
-		    unlink ("$installfolder/system/cron/cron.daily/$pname");
-		    unlink ("$installfolder/system/cron/cron.weekly/$pname");
+		    system ("ln -s $lbcgidir/bin/createmsbackup.pl $lbhomedir/system/cron/cron.monthly/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.15min/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.30min/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.hourly/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.daily/$pname");
+		    unlink ("$lbhomedir/system/cron/cron.weekly/$pname");
 		  }
 		} 
 		else
 		{
-		  unlink ("$installfolder/system/cron/cron.15min/$pname");
-		  unlink ("$installfolder/system/cron/cron.30min/$pname");
-		  unlink ("$installfolder/system/cron/cron.hourly/$pname");
-		  unlink ("$installfolder/system/cron/cron.daily/$pname");
-		  unlink ("$installfolder/system/cron/cron.weekly/$pname");
-		  unlink ("$installfolder/system/cron/cron.monthly/$pname");
+		  unlink ("$lbhomedir/system/cron/cron.15min/$pname");
+		  unlink ("$lbhomedir/system/cron/cron.30min/$pname");
+		  unlink ("$lbhomedir/system/cron/cron.hourly/$pname");
+		  unlink ("$lbhomedir/system/cron/cron.daily/$pname");
+		  unlink ("$lbhomedir/system/cron/cron.weekly/$pname");
+		  unlink ("$lbhomedir/system/cron/cron.monthly/$pname");
 		}
 		
 		if ( !$header_already_sent ) { print "Content-Type: text/html\n\n"; }
@@ -337,7 +331,7 @@ foreach (split(/&/,$ENV{'QUERY_STRING'}))
 		
 		# Print Template
 		&lbheader;
-		open(F,"$installfolder/templates/system/$lang/success.html") || die "Missing template system/$lang/succses.html";
+		open(F,"$lbhomedir/templates/system/$lang/success.html") || die "Missing template system/$lang/succses.html";
 		  while (<F>) 
 		  {
 		    $_ =~ s/<!--\$(.*?)-->/${$1}/g;
@@ -369,7 +363,7 @@ foreach (split(/&/,$ENV{'QUERY_STRING'}))
 			 open STDIN, "</dev/null";
 			 open STDOUT, ">/dev/null";
 			 open STDERR, ">/dev/null";
-			 system("$installfolder/webfrontend/cgi/plugins/$psubfolder/bin/createmsbackup.pl &");
+			 system("$lbcgidir/bin/createmsbackup.pl &");
 		}
 		exit;
 	}
@@ -383,7 +377,7 @@ foreach (split(/&/,$ENV{'QUERY_STRING'}))
 		$template_title = $phrase->param("TXT0000") . " - " . $phrase->param("TXT0028");
 		if ( !$header_already_sent ) { print "Content-Type: text/html\n\n"; }
 		&lbheader;
-		open(F,"$installfolder/templates/system/$lang/error.html") || die "Missing template system/$lang/error.html";
+		open(F,"$lbhomedir/templates/system/$lang/error.html") || die "Missing template system/$lang/error.html";
     while (<F>) 
     {
       $_ =~ s/<!--\$(.*?)-->/${$1}/g;
@@ -392,44 +386,4 @@ foreach (split(/&/,$ENV{'QUERY_STRING'}))
 		close(F);
 		&footer;
 		exit;
-	}
-
-#####################################################
-# Page-Header-Sub
-#####################################################
-
-	sub lbheader 
-	{
-		 # Create Help page
-	  $helplink = "http://www.loxwiki.eu:80/display/LOXBERRY/Miniserverbackup";
-	  open(F,"$installfolder/templates/plugins/$psubfolder/$lang/help.html") || die "Missing template plugins/$psubfolder/$lang/help.html";
-	    @help = <F>;
-	    foreach (@help)
-	    {
-	      s/[\n\r]/ /g;
-	      $helptext = $helptext . $_;
-	    }
-	  close(F);
-	  open(F,"$installfolder/templates/system/$lang/header.html") || die "Missing template system/$lang/header.html";
-	    while (<F>) 
-	    {
-	      $_ =~ s/<!--\$(.*?)-->/${$1}/g;
-	      print $_;
-	    }
-	  close(F);
-	}
-
-#####################################################
-# Footer
-#####################################################
-
-	sub footer 
-	{
-	  open(F,"$installfolder/templates/system/$lang/footer.html") || die "Missing template system/$lang/footer.html";
-	    while (<F>) 
-	    {
-	      $_ =~ s/<!--\$(.*?)-->/${$1}/g;
-	      print $_;
-	    }
-	  close(F);
 	}
