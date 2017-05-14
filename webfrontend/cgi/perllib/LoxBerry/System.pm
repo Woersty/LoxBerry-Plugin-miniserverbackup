@@ -379,6 +379,7 @@ sub set_clouddns
 	} else {
 	  $miniservers{$msnr}{IPAddress} = "127.0.0.1";
 	}
+
 }
 
 =head2 get_ftpport
@@ -445,7 +446,6 @@ Returns the current LoxBerry IP address as string.
 	print "Current LoxBerry IP is $ip.";
 
 =cut
-
 ####################################################
 # get_localip - Get local ip address
 ####################################################

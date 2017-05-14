@@ -73,7 +73,17 @@ sub lbheader
 	our $helplink = $helpurl ? $helpurl : $main::helplink;
 	
 	my $templatepath;
+
+	my $lang = lblanguage();
+
+	if (! (defined $main::template_title) && (defined $pagetitle)) {
+		our $template_title = $pagetitle;
+	}
 	
+	if (! (defined $main::helplink) && (defined $helpurl)) {
+		our $helplink = $helpurl;
+	}
+
 	
 	if (! defined $main::helptext) {
 		if (-e "$LoxBerry::System::lbtemplatedir/$lang/$helptemplate") {
