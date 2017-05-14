@@ -1,4 +1,11 @@
+our $VERSION = "0.23_02";
+$VERSION = eval $VERSION;
+# Please change version number (numbering after underscore) on EVERY change - keep it two-digits as recommended in perlmodstyle
+# Major.Minor represents LoxBerry version (e.g. 0.23 = LoxBerry V0.2.3)
+
 use strict;
+no strict "refs"; # Currently header/footer template replacement regex needs this. Ideas?
+
 use Config::Simple;
 use CGI;
 use LoxBerry::System;
@@ -8,6 +15,7 @@ package LoxBerry::Web;
 use base 'Exporter';
 our @EXPORT = qw (
 		lblanguage
+		get_plugin_icon
 );
 
 
@@ -16,7 +24,6 @@ our @EXPORT = qw (
 ##################################################################
 
 my $lang;
-
 
 
 # Finished everytime code execution
@@ -40,7 +47,7 @@ sub lblanguage
 		  return $lang;
 	}
 	# If nothing found, get language from system settings
-	my  $syscfg = new Config::Simple("$lbhomedir/config/system/general.cfg");
+	my  $syscfg = new Config::Simple("$LoxBerry::System::lbhomedir/config/system/general.cfg");
 	$lang = $syscfg->param("BASE.LANG");
 	return substr($lang, 0, 2);
 }
@@ -56,27 +63,35 @@ sub lblanguage
 
 sub lbheader 
 {
-	my ($pagetitle, $helpurl, $helptemplate) = @_;
-	
 	my $templatetext;
+	
+	my ($pagetitle, $helpurl, $helptemplate) = @_;
+
+	my $lang = lblanguage();
+	
+	our $template_title = $pagetitle ? $pagetitle : $main::template_title;
+	our $helplink = $helpurl ? $helpurl : $main::helplink;
+	
 	my $templatepath;
+
 	my $lang = lblanguage();
 
-	if (! defined $template_title) && (defined $pagetitle)) {
+	if (! (defined $main::template_title) && (defined $pagetitle)) {
 		our $template_title = $pagetitle;
 	}
 	
-	if (! defined $helplink) && (defined $helpurl)) {
+	if (! (defined $main::helplink) && (defined $helpurl)) {
 		our $helplink = $helpurl;
 	}
+
 	
-	if (! defined $helptext) {
-		if (-e "$lbtemplatedir/$lang/$helptemplate") {
-			$templatepath = "$lbtemplatedir/$lang/$helptemplate";
-		} elsif (-e "$lbtemplatedir/en/$helptemplate") {
-			$templatepath = "$lbtemplatedir/en/$helptemplate";
-		} elsif (-e "$lbtemplatedir/de/$helptemplate") {
-			$templatepath = "$lbtemplatedir/de/$helptemplate";
+	if (! defined $main::helptext) {
+		if (-e "$LoxBerry::System::lbtemplatedir/$lang/$helptemplate") {
+			$templatepath = "$LoxBerry::System::lbtemplatedir/$lang/$helptemplate";
+		} elsif (-e "$LoxBerry::System::lbtemplatedir/en/$helptemplate") {
+			$templatepath = "$LoxBerry::System::lbtemplatedir/en/$helptemplate";
+		} elsif (-e "$LoxBerry::System::lbtemplatedir/de/$helptemplate") {
+			$templatepath = "$LoxBerry::System::lbtemplatedir/de/$helptemplate";
 		}
 		
 		if ($templatepath) {
@@ -89,10 +104,10 @@ sub lbheader
 				}
 				close(F);
 			} else {
-			carp "Help template $templatepath could not be opened - continuing without help.\n";
+			carp ("Help template $templatepath could not be opened - continuing without help.\n");
 			}
 		} else {
-			carp "Help template $templatepath could not be found - continuing without help.\n";
+			carp ("Help template $templatepath could not be found - continuing without help.\n");
 		}
 		
 		if (! $templatetext) {
@@ -107,19 +122,19 @@ sub lbheader
 	
 	# LoxBerry Header
 	$templatepath = undef;
-	if (-e "$lbhomedir/templates/system/$lang/header.html") {
-		$templatepath = "$lbhomedir/templates/system/$lang/header.html";
-	} elsif (-e "$lbhomedir/templates/system/en/header.html") {
-		$templatepath = "$lbhomedir/templates/system/en/header.html";
-	} elsif (-e "$lbhomedir/templates/system/de/header.html") {
-		$templatepath = "$lbhomedir/templates/system/de/header.html";
+	if (-e "$LoxBerry::System::lbhomedir/templates/system/$lang/header.html") {
+		$templatepath = "$LoxBerry::System::lbhomedir/templates/system/$lang/header.html";
+	} elsif (-e "$LoxBerry::System::lbhomedir/templates/system/en/header.html") {
+		$templatepath = "$LoxBerry::System::lbhomedir/templates/system/en/header.html";
+	} elsif (-e "$LoxBerry::System::lbhomedir/templates/system/de/header.html") {
+		$templatepath = "$LoxBerry::System::lbhomedir/templates/system/de/header.html";
 	}
 	
 	if (! $templatepath) {
-		confess "Missing header template for language $lang and all fallback languages - possibly an installation path issue.";
+		confess ("Missing header template for language $lang and all fallback languages - possibly an installation path issue.");
 	}
 		
-	open(F, $templatepath) or confess "Could not read header template $templatepath - possibly a file access problem.";
+	open(F, $templatepath) or confess ("Could not read header template $templatepath - possibly a file access problem.");
 	while (<F>) 
 	{
 		$_ =~ s/<!--\$(.*?)-->/${$1}/g;
@@ -133,10 +148,10 @@ sub lbheader
 # Page-Footer-Sub
 #####################################################
 
-sub footer 
+sub lbfooter 
 {
 	my $lang = lblanguage();
-	if (open(F,"$lbhomedir/templates/system/$lang/footer.html")) {
+	if (open(F,"$LoxBerry::System::lbhomedir/templates/system/$lang/footer.html")) {
 		while (<F>) 
 		{
 			$_ =~ s/<!--\$(.*?)-->/${$1}/g;
@@ -144,9 +159,35 @@ sub footer
 		}
 		close(F);
 	} else {
-		carp "Failed to open template system/$lang/footer.html\n";
+		carp ("Failed to open template system/$lang/footer.html\n");
 	}
 }
+
+################################################################
+# get_plugin_icon - Returns the Web path to the Plugin logo
+# Input: Size as number in pixels
+# Output: Absolute HTTP path to the Plugin icon (without server)
+################################################################
+
+sub get_plugin_icon
+{
+	my ($iconsize) = @_;
+	$iconsize = defined $iconsize ? $iconsize : 64;
+	if 		($iconsize > 256) { $iconsize = 512; }
+	elsif	($iconsize > 128) { $iconsize = 256; }
+	elsif	($iconsize > 64) { $iconsize = 128; }
+	else					{ $iconsize = 64; }
+	
+	my $logopath = "$LoxBerry::System::lbhomedir/webfrontend/html/system/images/icons/$LoxBerry::System::lbplugindir/icon_$iconsize.png";
+	my $logopath_web = "/system/images/icons/$LoxBerry::System::lbplugindir/icon_$iconsize.png";
+	
+	if (-e $logopath) { 
+		return $logopath_web;
+	}
+	return undef;
+}
+
+
 
 
 #####################################################
