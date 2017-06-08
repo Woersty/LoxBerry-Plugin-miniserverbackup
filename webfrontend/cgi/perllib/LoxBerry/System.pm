@@ -255,11 +255,6 @@ sub get_miniserver_by_name
 	return undef;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/master
 =head2 get_binaries
 
 Although LoxBerry in it's fundamental characteristic comes as a ready-to-use Raspberry image, it should be as platform-independent as possible. 
@@ -294,10 +289,6 @@ If your plugin needs additional system binaries, it is best practise to read the
 
 =cut
 
-<<<<<<< HEAD
->>>>>>> refs/remotes/origin/LoxBerry-System
-=======
->>>>>>> origin/master
 ####### Get Binaries #######
 sub get_binaries
 {
@@ -314,15 +305,6 @@ sub get_binaries
 	}
 	return undef;
 }
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-
-
-=======
->>>>>>> refs/remotes/origin/LoxBerry-System
-=======
->>>>>>> origin/master
 
 ##################################################################
 # Read general.cfg
@@ -376,15 +358,7 @@ sub read_generalcfg
 }
 ####################################################
 # set_clouddns
-<<<<<<< HEAD
-<<<<<<< HEAD
-# Internal function to set CloudDNS IP and Port
-=======
 # INTERNAL function to set CloudDNS IP and Port
->>>>>>> refs/remotes/origin/LoxBerry-System
-=======
-# INTERNAL function to set CloudDNS IP and Port
->>>>>>> origin/master
 ####################################################
 sub set_clouddns
 {
@@ -405,20 +379,8 @@ sub set_clouddns
 	} else {
 	  $miniservers{$msnr}{IPAddress} = "127.0.0.1";
 	}
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-
 }
 
-=======
-}
-
-=======
-
-}
-
->>>>>>> origin/master
 =head2 get_ftpport
 
 The internal FTP port of the Miniserver is not configured in the LoxBerry configuration but can be queried by this function.
@@ -483,11 +445,7 @@ Returns the current LoxBerry IP address as string.
 	print "Current LoxBerry IP is $ip.";
 
 =cut
-<<<<<<< HEAD
 
->>>>>>> refs/remotes/origin/LoxBerry-System
-=======
->>>>>>> origin/master
 ####################################################
 # get_localip - Get local ip address
 ####################################################
