@@ -74,6 +74,10 @@ sub lbheader
 	
 	my $templatepath;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/master
 	my $lang = lblanguage();
 
 	if (! (defined $main::template_title) && (defined $pagetitle)) {
@@ -83,9 +87,13 @@ sub lbheader
 	if (! (defined $main::helplink) && (defined $helpurl)) {
 		our $helplink = $helpurl;
 	}
+<<<<<<< HEAD
 =======
 	
 >>>>>>> refs/remotes/origin/LoxBerry-System
+=======
+
+>>>>>>> origin/master
 	
 	if (! defined $main::helptext) {
 		if (-e "$LoxBerry::System::lbtemplatedir/$lang/$helptemplate") {
