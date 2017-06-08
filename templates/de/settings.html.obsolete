@@ -1,4 +1,4 @@
-									<link rel="stylesheet" href="/plugins/<!--$psubfolder-->/style.css">
+									<link rel="stylesheet" href="/plugins/<!--$lbplugindir-->/style.css">
 									<center>
 										<table border=0 cellpadding=10>
 											<tr>
@@ -11,9 +11,9 @@
 												</td>
 												<td width="150px" cellpadding=10>
 													<input type="hidden" id="language" value="<!--$lang-->">
-													<a id="btndownloads" data-role="button" data-mini="true" onclick="window.open('/plugins/<!--$psubfolder-->/elfinder.html','Downloads','width=1000,height=420,status=no,scrollbars=yes,titlebar=no,toolbar=no,menubar=no,location=no');" data-icon="grid" target="_blank">Downloads</a>
+													<a id="btndownloads" data-role="button" data-mini="true" onclick="window.open('/plugins/<!--$lbplugindir-->/elfinder.html','Downloads','width=1000,height=420,status=no,scrollbars=yes,titlebar=no,toolbar=no,menubar=no,location=no');" data-icon="grid" target="_blank">Downloads</a>
 												</td>
-												<td width="150px%" id="LogSave"><a id="btnlogs" data-role="button" href="/admin/system/tools/logfile.cgi?logfile=plugins/<!--$psubfolder-->/backuplog.log&header=html&format=template" target="_blank" data-inline="true" data-mini="true" data-icon="arrow-d">Logdatei speichern</a></td>
+												<td width="150px%" id="LogSave"><a id="btnlogs" data-role="button" href="/admin/system/tools/logfile.cgi?logfile=plugins/<!--$lbplugindir-->/backuplog.log&header=html&format=template" target="_blank" data-inline="true" data-mini="true" data-icon="arrow-d">Logdatei speichern</a></td>
 											</tr>
 											<tr>
 												<td colspan="3">
@@ -116,13 +116,13 @@
 											<tr>
 												<td width="200px%"><label id="LogLiveLabel"><input data-mini="true" type="checkbox" id="LogLive">Logdatei live anzeigen</label></td>
 												<td width="200px" id="LogScrolltd"><label><input data-mini="true" type="checkbox" checked id="LogScroll">Automatisch zum Ende springen</label></td>
-												<td width="200px" id="LogSessionReset"><a onclick="$('#Logfiletextbox').prop('innerHTML','<hr\><div style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'>##### Neue Sitzung gestartet #####</div><hr\>'); $.get('/plugins/<!--$psubfolder-->/logfile.php?ajax&new_session=1');" id="reset_session" data-role="button" data-mini="true" href="" data-icon="star" target="_blank">Debug-Sitzung neu starten</a></td>
+												<td width="200px" id="LogSessionReset"><a onclick="$('#Logfiletextbox').prop('innerHTML','<hr\><div style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'>##### Neue Sitzung gestartet #####</div><hr\>'); $.get('/plugins/<!--$lbplugindir-->/logfile.php?ajax&new_session=1');" id="reset_session" data-role="button" data-mini="true" href="" data-icon="star" target="_blank">Debug-Sitzung neu starten</a></td>
 											</tr>
 										</table>
 										<div style="resize:vertical; overflow:auto; border: 1px solid #888;  background-color: transparent; font-family:monospace; color:#8080FF; overflow-y: scroll;" id="Logfiletextbox" contenteditable="true"></div>
 									</div>
 									<script>
-										$.get('/plugins/<!--$psubfolder-->/logfile.php?ajax&new_session=1');
+										$.get('/plugins/<!--$lbplugindir-->/logfile.php?ajax&new_session=1');
 										$("#LogScrolltd").fadeTo( "fast", 0 );
 										$("#Logfiletextbox").fadeTo( "fast", 0 );
 										var liveviewtimer ="";
@@ -178,7 +178,7 @@
 														var displaytime = "(" + sec + " s)";
 													}
 												$("#LogLiveLabel").text("Logdatei aktualisieren " + displaytime);
-												$.get('/plugins/<!--$psubfolder-->/logfile.php?ajax', function(data) {
+												$.get('/plugins/<!--$lbplugindir-->/logfile.php?ajax', function(data) {
 													$('#Logfiletextbox').append(data);
 
 												 $('#Logfiletextbox').height("300");
@@ -200,7 +200,7 @@
 
 										function checkState()
 										{
-										$.get('/plugins/<!--$psubfolder-->/backupstate.txt', function(data)
+										$.get('/plugins/<!--$lbplugindir-->/backupstate.txt', function(data)
 											{
 													data = parseInt(data);
 													if (data > 0)
