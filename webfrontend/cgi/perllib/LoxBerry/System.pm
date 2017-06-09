@@ -1,5 +1,5 @@
 our $VERSION = "0.23_01";
-$VERSION = eval $VERSION;
+$VERSION = eval $VERSION; 
 # Please increment version number (numbering after underscore) on EVERY change - keep it two-digits as recommended in perlmodstyle
 # Major.Minor represents LoxBerry version (e.g. 0.23 = LoxBerry V0.2.3)
 
@@ -379,7 +379,6 @@ sub set_clouddns
 	} else {
 	  $miniservers{$msnr}{IPAddress} = "127.0.0.1";
 	}
-
 }
 
 =head2 get_ftpport
@@ -446,6 +445,7 @@ Returns the current LoxBerry IP address as string.
 	print "Current LoxBerry IP is $ip.";
 
 =cut
+
 ####################################################
 # get_localip - Get local ip address
 ####################################################
