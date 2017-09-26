@@ -184,6 +184,8 @@ if (! -e "$lbhomedir/templates/system/$lang/language.dat")
 	if ($saveformdata) 
 	{
 	  &save;
+	  &form;
+	  
 	}
 	elsif ($do eq "backup") 
 	{
@@ -330,16 +332,16 @@ if (! -e "$lbhomedir/templates/system/$lang/language.dat")
 		$nexturl 				= "./index.cgi?do=form";
 		
 		# Print Template
-		&lbheader;
-		open(F,"$lbhomedir/templates/system/$lang/success.html") || die "Missing template system/$lang/succses.html";
-		  while (<F>) 
-		  {
-		    $_ =~ s/<!--\$(.*?)-->/${$1}/g;
-		    print $_;
-		  }
-		close(F);
-		&footer;
-		exit;
+		#&lbheader;
+		#open(F,"$lbhomedir/templates/system/$lang/success.html") || die "Missing template system/$lang/succses.html";
+		#  while (<F>) 
+		#  {
+		#    $_ =~ s/<!--\$(.*?)-->/${$1}/g;
+		#    print $_;
+		#  }
+		#close(F);
+		#&footer;
+		return;
 	}
 
 #####################################################
@@ -376,14 +378,14 @@ if (! -e "$lbhomedir/templates/system/$lang/language.dat")
 	{
 		$template_title = $phrase->param("TXT0000") . " - " . $phrase->param("TXT0028");
 		if ( !$header_already_sent ) { print "Content-Type: text/html\n\n"; }
-		&lbheader;
+		LoxBerry::Web::lbheader("Miniserver Backup", "http://www.loxwiki.eu:80/x/jIKO", "help.html");
 		open(F,"$lbhomedir/templates/system/$lang/error.html") || die "Missing template system/$lang/error.html";
-    while (<F>) 
-    {
-      $_ =~ s/<!--\$(.*?)-->/${$1}/g;
-      print $_;
-    }
+		while (<F>) 
+		{
+		  $_ =~ s/<!--\$(.*?)-->/${$1}/g;
+		  print $_;
+		}
 		close(F);
-		&footer;
+		LoxBerry::Web::lbfooter();
 		exit;
 	}
