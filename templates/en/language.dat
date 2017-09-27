@@ -54,3 +54,38 @@ TXT2007=ERR#2007: Giving up! Continous errors when downloading:
 TXT2008=ERR#2008: Cannot read local Miniserver IP. Giving up!
 TXT2009=ERR#2009: Giving up! Error creating the Download directory
 TXT2010=ERR#2010: Directory already exists:
+
+;EMAIL-REPORT
+[INDEX]
+BUTTON_CANCEL="Cancel"
+BUTTON_SAVE="Save"
+WARNING="<b>Caution!</b> In the Loxone Config Menu 'Configure Miniserver' check the checkbox </i>Allow this Miniserver to be configured remotely with your Loxone Config over the internet</i>! If not set, a backup might <b>fail</b>."
+LOG_EXECUTING="##### Starting manual backup #####"
+BUTTON_RESTART_DEBUG_SESSION="Restart Debug session"
+LOG_NEWSESSION="##### New session started #####"
+LOGLIVE_REFRESH="Reload logfile"
+LOGLIVE_STOPPING="Stop Logfile refresh. May continued on click."
+LOGLIVE_BACKUPOF_RUNNING="Backup of Miniserver \"+data+\" is in progress!"
+STARTING_PLEASEWAIT="Starting Backup - please wait..."
+BUTTON_START_BACKUP_NOW="Start Backup now!"
+BUTTON_DOWNLOADS="Downloads"
+BUTTON_LOGFILE="Open Logfile"
+LABEL_AUTOMATIC_BACKUPS="Automatic Backups:"
+LABEL_CYCLE="Interval:"
+OPTION_CYCLE_15MIN="15 Min"
+OPTION_CYCLE_30MIN="30 Min"
+OPTION_CYCLE_HOURLY="Hourly"
+OPTION_CYCLE_DAILY="Daily"
+OPTION_CYCLE_WEEKLY="Weekly"
+OPTION_CYCLE_MONTHLY="Monthly"
+LABEL_NUMBER_OF_BACKUPS="Number of Backups to keep as archive:"
+NUMBER_OF_BACKUPS_VALIDATION_ERROR="* Please enter a number between 1 and 500. This amount of (old) Backup-files will be kept for downloading. Older archives will be removed."
+LABEL_LOGLEVEL="Logging-Level:"
+OPTION_LOGLEVEL_0="Normal"
+OPTION_LOGLEVEL_1="Info"
+OPTION_LOGLEVEL_2="Debug (Warning! Credentials readable in logfile!)"
+LABEL_DISPLAY_LIVE_LOG="Logfile realtime view"
+LABEL_JUMP_TO_END_AUTOMATICALLY="Autoscroll to the end"
+OPTION_OFF="Off"
+OPTION_ON="On"
+
