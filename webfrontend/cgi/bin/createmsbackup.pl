@@ -19,7 +19,7 @@
 ##########################################################################
 
 use FindBin;
-use lib "$FindBin::Bin/../perllib";
+use lib "$FindBin::RealBin/../perllib";
 use LoxBerry::System;
 use LoxBerry::Web;
 
