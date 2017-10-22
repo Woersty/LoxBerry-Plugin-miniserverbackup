@@ -92,7 +92,7 @@ our $mscounter = 0;
 ##########################################################################
 
 # Version of this script
-my $version = "0.2";
+my $version = "0.20";
 
 print STDERR "Global variables from LoxBerry::System\n";
 print STDERR "Homedir:     $lbhomedir\n";
@@ -193,7 +193,7 @@ else
 }
 
 # Start
-if ($verbose) { $logmessage = keys(%miniservers) . " " . $phraseplugin->param("TXT1001") . " $0($version)"; &log($green_css); } # ### Miniserver insgesamt - Starte Backup mit Script / Version 
+$logmessage = keys(%miniservers) . " " . $phraseplugin->param("TXT1001") . " $0 (Version V$version)"; &log($green_css);  # ### Miniserver insgesamt - Starte Backup mit Script / Version 
 if ($debug) { $logmessage = "LoxBerry::System version: #$LoxBerry::System::VERSION#  LoxBerry::Web version: #$LoxBerry::Web::VERSION#"; &log($green_css); }
 # Start Backup of all Miniservers
 
