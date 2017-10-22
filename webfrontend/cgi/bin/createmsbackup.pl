@@ -240,7 +240,7 @@ for $msno (sort keys %miniservers)
 		$response = $ua->get($url);
 		if (!$response->is_success) {
 			$success = undef;
-			$logmessage = "TRY $try: " . $phraseplugin->param("TXT1034"); # Unable to fetch Firmware Version. Retry.
+			$logmessage = "TRY $try: " . $phraseplugin->param("TXT1034"); &log($dwl_css);# Unable to fetch Firmware Version. Retry.
 			sleep 3;
 		} else {
 			$success = 1;
@@ -273,7 +273,7 @@ for $msno (sort keys %miniservers)
 		$response = $ua->get($url);
 		if (!$response->is_success) {
 			$success = undef;
-			$logmessage = "TRY $try: " . $phraseplugin->param("TXT1035"); # Unable to fetch local IP. Retry.
+			$logmessage = "TRY $try: " . $phraseplugin->param("TXT1035"); &log($dwl_css); # Unable to fetch local IP. Retry.
 			sleep(3);
 		} else {
 		  $success = 1;
