@@ -59,7 +59,7 @@ TXT2010=ERR#2010: Verzeichnis schon vorhanden:
 [INDEX]
 BUTTON_CANCEL="Abbrechen"
 BUTTON_SAVE="Speichern"
-WARNING="<b>Achtung!</b> Im Miniserver Admin-Interface muss die Option <i>FTP, TELNET UND KONFIGURATIONSSOFTWARE</i> auf &#34;Online&#34; gesetzt werden! Anderenfalls ist ein Backup m&#246;glicherweise <b>nicht</b> m&#246;glich."
+WARNING="<b>Achtung!</b> Im Loxone Config Menü 'Miniserver konfigurieren' muss die Checkbox </i>Loxone Config erlauben diesen Miniserver über das Internet konfigurieren zu dürfen</i> eventuell aktiviert werden! Anderenfalls ist ein Backup unter Umständen <b>nicht</b> möglich."
 LOG_EXECUTING="##### Starte manuelles Backup #####"
 BUTTON_RESTART_DEBUG_SESSION="Debug-Sitzung neu starten"
 LOG_NEWSESSION="##### Neue Sitzung gestartet #####"
