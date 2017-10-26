@@ -89,6 +89,8 @@ our $remotepath;
 our $ext;
 our $bkpfolder;
 our $mscounter = 0;
+my $dontzip;
+
 
 ##########################################################################
 # Read Configuration

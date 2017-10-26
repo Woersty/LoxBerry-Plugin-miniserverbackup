@@ -74,6 +74,7 @@ our $phraseplugin;
 our $selectedverbose;
 our $selecteddebug;
 our $header_already_sent=0;
+my $dontzip;
 
 ##########################################################################
 # Read Settings
