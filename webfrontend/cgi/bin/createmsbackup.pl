@@ -607,7 +607,7 @@ sub download
 	"set net:reconnect-interval-max 180; " .
 	"set net:timeout 5; " .
 	"set net:max-retries 15; " .
-	"net:persist-retries 15; " .
+	"set net:persist-retries 15; " .
 	"set ftp:passive-mode true; ". 
 	"set ftp:sync-mode true; " .
 	"set net:limit-total-rate 3M:3M; " .
