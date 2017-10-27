@@ -36,6 +36,9 @@ use warnings;
 # Variables
 ##########################################################################
 
+# Version of this script
+my $version = "0.21";
+
 our $cfg;
 our $pcfg;
 our $miniservers;
@@ -86,13 +89,12 @@ our $remotepath;
 our $ext;
 our $bkpfolder;
 our $mscounter = 0;
+my $dontzip;
+
 
 ##########################################################################
 # Read Configuration
 ##########################################################################
-
-# Version of this script
-my $version = "0.2";
 
 print STDERR "Global variables from LoxBerry::System\n";
 print STDERR "Homedir:     $lbhomedir\n";
@@ -123,6 +125,7 @@ $maxdwltries     = 5; # Maximale Download-Wiederholungen
 
 $pcfg            = new Config::Simple("$lbconfigdir/miniserverbackup.cfg");
 $debug           = $pcfg->param("MSBACKUP.DEBUG");
+$dontzip		 = $pcfg->param("MSBACKUP.DONT_ZIP");
 $maxfiles =	defined $pcfg->param("MSBACKUP.MAXFILES") ? $pcfg->param("MSBACKUP.MAXFILES") : 1;
 $bkpbase = defined $pcfg->param("MSBACKUP.BASEDIR") ? $pcfg->param("MSBACKUP.BASEDIR") : "$lbdatadir/currentbackup";
 my $bkpworkdir = defined $pcfg->param("MSBACKUP.WORKDIR") ? $pcfg->param("MSBACKUP.WORKDIR") : "$lbdatadir/workdir";
@@ -193,7 +196,7 @@ else
 }
 
 # Start
-if ($verbose) { $logmessage = keys(%miniservers) . " " . $phraseplugin->param("TXT1001") . " $0($version)"; &log($green_css); } # ### Miniserver insgesamt - Starte Backup mit Script / Version 
+$logmessage = keys(%miniservers) . " " . $phraseplugin->param("TXT1001") . " $0 (Version V$version)"; &log($green_css);  # ### Miniserver insgesamt - Starte Backup mit Script / Version 
 if ($debug) { $logmessage = "LoxBerry::System version: #$LoxBerry::System::VERSION#  LoxBerry::Web version: #$LoxBerry::Web::VERSION#"; &log($green_css); }
 # Start Backup of all Miniservers
 
@@ -240,7 +243,7 @@ for $msno (sort keys %miniservers)
 		$response = $ua->get($url);
 		if (!$response->is_success) {
 			$success = undef;
-			$logmessage = "TRY $try: " . $phraseplugin->param("TXT1034"); # Unable to fetch Firmware Version. Retry.
+			$logmessage = "TRY $try: " . $phraseplugin->param("TXT1034"); &log($dwl_css);# Unable to fetch Firmware Version. Retry.
 			sleep 3;
 		} else {
 			$success = 1;
@@ -273,7 +276,7 @@ for $msno (sort keys %miniservers)
 		$response = $ua->get($url);
 		if (!$response->is_success) {
 			$success = undef;
-			$logmessage = "TRY $try: " . $phraseplugin->param("TXT1035"); # Unable to fetch local IP. Retry.
+			$logmessage = "TRY $try: " . $phraseplugin->param("TXT1035"); &log($dwl_css); # Unable to fetch local IP. Retry.
 			sleep(3);
 		} else {
 		  $success = 1;
@@ -464,6 +467,7 @@ for $msno (sort keys %miniservers)
 	{
 		if ($verbose) { $logmessage = $phraseplugin->param("TXT1012"); &log($green_css); } # ZIP-Archive created successfully.
 	}
+
 	$logmessage = $phraseplugin->param("TXT1013"); &log($green_css); #Moving Backup to Download folder..."
 	  
 	# Moving ZIP to files section
@@ -589,7 +593,7 @@ sub download
 	elsif  ($verbose eq 1) 
 	{
 		#Verbose
-		$quiet="debug -o $lftplog -t -c 1";
+		$quiet="debug -o $lftplog -t -c 3 ";
 	}
 	else   
 	{
@@ -598,16 +602,27 @@ sub download
 	}
 
 	my $lftpoptions = 
-	"set net:timeout 5; set net:max-retries 3; set ftp:passive-mode true; set ftp:sync-mode true; " .
-	"set net:limit-total-rate 3M:3M; set ftp:use-stat 0 ";
+	"set net:reconnect-interval-base 5; " .
+	"set net:reconnect-interval-multiplier 3; " .
+	"set net:reconnect-interval-max 180; " .
+	"set net:timeout 5; " .
+	"set net:max-retries 15; " .
+	"set net:persist-retries 15; " .
+	"set ftp:passive-mode true; ". 
+	"set ftp:sync-mode true; " .
+	"set net:limit-total-rate 3M:3M; " .
+	"set ftp:use-stat 0; " .
+	"set log:enabled true; " . 
+	"set log:file $lblogdir/backuplog.log; ";
   
   my $ftppass = quotemeta($miniservers{$msno}{Pass_RAW});
   my $ftpuser = quotemeta($miniservers{$msno}{Admin_RAW});
     
   if ($verbose) { $logmessage = $phraseplugin->param("TXT1021")." $remotepath ..."; &log($green_css); } # Downloading xxx ....
-  for(my $versuche = 1; $versuche < 16; $versuche++) 
+  for(my $versuche = 1; $versuche < 6; $versuche++) 
 	{
 			my $lftpcommand = "$lftpbin -c \"$quiet; $lftpoptions; open -u $ftpuser,$ftppass -p $miniserverftpport $miniservers{$msno}{IPAddress}; mirror --continue --use-cache --parallel=1 --no-perms --no-umask --delete $remotepath $bkpbase/$bkpfolder$remotepath\"";
+			
 			if ($debug) { $logmessage = "LFTP Call: $lftpcommand"; &log($green_css); }
 			system($lftpcommand);
 			if ($? ne 0) 

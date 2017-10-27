@@ -74,13 +74,14 @@ our $phraseplugin;
 our $selectedverbose;
 our $selecteddebug;
 our $header_already_sent=0;
+my $dontzip;
 
 ##########################################################################
 # Read Settings
 ##########################################################################
 
 # Version of this script
-$version = "0.2";
+$version = "0.21";
 
 our %miniservers = LoxBerry::System::get_miniservers();
 our $lang = lblanguage();
@@ -92,6 +93,7 @@ $pname           = $pcfg->param("MSBACKUP.SCRIPTNAME");
 $autobkp         = $pcfg->param("MSBACKUP.AUTOBKP");
 $bkpcron         = $pcfg->param("MSBACKUP.CRON");
 $bkpcounts       = $pcfg->param("MSBACKUP.MAXFILES");
+$dontzip		 = $pcfg->param("MSBACKUP.DONT_ZIP");
 
 my $bkpbase = defined $pcfg->param("MSBACKUP.BASEDIR") ? $pcfg->param("MSBACKUP.BASEDIR") : "$lbdatadir/currentbackup";
 my $bkpworkdir = defined $pcfg->param("MSBACKUP.WORKDIR") ? $pcfg->param("MSBACKUP.WORKDIR") : "$lbdatadir/workdir";
