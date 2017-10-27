@@ -593,7 +593,7 @@ sub download
 	elsif  ($verbose eq 1) 
 	{
 		#Verbose
-		$quiet="debug -o $lftplog -t -c 1";
+		$quiet="debug -o $lftplog -t -c 3 ";
 	}
 	else   
 	{
@@ -611,9 +611,9 @@ sub download
 	"set ftp:passive-mode true; ". 
 	"set ftp:sync-mode true; " .
 	"set net:limit-total-rate 3M:3M; " .
-	"set ftp:use-stat 0 " .
-	"log:enabled " . 
-	"log:file $lblogdir/backuplog.log ";
+	"set ftp:use-stat 0; " .
+	"set log:enabled true; " . 
+	"set log:file $lblogdir/backuplog.log; ";
   
   my $ftppass = quotemeta($miniservers{$msno}{Pass_RAW});
   my $ftpuser = quotemeta($miniservers{$msno}{Admin_RAW});
