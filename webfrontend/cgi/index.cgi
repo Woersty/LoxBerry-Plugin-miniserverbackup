@@ -329,8 +329,8 @@ if (! -e "$lbhomedir/templates/system/$lang/language.dat")
 		
 		if ( !$header_already_sent ) { print "Content-Type: text/html\n\n"; }
 		
-		$template_title = $phrase->param("TXT0000") . ": " . $phrase->param("TXT0040");
-		$message 				= $phraseplugin->param("TXT0002");
+		$template_title = $T::TXT0000 . ": " . $T::TXT0040;
+		$message 				= $T::TXT0002;
 		$nexturl 				= "./index.cgi?do=form";
 		
 		# Print Template
@@ -353,7 +353,7 @@ if (! -e "$lbhomedir/templates/system/$lang/language.dat")
 	sub backup 
 	{
 		if ( !$header_already_sent ) { print "Content-Type: text/html\n\n"; }
-		$message = $phraseplugin->param("TXT0003");
+		$message = $T::TXT0003;
 		print $message;
 		# Create Backup
 		# Without the following workaround
@@ -378,7 +378,7 @@ if (! -e "$lbhomedir/templates/system/$lang/language.dat")
 
 	sub error 
 	{
-		$template_title = $phrase->param("TXT0000") . " - " . $phrase->param("TXT0028");
+		$template_title = $T::TXT0000 . " - " . $T::TXT0028;
 		if ( !$header_already_sent ) { print "Content-Type: text/html\n\n"; }
 		LoxBerry::Web::lbheader("Miniserver Backup", "http://www.loxwiki.eu:80/x/jIKO", "help.html");
 		open(F,"$lbhomedir/templates/system/$lang/error.html") || die "Missing template system/$lang/error.html";
