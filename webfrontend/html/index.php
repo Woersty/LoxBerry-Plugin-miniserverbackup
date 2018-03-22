@@ -361,7 +361,7 @@ foreach ($ms as $msno => $miniserver )
 			{
 				continue;
 			}
-			$url = "http://miniserver/dev/fsget".$file_to_save;
+			$url = "http://".$miniserver['IPAddress'].":".$miniserver['Port']."/dev/fsget".$file_to_save;
 			debug($L["ERRORS.INF_0016_READ_FROM_WRITE_TO"]."\n".$url ." => ".$workdir_data."/".$bkpfolder.$file_to_save); 
 			$curl_save = curl_init(str_replace(" ","%20",$url));
 			curl_setopt($curl_save, CURLOPT_USERPWD, $miniserver['Credentials_RAW']);
