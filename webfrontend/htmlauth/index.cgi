@@ -76,6 +76,7 @@ our $selecteddebug;
 our $header_already_sent=0;
 my $dontzip;
 
+
 ##########################################################################
 # Read Settings
 ##########################################################################
@@ -102,6 +103,32 @@ my $compressionlevel = defined $pcfg->param("MSBACKUP.COMPRESSION_LEVEL") ? $pcf
 my $zipformat = defined $pcfg->param("MSBACKUP.ZIPFORMAT") ? $pcfg->param("MSBACKUP.ZIPFORMAT") : "7z";
 my $mailreport = defined $pcfg->param("MSBACKUP.MAILREPORT") ? $pcfg->param("MSBACKUP.MAILREPORT") : undef;
 
+#Prevent blocking / Recreate state file if missing
+if ( -f '/tmp/backupstate.txt')
+{
+	if ((time - (stat '/tmp/backupstate.txt')[9]) > (30 * 60)) 
+	{
+	  	my $filename = '/tmp/backupstate.txt';
+		open(my $fh, '>', $filename) or die "Could not open file '$filename' $!";
+		print $fh "-";
+		close $fh;
+	}
+}
+else
+{
+  	my $filename = '/tmp/backupstate.txt';
+	open(my $fh, '>', $filename) or die "Could not open file '$filename' $!";
+	print $fh "-";
+	close $fh;
+}
+if (! -l "$lbhtmldir/backupstate.txt")
+{
+	if ( -f "$lbhtmldir/backupstate.txt")
+	{
+		unlink("$lbhtmldir/backupstate.txt");
+	}
+	symlink('/tmp/backupstate.txt', "$lbhtmldir/backupstate.txt");
+}
 
 #########################################################################
 # Parameter

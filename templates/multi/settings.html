@@ -211,14 +211,13 @@
 										{
 										$.get('/plugins/<!--$lbplugindir-->/backupstate.txt', function(data)
 											{
-													data = parseInt(data);
-													if (data > 0)
+													if (data.length > 1)
 													{
-														$("#btnbackup").prop('innerHTML',"<font color='#FF0000'><!--$T::INDEX_LOGLIVE_BACKUPOF_RUNNING-->");
+														$("#btnbackup").prop('innerHTML',"<font color='#FF0000'>"+data+"</font>");
 														//$("#btnbackup").fadeTo( "slow", .8 );
 																		$('#btnbackup').addClass('ui-disabled');
 													}
-													else
+													else if (data == "-") 
 													{
 														$("#btnbackup").text("<!--$T::INDEX_BUTTON_START_BACKUP_NOW-->");
 															//$("#btnbackup").fadeTo( "slow", 1 );
@@ -226,6 +225,9 @@
 													}
 											});
 										}
-										watchDog = setInterval(function() { checkState(); },5000);
-										checkState();
+										
+										$( document ).ready(function() 
+										{
+    										watchDog = setInterval(function() { checkState(); },2500);
+										});
 									</script>
