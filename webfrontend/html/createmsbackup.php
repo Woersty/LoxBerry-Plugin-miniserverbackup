@@ -590,7 +590,7 @@ curl_close($curl);
 class HZip 
 { 
   private static function folderToZip($folder, &$zipFile, $exclusiveLength) { 
-  	global $L,$summary,$callid;
+  	global $L,$summary,$callid,$miniserver;
     $handle = opendir($folder); 
     while (false !== $f = readdir($handle)) { 
       if ($f != '.' && $f != '..') 
@@ -643,7 +643,9 @@ class HZip
 				if ( count($error_count_severe) > 0 )
 				{         
 					array_push($summary,"[$callid] <CRITICAL> ".$L["MINISERVERBACKUP.ERR_0026_SEVERE_SD_CARD_ERRORS_DETECTED"]." => ".array_sum($error_count_severe)." => ".$L["MINISERVERBACKUP.ERR_0027_LAST_SD_CARD_ERROR_DETECTED"]." ".$match_severe); 		
-					array_push($summary,"[$callid] <ALERT> ".$L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]);
+					array_push($summary,"[$callid] <ALERT> ".$L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]." (".$miniserver['Name'].")");
+				    notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME'], $L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]. " (" . $miniserver['Name'] .")");
+
 				}
 			}
       	  }
