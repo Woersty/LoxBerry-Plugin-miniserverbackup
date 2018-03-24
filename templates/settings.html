@@ -160,6 +160,7 @@ $.get('<TMPL_VAR HTMLPATH>logfile.php?ajax&new_session=1');
 	{
 		watchDog = setInterval(function() { checkState(); },2500);
 		notify = setInterval(function() { checkNotifications(); },15000);
+		elfinderreload = setInterval(function() { jQuery('#elfinder').elfinder('instance').exec('reload'); },30000);
 		checkState();
 		checkNotifications();
 	});
