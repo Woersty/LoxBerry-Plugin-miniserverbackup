@@ -16,6 +16,7 @@ chdir(dirname($_SERVER['PHP_SELF']));
 
 // Include System Lib
 require_once "loxberry_system.php";
+require_once "loxberry_log.php";
 
 $plugin_config_file = $lbpconfigdir."/miniserverbackup.cfg";
 $workdir_name		= "workdir";
@@ -27,11 +28,12 @@ $savedir_path 		= $lbpdatadir."/".$savedir_name;
 $bkpzipdestdir 		= $lbphtmldir."/".$bakupdir_name;
 $backupstate_file	= $lbphtmldir."/"."backupstate.txt";
 $backupstate_tmp    = "/tmp"."/"."backupstate.txt";
+$logfilename		= "backuplog.log";
 // Error Reporting 
 error_reporting(E_ALL);     
 ini_set("display_errors", false);        
 ini_set("log_errors", 1);
-ini_set("error_log" , $lbplogdir."/backuplog.log"); 
+ini_set("error_log" , $lbplogdir."/".$logfilename); 
 #ini_set("error_log", "/proc/self/fd/2"); 
 $sys_callid 		= "CID:".time('U');
 $callid 			= $sys_callid;
@@ -72,7 +74,7 @@ function debug($message = "", $loglevel = 7)
 		        break;
 		    case 7:
 		    default:
-		        error_log( "[$callid] <DEBUG> PHP: ".$message );
+		        error_log( "[$callid] PHP: ".$message );
 		        break;
 		}
 	}
@@ -92,6 +94,31 @@ debug(count($L)." ".$L["MINISERVERBACKUP.INF_0001_NB_LANGUAGE_STRINGS_READ"],6);
 
 // Warning if Loglevel > 4 (WARN)
 if ($plugindata['PLUGINDB_LOGLEVEL'] > 5 && $plugindata['PLUGINDB_LOGLEVEL'] <= 7) debug($L["MINISERVERBACKUP.INF_0026_LOGLEVEL_WARNING"]." ".$L["MINISERVERBACKUP.LOGLEVEL".$plugindata['PLUGINDB_LOGLEVEL']]." (".$plugindata['PLUGINDB_LOGLEVEL'].")",4);
+
+debug("Check Logfile size: ".LBPLOGDIR."/".$logfilename);
+$logsize = filesize(LBPLOGDIR."/".$logfilename);
+if ( $logsize > 20971520 )
+{
+    debug($L["ERRORS.ERROR_LOGFILE_TOO_BIG"]." (".$logsize." Bytes)",4);
+    debug("Set Logfile notification: ".LBPPLUGINDIR." ".$L['GENERAL.MY_NAME']." => ".$L['ERRORS.ERROR_LOGFILE_TOO_BIG'],7);
+    notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME'], $L["ERRORS.ERROR_LOGFILE_TOO_BIG"]." (".$logsize." Bytes)");
+	$lines_array = file(LBPLOGDIR."/".$logfilename);
+	$lines = count($lines_array); 
+	$new_output = "----------------------- ".$L["ERRORS.LOGFILE_OLDER_REMOVED"]." -----------------------\n";
+	for ($i=$lines-1500; $i<$lines; $i++)
+	{
+	$new_output .= $lines_array[$i];
+		}
+	file_put_contents(LBPLOGDIR."/".$logfilename,$new_output);
+}
+else
+{
+	debug("Logfile size is ok: ".$logsize);
+}
+
+
+
+
 
 // Read Miniservers
 debug($L["MINISERVERBACKUP.INF_0002_READ_MINISERVERS"]);

@@ -1,0 +1,167 @@
+<center>
+	<img src="<TMPL_VAR LOGO_ICON>"><br>
+</center>
+<br>
+<div id="notifblock">
+	<!-- NOTIFICATIONS //-->
+	<TMPL_VAR NOTIFICATIONS>
+	<!-- NOTIFICATIONS //-->
+</div>
+<center>
+<b><TMPL_VAR GENERAL.HEADER_TEXT></b>
+	<br><a id="btncancel" data-role="button" data-inline="true" data-mini="true" data-icon="arrow-l" href="/admin/system/index.cgi"><TMPL_VAR GENERAL.LABEL_BUTTON_BACK></a>
+</center>
+<link rel="stylesheet" href="<TMPL_VAR HTMLPATH>style.css">
+<link rel="stylesheet" type="text/css" href="<TMPL_VAR HTMLPATH>css/elfinder.min.css">
+<link rel="stylesheet" type="text/css" href="<TMPL_VAR HTMLPATH>css/theme.css">
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.12.0/jquery-ui.min.js"></script>
+<script src="<TMPL_VAR HTMLPATH>js/elfinder.min.js"></script>
+<script src="<TMPL_VAR HTMLPATH>js/i18n/elfinder.<TMPL_VAR ELFINDER_LANG>.js"></script>
+<script type="text/javascript" charset="utf-8">
+// Documentation for client options:
+// https://github.com/Studio-42/elFinder/wiki/Client-configuration-options
+$(document).ready(function() {
+	$('#elfinder').elfinder({
+		defaultView: 'list',
+		sort: 'nameDirsFirst',
+		sortDirect: 'desc',
+		url : '<TMPL_VAR HTMLPATH>php/connector.minimal.php'  // connector URL 
+		 , lang: '<TMPL_VAR ELFINDER_LANG>'                    // language 
+	});
+});
+</script>
+<form method="post" data-ajax="false" name="main_form" id="main_form" action="./index.cgi">
+<center>
+<div id="elfinder"></div>
+<BR>
+</center>
+	<input type="hidden" name="saveformdata" value="1">
+	<input type="hidden" name="VERSION" value="<TMPL_VAR VERSION>">
+	<input type="hidden" name="MINISERVERS"  value="<TMPL_VAR MINISERVERS>">
+	<div class="form-group">
+		<div style="cursor:default; id="tag_div">
+			<fieldset id="tags">
+					<TMPL_LOOP NAME="TAGROW">
+
+LOOP
+
+					</TMPL_LOOP>
+			</fieldset>
+		</div>
+	</div>
+<p>
+	<center>
+		<a id="btnbackup" data-role="button" data-mini="true" onclick="$('#Logfiletextbox').append('<hr\><div style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'><TMPL_VAR GENERAL.LOG_EXECUTING></div><hr\>'); $.get('./index.cgi?do=backup');"><TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW></a>
+	</center>
+</p>
+</form>
+<div>
+	<table width="100%" border="0">
+		<tr>
+			<td width="50%"><a style="color:green;" scrollme="true" onclick="logscroll_change();" id="LogScroll" data-role="button" data-mini="true" href="" data-icon="arrow-d" target="_blank"><TMPL_VAR GENERAL.LABEL_JUMP_TO_END_AUTOMATICALLY>&nbsp;<img height="16px" src="<TMPL_VAR HTMLPATH>img/scroll_go.gif"></a></td>
+			<td width="50%"><a onclick="$('#Logfiletextbox').prop('innerHTML','<hr\><div style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'><TMPL_VAR GENERAL.LOG_NEWSESSION></div><hr\>'); $.get('<TMPL_VAR HTMLPATH>logfile.php?ajax&new_session=1');" id="reset_session" data-role="button" data-mini="true" href="" data-icon="star" target="_blank"><TMPL_VAR GENERAL.LABEL_RESTART_DEBUG_SESSION>&nbsp;<img height="16px" src="<TMPL_VAR HTMLPATH>img/trans.gif"></a></td>
+		</tr>
+	</table>
+	<div style="resize:vertical; overflow:auto; border: 1px solid #888;  background-color: transparent; font-family:monospace; color:#8080FF; overflow-y: scroll;" id="Logfiletextbox" contenteditable="true"></div>
+</div>
+<center><br>
+	<div style="display:table;">
+		<div style="display:table-row;">
+			<div style="display:table-cell; ">
+				<div style="display:table; padding:10px; border: 1px solid black; border-radius: 5px; background-color: rgba(19,172,132,.2);">
+				<TMPL_VAR LOGGING.LOG_AREA> (<TMPL_VAR LOGGING.LOGLEVEL> <TMPL_VAR LOGLEVEL>)<br>
+			 		<div style="display:table-row;">
+						<div style="display:table-cell; border-radius: 5px;" id="delete_log_div">
+				 			<button id="delete_log_btn" onclick="$('#reset_session').trigger('click'); $('#delete_log_div').css('background-color','yellow'); $('#delete_log_btn').html('<TMPL_VAR LOGGING.LOG_BUTTON_DELETE_WORKING>'); $.ajax({url: '', type: 'GET', data: { 'delete_log':1},
+					            success: function (data) {
+					                $('#delete_log_div').css('background-color','green');
+					                $('#delete_log_btn').html('<TMPL_VAR LOGGING.LOG_BUTTON_DELETE_OK>');
+					                setTimeout( function() { $('#delete_log_div').css('background-color',''); $('#delete_log_btn').html('<TMPL_VAR LOGGING.LOG_BUTTON_DELETE>'); }, 2000);
+					            },
+					            error: function (textStatus, errorThrown) {
+					                $('#delete_log_div').css('background-color','red');
+					                $('#delete_log_btn').html('<TMPL_VAR LOGGING.LOG_BUTTON_DELETE_FAIL>');
+					                setTimeout( function() { $('#delete_log_div').css('background-color',''); $('#delete_log_btn').html('<TMPL_VAR LOGGING.LOG_BUTTON_DELETE>');}, 2000);
+					
+					            }	}); return false;" data-role="button" data-inline="true" data-mini="true"><TMPL_VAR LOGGING.LOG_BUTTON_DELETE></button>
+				 			<button onclick="window.open('/admin/system/tools/logfile.cgi?logfile=<TMPL_VAR LOGFILE>&amp;header=html&amp;format=template', 'log'); return false;" id="logview" data-role="button" data-inline="true" data-mini="true"><TMPL_VAR LOGGING.LOG_BUTTON_VIEW></button>
+				 			<SCRIPT> 
+				 	 			$("label").css("text-align","left").css("margin-top","8px").css("margin-bottom","-8px").css("margin-left","0px");
+							</SCRIPT>
+						</div>
+			 		</div>
+				</div>
+		 	</div>
+	 	</div>
+ 	</div>
+</center>
+<script>
+
+$.get('<TMPL_VAR HTMLPATH>logfile.php?ajax&new_session=1');
+			$('#Logfiletextbox').css("height","300px");
+			setInterval(function() 
+			{
+			$.get('<TMPL_VAR HTMLPATH>logfile.php?ajax', function(data) {
+				$('#Logfiletextbox').append(data);
+
+			 //$('#Logfiletextbox').css("max-height","1000px");
+			if($("#LogScroll").attr('scrollme') == 'true' )
+				{
+				$('#Logfiletextbox').scrollTop($('#Logfiletextbox')[0].scrollHeight);
+				}
+			 });
+				}, 500);
+				
+	function logscroll_change()
+	{
+		if($("#LogScroll").attr('scrollme') == "true" )
+		{
+			$('#LogScroll').attr('scrollme','false').css('color','red').html('<TMPL_VAR GENERAL.LABEL_JUMP_TO_END_AUTOMATICALLY_PAUSED>&nbsp;<img src=\'<TMPL_VAR HTMLPATH>img/scroll_stop.gif\'>');
+		}
+		else
+		{
+			$('#LogScroll').attr('scrollme','true').css('color','green').html('<TMPL_VAR GENERAL.LABEL_JUMP_TO_END_AUTOMATICALLY>&nbsp;<img src=\'<TMPL_VAR HTMLPATH>img/scroll_go.gif\'>');
+		}
+	}
+	function checkState()
+	{
+	$.get('<TMPL_VAR HTMLPATH><TMPL_VAR BACKUPSTATEFILE>', function(data)
+		{
+				if (data.length > 1)
+				{
+					$("#btnbackup").prop('innerHTML',"<font color='#FF0000'>"+data+"</font>");
+					//$("#btnbackup").fadeTo( "slow", .8 );
+									$('#btnbackup').addClass('ui-disabled');
+				}
+				else if (data == "-") 
+				{
+					$("#btnbackup").text("<TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW>");
+						//$("#btnbackup").fadeTo( "slow", 1 );
+									$('#btnbackup').removeClass('ui-disabled');
+				}
+		});
+	}
+	
+	function checkNotifications()
+	{
+		$.ajax({url: '<TMPL_VAR HTMLPATH>/get_notifications.php', type: 'GET', data: { 'package':'<TMPL_VAR LBPPLUGINDIR>', 'name':'<TMPL_VAR GENERAL.MY_NAME>'} }).success(function(data) {  $( '#notifblock' ).html(data).trigger('create'); if ( data.length > 10 ) { $('#notifblock').scrollToMe(); } }) ;
+	}
+	// Scroll function for camera dropdown
+	jQuery.fn.extend(
+	{
+	 scrollToMe: function () 
+	 {
+		 var x = jQuery(this).offset().top - 50;
+		 jQuery('html,body').animate({scrollTop: x}, 400);
+	 }
+	});
+
+	$( document ).ready(function() 
+	{
+		watchDog = setInterval(function() { checkState(); },2500);
+		notify = setInterval(function() { checkNotifications(); },15000);
+		checkState();
+		checkNotifications();
+	});
+</script>
+<small><small><TMPL_VAR VERSION></small></small>
