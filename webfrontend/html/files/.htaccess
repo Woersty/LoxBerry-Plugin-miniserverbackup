@@ -1,5 +1,5 @@
 DirectoryIndex index.cgi
 AuthType Basic
 AuthName "Loxberry Administration"
-AuthUserFile /opt/loxberry/config/system/htusers.dat
+AuthUserFile REPLACEBYBASEFOLDER/config/system/htusers.dat
 Require valid-user
