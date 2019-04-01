@@ -18,17 +18,17 @@ chdir(dirname($_SERVER['PHP_SELF']));
 require_once "loxberry_system.php";
 require_once "loxberry_log.php";
 
-$plugin_config_file = $lbpconfigdir."/miniserverbackup.cfg";
-$workdir_name		= "workdir";
-$savedir_name		= "currentbackup";
-$bakupdir_name		= "files";
-$workdir_tmp		= $lbpdatadir."/"."tmp"; # <--- The $workdir_data folder will be linked to this target
-$workdir_data		= $lbpdatadir."/".$workdir_name;
-$savedir_path 		= $lbpdatadir."/".$savedir_name;
-$bkpzipdestdir 		= $lbphtmldir."/".$bakupdir_name;
-$backupstate_file	= $lbphtmldir."/"."backupstate.txt";
-$backupstate_tmp    = "/tmp"."/"."backupstate.txt";
-$logfilename		= "backuplog.log";
+$plugin_config_file 	= $lbpconfigdir."/miniserverbackup.cfg";
+$workdir_name			= "workdir";
+$savedir_name			= "currentbackup";
+$workdir_tmp			= $lbpdatadir."/"."tmp"; # <--- The $workdir_data folder will be linked to this target
+$workdir_data			= $lbpdatadir."/".$workdir_name;
+$savedir_path 			= $lbpdatadir."/".$savedir_name;
+$bkp_dest_dir 			= $lbphtmldir."/files";
+$default_finalstorage	= $lbpdatadir."/files";
+$backupstate_file		= $lbphtmldir."/"."backupstate.txt";
+$backupstate_tmp    	= "/tmp"."/"."backupstate.txt";
+$logfilename			= "backuplog.log";
 // Error Reporting 
 error_reporting(E_ALL);     
 ini_set("display_errors", false);        
@@ -93,7 +93,7 @@ $L = LBSystem::readlanguage("language.ini");
 debug(count($L)." ".$L["MINISERVERBACKUP.INF_0001_NB_LANGUAGE_STRINGS_READ"],6);
 
 // Warning if Loglevel > 4 (WARN)
-if ($plugindata['PLUGINDB_LOGLEVEL'] > 5 && $plugindata['PLUGINDB_LOGLEVEL'] <= 7) debug($L["MINISERVERBACKUP.INF_0026_LOGLEVEL_WARNING"]." ".$L["MINISERVERBACKUP.LOGLEVEL".$plugindata['PLUGINDB_LOGLEVEL']]." (".$plugindata['PLUGINDB_LOGLEVEL'].")",4);
+if ($plugindata['PLUGINDB_LOGLEVEL'] > 5 && $plugindata['PLUGINDB_LOGLEVEL'] <= 7) debug($L["MINISERVERBACKUP.INF_0026_LOGLEVEL_WARNING"]." ".$L["LOGGING.LOGLEVEL".$plugindata['PLUGINDB_LOGLEVEL']]." (".$plugindata['PLUGINDB_LOGLEVEL'].")",4);
 
 debug("Check Logfile size: ".LBPLOGDIR."/".$logfilename);
 $logsize = filesize(LBPLOGDIR."/".$logfilename);
@@ -117,7 +117,14 @@ else
 }
 
 
-
+if ( is_file($backupstate_file) )
+{
+	if ( file_get_contents($backupstate_file) != "-" && file_get_contents($backupstate_file) != "" )
+	{
+		debug($L["ERRORS.ERR_0042_ERR_BACKUP_RUNNING"]." ".$backupstate_file,4);
+		exit(1);
+	}
+}
 
 
 // Read Miniservers
@@ -125,9 +132,11 @@ debug($L["MINISERVERBACKUP.INF_0002_READ_MINISERVERS"]);
 $ms = LBSystem::get_miniservers();
 if (!is_array($ms)) 
 {
-	debug($L["MINISERVERBACKUP.ERR_0001_NO_MINISERVERS_CONFIGURED"],3);
+	debug($L["ERRORS.ERR_0001_NO_MINISERVERS_CONFIGURED"],3);
 	$runtime = microtime(true) - $start;
-	debug($L["MINISERVERBACKUP.ERR_0000_EXIT"]." ".$runtime." s",5);
+	debug($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+	file_put_contents($backupstate_file, "-");
+	sleep(3); // To prevent misdetection in createmsbackup.pl
 	exit(1);
 }
 else
@@ -160,7 +169,7 @@ if ($plugin_cfg_handle)
 }
 else
 {
-  debug($L["MINISERVERBACKUP.ERR_0028_ERROR_READING_CFG"],4);
+  debug($L["ERRORS.ERR_0028_ERROR_READING_CFG"],4);
   touch($plugin_config_file);
 }
 
@@ -185,10 +194,10 @@ if ( ! is_link($backupstate_file) )
 	@symlink($backupstate_tmp, $backupstate_file);
 }
 
-if ( ! is_link($backupstate_file) || ! is_file($backupstate_tmp) ) debug($L["MINISERVERBACKUP.ERR_0029_PROBLEM_WITH_STATE_FILE"],3);
+if ( ! is_link($backupstate_file) || ! is_file($backupstate_tmp) ) debug($L["ERRORS.ERR_0029_PROBLEM_WITH_STATE_FILE"],3);
 
 // Init Array for files to save
-$curl = curl_init() or debug($L["MINISERVERBACKUP.ERR_0002_ERROR_INIT_CURL"],3);
+$curl = curl_init() or debug($L["ERRORS.ERR_0002_ERROR_INIT_CURL"],3);
 curl_setopt($curl, CURLOPT_RETURNTRANSFER	, true);
 curl_setopt($curl, CURLOPT_HTTPAUTH			, constant("CURLAUTH_ANY"));
 curl_setopt($curl, CURLOPT_CUSTOMREQUEST	, "GET");
@@ -196,14 +205,15 @@ curl_setopt($curl, CURLOPT_CUSTOMREQUEST	, "GET");
 // Process all miniservers
 set_time_limit(0);
 
-
 debug ($L["MINISERVERBACKUP.INF_0032_CLEAN_WORKDIR_TMP"]." ".$workdir_tmp);
 create_clean_workdir_tmp($workdir_tmp);
 if (!realpath($workdir_tmp)) 
 {
-	debug ($L["MINISERVERBACKUP.ERR_0022_PROBLEM_WITH_WORKDIR_ON_RAMDISK"],3);
+	debug ($L["ERRORS.ERR_0022_PROBLEM_WITH_WORKDIR_ON_RAMDISK"],3);
 	$runtime = microtime(true) - $start;
-	debug($L["MINISERVERBACKUP.ERR_0000_EXIT"]." ".$runtime." s",5);
+	debug($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+	file_put_contents($backupstate_file, "-");
+	sleep(3); // To prevent misdetection in createmsbackup.pl
 	exit(1);
 }
 
@@ -267,9 +277,11 @@ if (readlink($workdir_data) == $workdir_tmp)
 }
 else
 {
-	debug ($L["MINISERVERBACKUP.ERR_0021_CANNOT_SET_WORKDIR_AS_SYMLINK_TO_RAMDISK"],3);
+	debug ($L["ERRORS.ERR_0021_CANNOT_SET_WORKDIR_AS_SYMLINK_TO_RAMDISK"],3);
 	$runtime = microtime(true) - $start;
-	debug($L["MINISERVERBACKUP.ERR_0000_EXIT"]." ".$runtime." s",5);
+	debug($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+	file_put_contents($backupstate_file, "-");
+	sleep(3); // To prevent misdetection in createmsbackup.pl
 	exit(1);
 }
 
@@ -286,9 +298,11 @@ if (!is_dir($savedir_path))
 }
 if (!is_dir($savedir_path))
 {
-	debug ($L["MINISERVERBACKUP.ERR_0020_CREATE_BACKUP_BASE_FOLDER"]." ".$savedir_path,3); 
+	debug ($L["ERRORS.ERR_0020_CREATE_BACKUP_BASE_FOLDER"]." ".$savedir_path,3); 
 	$runtime = microtime(true) - $start;
-	debug($L["MINISERVERBACKUP.ERR_0000_EXIT"]." ".$runtime." s",5);
+	debug($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+	file_put_contents($backupstate_file, "-");
+	sleep(3); // To prevent misdetection in createmsbackup.pl
 	exit(1);
 }
 debug ($L["MINISERVERBACKUP.INF_0046_BACKUP_BASE_FOLDER_OK"]." (".$savedir_path.")",6); 
@@ -306,9 +320,26 @@ foreach ($ms as $msno => $miniserver )
 	$save_ok_list["time"] 	= array();
 	$percent_done 			= "100";
 	$percent_displ 			= "";
+	$finalstorage			= $default_finalstorage;
+	$finalstorage           = $plugin_cfg["FINALSTORAGE".$msno];
+	$backupinterval			= 0;
+	$backupinterval			= $plugin_cfg["BACKUP_INTERVAL".$msno];
+
+	
+	$last_save 				= "";
+	if ( isset($plugin_cfg["LAST_SAVE".$msno]) && $backupinterval != -1 )
+	{
+		$last_save			= $plugin_cfg["LAST_SAVE".$msno];
+		if ( $last_save == "" || $last_save >= time() ) 
+		{
+			debug( $L["ERRORS.ERR_0043_ERR_LAST_SAVE_IN_FUTURE"]." ".date("Y-m-d H:i:s",$last_save),4);	
+			$last_save = time() - (intval($backupinterval)*60) - 1;
+			system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_SAVE'.$msno.'='.$last_save);
+		}
+	}
 	if ( $miniserver['IPAddress'] == "" ) 
 	{
-		debug( $L["MINISERVERBACKUP.ERR_0003_MS_CONFIG_NO_IP"],3);
+		debug( $L["ERRORS.ERR_0003_MS_CONFIG_NO_IP"],3);
 	}
 	else
 	{
@@ -319,7 +350,7 @@ foreach ($ms as $msno => $miniserver )
 	curl_setopt($curl, CURLOPT_URL, $url);
 	if(curl_exec($curl) === false)
 	{
-		debug($L["MINISERVERBACKUP.ERR_0018_ERROR_READ_LOCAL_MS_IP"]."\n".curl_error($curl),3);
+		debug($L["ERRORS.ERR_0018_ERROR_READ_LOCAL_MS_IP"]."\n".curl_error($curl),3);
 		return;
 	}	
 	else
@@ -331,7 +362,7 @@ foreach ($ms as $msno => $miniserver )
 		}
 		else
 		{
-			debug($L["MINISERVERBACKUP.ERR_0018_ERROR_READ_LOCAL_MS_IP"]."\n".curl_error($curl),3);
+			debug($L["ERRORS.ERR_0018_ERROR_READ_LOCAL_MS_IP"]."\n".$url." => ".nl2br(htmlentities($read_line)),3);
 			return;
 		}
 	}
@@ -340,7 +371,7 @@ foreach ($ms as $msno => $miniserver )
 	curl_setopt($curl, CURLOPT_URL, $url);
 	if(curl_exec($curl) === false)
 	{
-		debug($L["MINISERVERBACKUP.ERR_0019_ERROR_READ_LOCAL_MS_VERSION"]."\n".curl_error($curl),3);
+		debug($L["ERRORS.ERR_0019_ERROR_READ_LOCAL_MS_VERSION"]."\n".curl_error($curl),3);
 		return;
 	}	
 	else
@@ -353,17 +384,60 @@ foreach ($ms as $msno => $miniserver )
 		}
 		else
 		{
-			debug($L["MINISERVERBACKUP.ERR_0019_ERROR_READ_LOCAL_MS_VERSION"]."\n".curl_error($curl),3);
+			debug($L["ERRORS.ERR_0019_ERROR_READ_LOCAL_MS_VERSION"]."\n".curl_error($curl),3);
 			return;
 		}
 	}
 
-	
 	$bkpfolder 	= str_pad($msno,3,0,STR_PAD_LEFT)."_".$miniserver['Name'];
 	$bkpdir 	= "Backup_".trim($local_ip[1])."_".date("YmdHis",time())."_".$ms_version_dir;
 	debug($L["MINISERVERBACKUP.INF_0027_CREATE_BACKUPFOLDER"]." ".$bkpdir." + ".$bkpfolder,6);
 
-	// Set root dir to / and read it
+	#Manual Backup Button on Admin page
+	$manual_backup = 0;
+	if (isset($argv[1])) 
+	{
+		if ( $argv[1] == "manual" )
+		{
+			$manual_backup = 1;
+		}
+	}
+
+	if (file_exists($bkp_dest_dir."/".$bkpfolder)) 
+	{
+		if ( ( $backupinterval > ((time()-$last_save)/60) || $backupinterval == 0 ) && $manual_backup != 1)
+		{
+		    debug(str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-$last_save)/60,1),str_ireplace("<datetime>",date ("d-M-Y H:i:s", $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
+			debug($L["MINISERVERBACKUP.INF_0089_INTERVAL_NOT_ELAPSED"],5);
+			continue;
+		}
+		else
+		{
+			if ( $backupinterval == -1 )
+			{
+				debug($L["MINISERVERBACKUP.INF_0090_BACKUPS_DISABLED"],5);
+				continue;
+			}
+			else
+			{
+				if ( $manual_backup == 1 )
+				{
+					debug($L["MINISERVERBACKUP.INF_0086_INFO_MANUAL_BACKUP_REQUEST"],5);
+				}
+				else
+				{
+				    debug(str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-$last_save)/60,1),str_ireplace("<datetime>",date ("d-M-Y H:i:s", $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
+					debug($L["MINISERVERBACKUP.INF_0088_INTERVAL_ELAPSED"],5);
+				}
+			}
+		}
+	}
+	else
+	{
+		debug($L["MINISERVERBACKUP.INF_0091_BACKUP_DIR_NOT_FOUND_TRY_BACKUP"],5);
+	}
+
+    // Set root dir to / and read it
 	$folder = "/";
 	
 	debug($L["MINISERVERBACKUP.INF_0006_READ_DIRECTORIES_AND_FILES"]." ".$folder,6);
@@ -377,14 +451,15 @@ foreach ($ms as $msno => $miniserver )
 	}
 	if (!is_dir($savedir_path."/".$bkpfolder))
 	{
-		debug ($L["MINISERVERBACKUP.ERR_0024_CREATE_BACKUP_SUB_FOLDER"]." ".$savedir_path."/".$bkpfolder,3); 
+		debug ($L["ERRORS.ERR_0024_CREATE_BACKUP_SUB_FOLDER"]." ".$savedir_path."/".$bkpfolder,3); 
 		$runtime = microtime(true) - $start;
-		debug($L["MINISERVERBACKUP.ERR_0000_EXIT"]." ".$runtime." s",5);
+		debug($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
 		file_put_contents($backupstate_file, "-");
+		sleep(3); // To prevent misdetection in createmsbackup.pl
 		exit(1);
 	}
 	debug ($L["MINISERVERBACKUP.INF_0047_BACKUP_SUB_FOLDER_OK"]." (".$savedir_path."/".$bkpfolder.")",6); 
-
+	$filestosave = 0;	
 	foreach (getDirContents($savedir_path."/".$bkpfolder) as &$file_on_disk) 
 	{
 		$short_name = str_replace($savedir_path."/".$bkpfolder, '', $file_on_disk);
@@ -405,12 +480,14 @@ foreach ($ms as $msno => $miniserver )
 				unset($filetree["name"][$key_in_filetree]);
 		    	unset($filetree["size"][$key_in_filetree]);
 		    	unset($filetree["time"][$key_in_filetree]);
+				$filestosave++;	
 			}
 			else
 			{
 				debug ($L["MINISERVERBACKUP.INF_0050_COMPARE_FOUND_DIFFER_KEEP_LIST"]." (".$short_name.")\nMS <=> LB ".$filetree["name"][$key_in_filetree]." <=> ".$short_name."\nMS <=> LB ".$filetree["size"][$key_in_filetree]." <=> ".filesize($file_on_disk)." Bytes \nMS <=> LB ".date("M d H:i",$filetree["time"][$key_in_filetree])." <=> ".date("M d H:i",filemtime($file_on_disk)),6);
 				unlink($file_on_disk);
-			}	
+				$filestosave++;	
+		}
 		}
 		else
 		{
@@ -419,7 +496,7 @@ foreach ($ms as $msno => $miniserver )
 		}
 	}
 	debug($L["MINISERVERBACKUP.INF_0015_BUILDING_FILELIST_COMPLETED"]." ".count($filetree["name"]),5);
-	$curl_save = curl_init() or debug($L["MINISERVERBACKUP.ERR_0002_ERROR_INIT_CURL"],3);
+	$curl_save = curl_init() or debug($L["ERRORS.ERR_0002_ERROR_INIT_CURL"],3);
 	curl_setopt($curl_save, CURLOPT_HTTPAUTH, constant("CURLAUTH_ANY"));
 
 	if ( count($filetree["name"]) > 0 )
@@ -436,10 +513,10 @@ foreach ($ms as $msno => $miniserver )
 			}
 			if (!is_dir($workdir_data."/".$bkpfolder.$path)) 
 			{
-				debug($L["MINISERVERBACKUP.ERR_0007_PROBLEM_CREATING_BACKUP_DIR"]." ".$workdir_data."/".$bkpfolder.$path,3);
+				debug($L["ERRORS.ERR_0007_PROBLEM_CREATING_BACKUP_DIR"]." ".$workdir_data."/".$bkpfolder.$path,3);
 				continue;
 			}
-			$fp = fopen ($workdir_data."/".$bkpfolder.$file_to_save, 'w+') or debug($L["MINISERVERBACKUP.ERR_0008_PROBLEM_CREATING_BACKUP_FILE"]." ".$workdir_data."/".$bkpfolder.$file_to_save,3);
+			$fp = fopen ($workdir_data."/".$bkpfolder.$file_to_save, 'w+') or debug($L["ERRORS.ERR_0008_PROBLEM_CREATING_BACKUP_FILE"]." ".$workdir_data."/".$bkpfolder.$file_to_save,3);
 			if (!isset($fp))
 			{
 				continue;
@@ -449,20 +526,20 @@ foreach ($ms as $msno => $miniserver )
 			$curl_save = curl_init(str_replace(" ","%20",$url));
 			curl_setopt($curl_save, CURLOPT_USERPWD, $miniserver['Credentials_RAW']);
 			curl_setopt($curl_save, CURLOPT_TIMEOUT, 50);
-			curl_setopt($curl_save, CURLOPT_FILE, $fp) or debug($L["MINISERVERBACKUP.ERR_0008_PROBLEM_CREATING_BACKUP_FILE"]." ".$workdir_data."/".$bkpfolder.$file_to_save."\n".curl_error($curl),3);
+			curl_setopt($curl_save, CURLOPT_FILE, $fp) or debug($L["ERRORS.ERR_0008_PROBLEM_CREATING_BACKUP_FILE"]." ".$workdir_data."/".$bkpfolder.$file_to_save."\n".curl_error($curl),3);
 			curl_setopt($curl_save, CURLOPT_FOLLOWLOCATION, true);
 			$data = curl_exec($curl_save);
 			fclose ($fp); 
 			if ( $data === FALSE)
 			{
-				debug($L["MINISERVERBACKUP.ERR_0009_CURL_SAVE_FAILED"]." ".$workdir_data."/".$bkpfolder.$file_to_save."\n".curl_error($curl_save),3);
+				debug($L["ERRORS.ERR_0009_CURL_SAVE_FAILED"]." ".$workdir_data."/".$bkpfolder.$file_to_save."\n".curl_error($curl_save),3);
 			}
 			else
 			{
 				// Set file time to guessed value read from miniserver
 				if (touch($workdir_data."/".$bkpfolder.$file_to_save, $filetree["time"][array_search($file_to_save,$filetree["name"],true)]) === FALSE )
 				{
-					debug($L["MINISERVERBACKUP.ERR_0016_FILETIME_ISSUE"]." ".$workdir_data."/".$bkpfolder.$file_to_save,4);
+					debug($L["ERRORS.ERR_0016_FILETIME_ISSUE"]." ".$workdir_data."/".$bkpfolder.$file_to_save,4);
 				}
 				if ( filesize($workdir_data."/".$bkpfolder.$file_to_save) < 255 )
 				{
@@ -475,11 +552,11 @@ foreach ($ms as $msno => $miniserver )
 					{
 						if(stristr($read_data,'Forbidden')) 
 						{
-							debug($L["MINISERVERBACKUP.ERR_0015_FORBIDDEN"]." -".$file_to_save."-",6);
+							debug($L["ERRORS.ERR_0015_FORBIDDEN"]." -".$file_to_save."-",6);
 							$key = array_search($file_to_save,$filetree["name"],true);
 							if ( $key === FALSE ) 
 							{
-								debug($L["MINISERVERBACKUP.ERR_0017_REMOVE_FORBIDDEN_FILE_FROM_LIST_FAILED"]." ".$file_to_save,4);
+								debug($L["ERRORS.ERR_0017_REMOVE_FORBIDDEN_FILE_FROM_LIST_FAILED"]." ".$file_to_save,4);
 							}
 							else
 							{
@@ -493,7 +570,7 @@ foreach ($ms as $msno => $miniserver )
 						}
 						else
 						{
-							debug($L["MINISERVERBACKUP.ERR_0005_CURL_GET_CONTENT_FAILED"]." ".$file_to_save." [".curl_error($curl_save).$read_data."]",4); 
+							debug($L["ERRORS.ERR_0005_CURL_GET_CONTENT_FAILED"]." ".$file_to_save." [".curl_error($curl_save).$read_data."]",4); 
 							continue;
 						}
 					}
@@ -504,7 +581,7 @@ foreach ($ms as $msno => $miniserver )
 				
 				if ( filesize($workdir_data."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)])
 				{
-					debug($L["MINISERVERBACKUP.ERR_0013_DIFFERENT_FILESIZE"]." ".$workdir_data."/".$bkpfolder.$file_to_save." => ".filesize($workdir_data."/".$bkpfolder.$file_to_save) ." != ".$filetree["size"][array_search($file_to_save,$filetree["name"],true)],4);
+					debug($L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]." ".$workdir_data."/".$bkpfolder.$file_to_save." => ".filesize($workdir_data."/".$bkpfolder.$file_to_save) ." != ".$filetree["size"][array_search($file_to_save,$filetree["name"],true)],4);
 				}
 				else
 				{
@@ -518,7 +595,7 @@ foreach ($ms as $msno => $miniserver )
 					{
 						if ($percent_done <= 95)
 						{
-						 	debug(str_pad($percent_done,3,"_",STR_PAD_LEFT).$L["MINISERVERBACKUP.INF_0022_PERCENT_DONE"]." (".str_pad(round(array_sum($save_ok_list["size"]),0),strlen(round(array_sum($filetree["size"]),0)),"_", STR_PAD_LEFT)."/".str_pad(round(array_sum($filetree["size"]),0),strlen(round(array_sum($filetree["size"]),0)),"_", STR_PAD_LEFT)." Bytes) [".str_pad(count($save_ok_list["name"]),strlen(count($filetree["name"])),"_", STR_PAD_LEFT)."/".str_pad(count($filetree["name"]),strlen(count($filetree["name"])),"_", STR_PAD_LEFT)."]",5);
+						 	debug(str_pad($percent_done,3," ",STR_PAD_LEFT).$L["MINISERVERBACKUP.INF_0022_PERCENT_DONE"]." (".str_pad(round(array_sum($save_ok_list["size"]),0),strlen(round(array_sum($filetree["size"]),0))," ", STR_PAD_LEFT)."/".str_pad(round(array_sum($filetree["size"]),0),strlen(round(array_sum($filetree["size"]),0))," ", STR_PAD_LEFT)." Bytes) [".str_pad(count($save_ok_list["name"]),strlen(count($filetree["name"]))," ", STR_PAD_LEFT)."/".str_pad(count($filetree["name"]),strlen(count($filetree["name"]))," ", STR_PAD_LEFT)."]",5);
 						}
 		 			}
 		 			$percent_displ = $percent_done;
@@ -530,8 +607,8 @@ foreach ($ms as $msno => $miniserver )
 		debug(count($save_ok_list["name"])." ".$L["MINISERVERBACKUP.INF_0018_BACKUP_COMPLETE"]." (".array_sum($save_ok_list["size"])." Bytes)",5);
 		if ( (count($filetree["name"]) - count($save_ok_list["name"])) > 0 )
 		{	
-			debug($L["MINISERVERBACKUP.ERR_0010_SOME_FILES_NOT_SAVED"]." ".(count($filetree["name"]) - count($save_ok_list["name"])),4);
-			debug($L["MINISERVERBACKUP.ERR_0011_SOME_FILES_NOT_SAVED_INFO"]."\n".implode("\n",array_diff($filetree["name"], $save_ok_list["name"])),6);
+			debug($L["ERRORS.ERR_0010_SOME_FILES_NOT_SAVED"]." ".(count($filetree["name"]) - count($save_ok_list["name"])),4);
+			debug($L["ERRORS.ERR_0011_SOME_FILES_NOT_SAVED_INFO"]."\n".implode("\n",array_diff($filetree["name"], $save_ok_list["name"])),6);
 		}
 		$runtime_dwl = (microtime(true) - $start_dwl);
 		debug("Runtime: ".$runtime_dwl." s");
@@ -545,37 +622,155 @@ foreach ($ms as $msno => $miniserver )
 		debug($L["MINISERVERBACKUP.INF_0052_NOSTART_DOWNLOAD"],5);
 	}
 	curl_close($curl_save); 
-
 	
 	#Move to target dir
-	if (!is_dir($lbpdatadir."/workdir"))
-	{
-		mkdir($lbpdatadir."/workdir", 0777, true);
-	}
-	if (!is_dir($lbpdatadir."/workdir")) 
-	{
-		debug($L["MINISERVERBACKUP.ERR_0012_PROBLEM_CREATING_SAVE_DIR"]." ".$lbpdatadir."/workdir",3);
+
+	#Check if final target is on an external storage like SMB or USB
+	if (strpos($finalstorage, '/system/storage/') !== false) 
+	{                                       
+		#Yes, is on an external storage 
+		#Check if subdir must be appended
+		if (substr($finalstorage, -1) == "+")
+		{
+			$finalstorage = substr($finalstorage,0, -1)."/".$bkpfolder;
+			@mkdir($finalstorage, 0777, true);
+		} 
 	}
 	else
 	{
+		#No, is on local storage 
+		$finalstorage = $finalstorage."/".$bkpfolder;
+		if (!is_dir($finalstorage))
+		{ 
+			@mkdir($finalstorage, 0777, true);
+		}
+	}
+	debug($L["MINISERVERBACKUP.INF_0083_DEBUG_FINAL_TARGET"]." ".$finalstorage,5);
+	if ( !is_writeable($finalstorage) )
+	{
+		debug($L["ERRORS.ERR_0039_FINAL_STORAGE_NOT_WRITABLE"],3);
+	} 
+	
+	#If it's a file, delete it
+	if ( is_file($bkp_dest_dir."/".$bkpfolder) )
+	{
+		@unlink($bkp_dest_dir."/".$bkpfolder);
+	}
+	#If it's no link, delete it
+	if ( !is_link($bkp_dest_dir."/".$bkpfolder) )
+	{
+		#If it's a local dir, delete it
+		if (is_dir($bkp_dest_dir."/".$bkpfolder)) 
+		{
+			rrmdir($bkp_dest_dir."/".$bkpfolder);
+		}
+	}
+	else
+	{
+		#If it's link, delete it
+		unlink($bkp_dest_dir."/".$bkpfolder);
+	}
+	#Create a fresh local link from html file browser to final storage location
+	symlink($finalstorage,$bkp_dest_dir."/".$bkpfolder);
+	
+
+	if (!is_dir($workdir_data."/".$bkpfolder)) 
+	{
+		debug($L["ERRORS.ERR_0040_WORKDIR_IS_NO_DIRECTORY"]." ".$workdir_data."/".$bkpfolder,3);
+	}
+	else
+	{
+		if (!is_dir($bkp_dest_dir."/".$bkpfolder))
+		{
+			@mkdir($bkp_dest_dir."/".$bkpfolder, 0777, true);
+		}
+		if (!is_dir($bkp_dest_dir."/".$bkpfolder)) 
+		{
+			debug($L["ERRORS.ERR_0012_PROBLEM_CREATING_SAVE_DIR"]." ".$bkp_dest_dir."/".$bkpfolder,3);
+		}
 		debug($L["MINISERVERBACKUP.INF_0020_MOVING_TO_SAVE_DIR"]."\n".$workdir_data."/".$bkpfolder." =>".$savedir_path."/".$bkpfolder);
 		rmove($workdir_data."/".$bkpfolder, $savedir_path."/".$bkpfolder);
 		rrmdir($workdir_data."/".$bkpfolder);
-		if (!is_dir($bkpzipdestdir."/".$bkpfolder))
+		if (is_writeable($bkp_dest_dir."/".$bkpfolder)) 
 		{
-			mkdir($bkpzipdestdir."/".$bkpfolder, 0777, true);
-		}
-		if (!is_dir($bkpzipdestdir."/".$bkpfolder)) 
-		{
-			debug($L["MINISERVERBACKUP.ERR_0012_PROBLEM_CREATING_SAVE_DIR"]." ".$bkpzipdestdir."/".$bkpfolder,3);
+			switch (strtoupper($plugin_cfg["FILE_FORMAT".$msno])) 
+			{
+			    case "ZIP":
+			        $fileformat = "ZIP";
+			        $fileformat_extension = ".zip";
+			        break;
+			    case "UNCOMPRESSED":
+			        $fileformat = "UNCOMPRESSED";
+			        $fileformat_extension = "";
+			        break;
+			    case "7Z":
+			        $fileformat = "7Z";
+			        $fileformat_extension = ".7z";
+			        break;
+				default:
+					debug($L["ERRORS.ERR_0036_UNKNOWN_FILE_FORMAT"]." ".strtoupper($plugin_cfg["FILE_FORMAT".$msno]),4); 
+			        $fileformat = "7Z";
+			        $fileformat_extension = ".7z";
+			        break;
+			}
+			debug($L["MINISERVERBACKUP.INF_0075_FILE_FORMAT"]." ".$L["MINISERVERBACKUP.FILE_FORMAT_".$fileformat],6); 
+	
+			switch ($fileformat) 
+			{
+			    case "ZIP":
+					debug($L["MINISERVERBACKUP.INF_0058_CREATE_ZIP_ARCHIVE"]." <br>".$savedir_path."/".$bkpfolder." => ".$bkp_dest_dir."/".$bkpfolder."/".$bkpdir.$fileformat_extension,5);
+					file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"])." (".$L["MINISERVERBACKUP.INF_0067_STATE_ZIP"].")");
+			        MSbackupZIP::zipDir($savedir_path."/".$bkpfolder, $bkp_dest_dir."/".$bkpfolder."/".$bkpdir.$fileformat_extension); 
+					debug($L["MINISERVERBACKUP.INF_0061_CREATE_ZIP_ARCHIVE_DONE"]." ".$bkp_dest_dir."/".$bkpfolder."/".$bkpdir.$fileformat_extension." (". round( intval( filesize($bkp_dest_dir."/".$bkpfolder."/".$bkpdir.$fileformat_extension) ) / 1024 / 1024 ,2 ) ." MB)",5);
+			        break;
+			    case "UNCOMPRESSED":
+					debug($L["MINISERVERBACKUP.INF_0076_NO_COMPRESS_COPY_START"]." <br>".$savedir_path."/".$bkpfolder." => ".$bkp_dest_dir."/".$bkpfolder."/".$bkpdir,5);
+			        $copied_bytes = 0;
+			        recurse_copy($savedir_path."/".$bkpfolder,$bkp_dest_dir."/".$bkpfolder."/".$bkpdir,$copied_bytes,$filestosave);
+					debug($L["MINISERVERBACKUP.INF_0077_NO_COMPRESS_COPY_END"]." ".$bkp_dest_dir."/".$bkpfolder."/".$bkpdir." (". round( $copied_bytes / 1024 / 1024 ,2 ) ." MB)",5);
+			        break;
+			    case "7Z":
+					debug($L["MINISERVERBACKUP.INF_0058_CREATE_ZIP_ARCHIVE"]." <br>".$savedir_path."/".$bkpfolder." => ".$bkp_dest_dir."/".$bkpfolder."/".$bkpdir.$fileformat_extension,5);
+					file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"])." (".$L["MINISERVERBACKUP.INF_0067_STATE_ZIP"].")");
+					$path = $bkp_dest_dir.'/'.$bkpfolder;
+					$latest_ctime = 0;
+					$latest_filename = '';    
+					$d = dir($path);
+					while (false !== ($entry = $d->read())) 
+					{
+		  				$filepath = "{$path}/{$entry}";
+		  				// could do also other checks than just checking whether the entry is a file
+		  				if (is_file($filepath) && filectime($filepath) > $latest_ctime && substr($filepath,-3) == $fileformat_extension ) 
+						{
+							$latest_ctime = filectime($filepath);
+							$latest_filename = $entry;
+						}
+					}
+					
+					if ( $latest_filename ) 
+					{
+						debug($L["MINISERVERBACKUP.INF_0072_ZIP_PREVIOUS_BACKUP_FOUND"]." ".$latest_filename,5);
+						copy($bkp_dest_dir.'/'.$bkpfolder.'/'.$latest_filename, $bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension); 
+						exec('7za u '.$bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.'.7z '.$savedir_path.'/'.$bkpfolder.' -ms=off -mx=9 -t7z -up0q3r2x2y2z0w2!'.$bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.'_incremental'.$fileformat_extension.' 2>&1', $output);
+					}
+					else
+					{
+						debug($L["MINISERVERBACKUP.INF_0073_ZIP_NO_PREVIOUS_BACKUP_FOUND"],5);
+						exec('7za a '.$bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension.' '.$savedir_path.'/'.$bkpfolder.' -ms=off -mx=9 -t7z 2>&1', $output);
+					}
+	                if ( is_file($savedir_path.'/'.$bkpfolder."/log/def.log"))
+	                {
+	                	MSbackupZIP::check_def_log($savedir_path.'/'.$bkpfolder."/log/def.log");
+	            	}
+					debug($L["MINISERVERBACKUP.INF_0074_ZIP_COMPRESSION_RESULT"]." ".implode("<br>",$output),6);
+					debug($L["MINISERVERBACKUP.INF_0061_CREATE_ZIP_ARCHIVE_DONE"]." ".$bkp_dest_dir."/".$bkpfolder."/".$bkpdir.$fileformat_extension." (". round( intval( filesize($bkp_dest_dir."/".$bkpfolder."/".$bkpdir.$fileformat_extension) ) / 1024 / 1024 ,2 ) ." MB)",5);
+			        break;
+			}
+			system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_SAVE'.$msno.'='.time());
 		}
 		else
 		{
-			debug($L["MINISERVERBACKUP.INF_0058_CREATE_ZIP_ARCHIVE"]." /".$bkpfolder."/".$bkpdir.".zip",5);
-			debug($L["MINISERVERBACKUP.INF_0058_CREATE_ZIP_ARCHIVE"]." ".$savedir_path."/".$bkpfolder." => ".$bkpzipdestdir."/".$bkpfolder."/".$bkpdir.".zip");
-			file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"])." (".$L["MINISERVERBACKUP.INF_0067_STATE_ZIP"].")");
-			HZip::zipDir($savedir_path."/".$bkpfolder, $bkpzipdestdir."/".$bkpfolder."/".$bkpdir.".zip"); 
-			debug($L["MINISERVERBACKUP.INF_0061_CREATE_ZIP_ARCHIVE_DONE"]." ".$bkpzipdestdir."/".$bkpfolder."/".$bkpdir.".zip (". round( intval( filesize($bkpzipdestdir."/".$bkpfolder."/".$bkpdir.".zip") ) / 1024 / 1024 ,2 ) ." MB)",5);
+			debug($L["ERRORS.ERR_0039_FINAL_STORAGE_NOT_WRITABLE"]." ".$bkp_dest_dir."/".$bkpfolder,3);
 		}
 	}
 	debug ($L["MINISERVERBACKUP.INF_0032_CLEAN_WORKDIR_TMP"]." ".$workdir_tmp);
@@ -587,7 +782,45 @@ debug($L["MINISERVERBACKUP.INF_0019_BACKUPS_COMPLETE"],5);
 
 curl_close($curl); 
 
-class HZip 
+function recurse_copy($src,$dst,$copied_bytes,$filestosave) 
+{ 
+	global $L, $copied_bytes,$filestosave,$backupstate_file,$msno;
+    $dir = opendir($src); 
+	if ( ! is_dir($dst) )
+	{ 
+	    debug ($L["MINISERVERBACKUP.INF_0035_DEBUG_DIRECTORY_CREATE"]." ".$workdir_tmp);
+        @mkdir($dst); 
+    }
+    while(false !== ( $file = readdir($dir)) ) { 
+        if (( $file != '.' ) && ( $file != '..' )) { 
+            if ( is_dir($src . '/' . $file) ) 
+            { 
+                recurse_copy($src . '/' . $file,$dst . '/' . $file,$copied_bytes,$filestosave); 
+            } 
+            else 
+            { 
+            	debug ($L["MINISERVERBACKUP.INF_0078_DEBUG_COPY_FILE"]." ".$src . '/' . $file .' => ' . $dst . '/' . $file);
+                if ( basename($src)."/".$file == "log/def.log" )
+                {
+                	MSbackupZIP::check_def_log($src . '/' . $file);
+            	}
+                copy($src . '/' . $file,$dst . '/' . $file);
+                $copied_bytes = $copied_bytes + filesize($dst . '/' . $file);
+				$filestosave = $filestosave  - 1;
+				if ( ! ($filestosave % 5) )
+				{
+					$stateinfo = " (".$L["MINISERVERBACKUP.INF_0081_STATE_COPY"]." ".str_pad($filestosave,4," ",STR_PAD_LEFT).", ".$L["MINISERVERBACKUP.INF_0082_STATE_COPY_MB"]." ".round( $copied_bytes / 1024 / 1024 ,2 )." MB)";
+					file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]).$stateinfo);
+	                debug ($L["MINISERVERBACKUP.INF_0079_DEBUG_COPY_PROGRESS"].$stateinfo,5);
+				}
+            } 
+        } 
+    } 
+    closedir($dir); 
+return $copied_bytes;
+}
+
+class MSbackupZIP 
 { 
   private static function folderToZip($folder, &$zipFile, $exclusiveLength) { 
   	global $L,$summary,$callid,$miniserver;
@@ -598,57 +831,14 @@ class HZip
         $filePath = "$folder/$f"; 
         // Remove prefix from file path before add to zip. 
         $localPath = substr($filePath, $exclusiveLength); 
+        if ( basename(dirname($filePath))."/".basename($filePath) == "log/def.log" )
+        {
+        	MSbackupZIP::check_def_log($filePath);
+        }
+        
         if (is_file($filePath)) 
         {
           debug("ZIP: ".$L["MINISERVERBACKUP.INF_0060_ADD_FILE_TO_ZIP"]." ".$filePath);
-          if ( $localPath == "log/def.log" )
-          {
-			$deflog = explode("\n",file_get_contents($filePath));
-			
-			$lookfor = "PRG Reboot";
-          	$matches = array_filter($deflog, function($var) use ($lookfor) { return preg_match("/\b$lookfor\b/i", $var); });
-			$last_reboot_key = array_pop($matches);
-			array_push($summary,"[$callid] <INFO> ".$L["MINISERVERBACKUP.INF_0062_LAST_MS_REBOOT"]." ".$last_reboot_key);
-			$key_in_deflog = array_search($last_reboot_key,$deflog,true);
-			$deflog = array_slice($deflog, $key_in_deflog, NULL, TRUE);
-			$lookfor = "SDC number of ";
-          	$matches = array_filter($deflog, function($var) use ($lookfor) { return preg_match("/\b$lookfor\b/i", $var); });
-          	if ( $matches !== false )
-          	{
-				$error_count = array();
-				$error_count_severe = array();
-	          	foreach ($matches as $match)
-	          	{
-          			if ( preg_match("/\bSDC number of errors: \b(\d).*/i", $match, $founds) ) 
-          			{
-	          			array_push($error_count,$founds[1]);
-					}
-					else if ( preg_match("/\bSDC number of severe errors: \b(\d).*/i", $match, $founds_severe) )
-					{
-          				array_push($error_count_severe,$founds_severe[1]);
-    	      			$match_severe = $match;
-          			}
-          		}
-				if ( count($error_count) > 0 )
-				{          		
-					if ( count($error_count) > 10 )
-					{
-          				array_push($summary,"[$callid] <WARNING> ".$L["MINISERVERBACKUP.ERR_0025_SD_CARD_ERRORS_DETECTED"]." => ".array_sum($error_count)." => ".$L["MINISERVERBACKUP.ERR_0027_LAST_SD_CARD_ERROR_DETECTED"]." ".$match);
-          			}
-          			else
-          			{
-          				array_push($summary,"[$callid] <INFO> ".$L["MINISERVERBACKUP.ERR_0025_SD_CARD_ERRORS_DETECTED"]." => ".array_sum($error_count)." => ".$L["MINISERVERBACKUP.ERR_0027_LAST_SD_CARD_ERROR_DETECTED"]." ".$match);
-          			}
-				}
-				if ( count($error_count_severe) > 0 )
-				{         
-					array_push($summary,"[$callid] <CRITICAL> ".$L["MINISERVERBACKUP.ERR_0026_SEVERE_SD_CARD_ERRORS_DETECTED"]." => ".array_sum($error_count_severe)." => ".$L["MINISERVERBACKUP.ERR_0027_LAST_SD_CARD_ERROR_DETECTED"]." ".$match_severe); 		
-					array_push($summary,"[$callid] <ALERT> ".$L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]." (".$miniserver['Name'].")");
-				    notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME'], $L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]. " (" . $miniserver['Name'] .")");
-
-				}
-			}
-      	  }
           $zipFile->addFile($filePath, $localPath); 
         } 
         elseif (is_dir($filePath)) 
@@ -671,8 +861,59 @@ class HZip
     self::folderToZip($sourcePath, $z, strlen("$sourcePath/")); 
 	debug($L["MINISERVERBACKUP.INF_0065_COMPRESS_ZIP_WAIT"],5);
     $z->close(); 
-  } 
+  }
+
+  public static function check_def_log($filePath) 
+  {
+  	global $L,$summary,$miniserver,$callid;
+	debug($L["MINISERVERBACKUP.INF_0080_CHECK_DEFLOG"]." (" . $miniserver['Name'] .")",5);
+	$deflog = explode("\n",file_get_contents($filePath));
+	$lookfor = "PRG Reboot";
+	$matches = array_filter($deflog, function($var) use ($lookfor) { return preg_match("/\b$lookfor\b/i", $var); });
+	$last_reboot_key = array_pop($matches);
+	array_push($summary,"[$callid] <INFO> ".$L["MINISERVERBACKUP.INF_0062_LAST_MS_REBOOT"]." ".$last_reboot_key);
+	$key_in_deflog = array_search($last_reboot_key,$deflog,true);
+	$deflog = array_slice($deflog, $key_in_deflog, NULL, TRUE);
+	$lookfor = "SDC number of ";
+	$matches = array_filter($deflog, function($var) use ($lookfor) { return preg_match("/\b$lookfor\b/i", $var); });
+	if ( $matches !== false )
+	{
+		$error_count = array();
+		$error_count_severe = array();
+	  	foreach ($matches as $match)
+	  	{
+			if ( preg_match("/\bSDC number of errors: \b(\d).*/i", $match, $founds) ) 
+			{
+	  			array_push($error_count,$founds[1]);
+			}
+			else if ( preg_match("/\bSDC number of severe errors: \b(\d).*/i", $match, $founds_severe) )
+			{
+				array_push($error_count_severe,$founds_severe[1]);
+	  			$match_severe = $match;
+			}
+		}
+		if ( count($error_count) > 0 )
+		{          		
+			if ( count($error_count) > 10 )
+			{
+				array_push($summary,"[$callid] <WARNING> ".$L["ERRORS.ERR_0025_SD_CARD_ERRORS_DETECTED"]." => ".array_sum($error_count)." => ".$L["ERRORS.ERR_0027_LAST_SD_CARD_ERROR_DETECTED"]." ".$match);
+			}
+			else
+			{
+				array_push($summary,"[$callid] <INFO> ".$L["ERRORS.ERR_0025_SD_CARD_ERRORS_DETECTED"]." => ".array_sum($error_count)." => ".$L["ERRORS.ERR_0027_LAST_SD_CARD_ERROR_DETECTED"]." ".$match);
+			}
+		}
+		if ( count($error_count_severe) > 0 )
+		{         
+			array_push($summary,"[$callid] <CRITICAL> ".$L["ERRORS.ERR_0026_SEVERE_SD_CARD_ERRORS_DETECTED"]." => ".array_sum($error_count_severe)." => ".$L["ERRORS.ERR_0027_LAST_SD_CARD_ERROR_DETECTED"]." ".$match_severe); 		
+			array_push($summary,"[$callid] <ALERT> ".$L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]." (".$miniserver['Name'].")");
+		    notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME'], $L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]. " (" . $miniserver['Name'] .")");
+		}
+	}
+	return;
+  }
 } 
+
 
 function getDirContents($path) 
 {
@@ -704,7 +945,7 @@ function read_ms_tree ($folder)
 	curl_setopt($curl, CURLOPT_URL, $LoxURL);
 	if(curl_exec($curl) === false)
 	{
-		debug($L["MINISERVERBACKUP.ERR_0004_ERROR_EXEC_CURL"]."\n".curl_error($curl),4);
+		debug($L["ERRORS.ERR_0004_ERROR_EXEC_CURL"]."\n".curl_error($curl),4);
 		return;
 	}	
 	else
@@ -725,7 +966,7 @@ function read_ms_tree ($folder)
 		}
 		else
 		{
-			debug($L["MINISERVERBACKUP.ERR_0005_CURL_GET_CONTENT_FAILED"]." ".$folder."\n".curl_error($curl).$read_data,4); 
+			debug($L["ERRORS.ERR_0005_CURL_GET_CONTENT_FAILED"]." ".$folder."\n".curl_error($curl).$read_data,4); 
 			return;
 		}
 	}
@@ -742,7 +983,7 @@ function read_ms_tree ($folder)
 			}
 			else
 			{
-				debug($L["MINISERVERBACKUP.ERR_0006_UNABLE_TO_EXTRACT_NAME"]." ".$read_data_line,4);
+				debug($L["ERRORS.ERR_0006_UNABLE_TO_EXTRACT_NAME"]." ".$read_data_line,4);
 			}
 		}
 		else 
@@ -775,7 +1016,7 @@ function read_ms_tree ($folder)
 				$filename[5] = trim($filename[5]);
 				if ($filename[1] == 0)
 				{
-					debug($L["MINISERVERBACKUP.ERR_0014_ZERO_FILESIZE"]." ".$folder.$filename[5]." (".$filename[1]." Bytes)",5);
+					debug($L["ERRORS.ERR_0014_ZERO_FILESIZE"]." ".$folder.$filename[5]." (".$filename[1]." Bytes)",5);
 				}
 				else
 				{
@@ -787,7 +1028,7 @@ function read_ms_tree ($folder)
 			}
 			else
 			{
-				debug($L["MINISERVERBACKUP.ERR_0006_UNABLE_TO_EXTRACT_NAME"]." ".$read_data_line,4);
+				debug($L["ERRORS.ERR_0006_UNABLE_TO_EXTRACT_NAME"]." ".$read_data_line,4);
 			}
 		}
   	}
@@ -869,10 +1110,11 @@ function rrmdir($dir)
 	{
 		if (!is_writable($dir) ) 
 		{
-			debug($L["MINISERVERBACKUP.ERR_0023_PERMISSON_PROBLEM"]." -> ".$dir,3);
+			debug($L["ERRORS.ERR_0023_PERMISSON_PROBLEM"]." -> ".$dir,3);
 			$runtime = microtime(true) - $start;
-			debug($L["MINISERVERBACKUP.ERR_0000_EXIT"]." ".$runtime." s",5);
+			debug($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
 			file_put_contents($backupstate_file, "-");
+			sleep(3); // To prevent misdetection in createmsbackup.pl
 			exit(1);
 		}
 		$objects = scandir($dir);
@@ -898,4 +1140,5 @@ foreach ($summary as &$errors)
 	error_log($errors);
 }
 file_put_contents($backupstate_file, "-");
-debug($L["MINISERVERBACKUP.ERR_0000_EXIT"]." ".$runtime." s",5);
+debug($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+sleep(3); // To prevent misdetection in createmsbackup.pl

@@ -9,12 +9,15 @@
 </div>
 <center>
 <b><TMPL_VAR GENERAL.HEADER_TEXT></b>
+	<center>
+		<a id="btnbackup" data-role="button" data-mini="true" onclick="$('#Logfiletextbox').append('<hr\><div style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'><TMPL_VAR GENERAL.LOG_EXECUTING></div><hr\>'); $.get('./index.cgi?do=backup');"><TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW></a>
+	</center>
 	<br><a id="btncancel" data-role="button" data-inline="true" data-mini="true" data-icon="arrow-l" href="/admin/system/index.cgi"><TMPL_VAR GENERAL.LABEL_BUTTON_BACK></a>
 </center>
 <link rel="stylesheet" href="<TMPL_VAR HTMLPATH>style.css">
 <link rel="stylesheet" type="text/css" href="<TMPL_VAR HTMLPATH>css/elfinder.min.css">
 <link rel="stylesheet" type="text/css" href="<TMPL_VAR HTMLPATH>css/theme.css">
-<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.12.0/jquery-ui.min.js"></script>
+<script src="<TMPL_VAR HTMLPATH>js/jquery-ui-1.12.0.min.js"></script>
 <script src="<TMPL_VAR HTMLPATH>js/elfinder.min.js"></script>
 <script src="<TMPL_VAR HTMLPATH>js/i18n/elfinder.<TMPL_VAR ELFINDER_LANG>.js"></script>
 <script type="text/javascript" charset="utf-8">
@@ -23,6 +26,7 @@
 $(document).ready(function() {
 	$('#elfinder').elfinder({
 		defaultView: 'list',
+		width: '100%',
 		sort: 'nameDirsFirst',
 		sortDirect: 'desc',
 		url : '<TMPL_VAR HTMLPATH>php/connector.minimal.php'  // connector URL 
@@ -34,35 +38,104 @@ $(document).ready(function() {
 <center>
 <div id="elfinder"></div>
 <BR>
-</center>
 	<input type="hidden" name="saveformdata" value="1">
 	<input type="hidden" name="VERSION" value="<TMPL_VAR VERSION>">
 	<input type="hidden" name="MINISERVERS"  value="<TMPL_VAR MINISERVERS>">
-	<div class="form-group">
-		<div style="cursor:default; id="tag_div">
-			<fieldset id="tags">
-					<TMPL_LOOP NAME="TAGROW">
 
-LOOP
+		<TMPL_LOOP TEMPLATE_ROW>
+		<div style="display:inline-block;" >
+			<div id="MS_LOOP_ROW<TMPL_VAR MSID>" style="text-align:left; display:inline-block; margin-bottom:5px; width:99%; padding:10px; border: 1px solid black; border-radius: 5px; background-color: rgba(228,228,228,.1);"> 
+						<div style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(0,228,228,.1);">
+							<TMPL_LOOP NAME="MSROW">
+								#<TMPL_VAR MSID> - <TMPL_VAR Name> <small>[<TMPL_VAR IPAddress>]</small><br>
+							</TMPL_LOOP>
+						</div>
+				<div style="display:table;">
+					<div style="display:table-row;">
+						<div style="display:table-cell; text-align:right;">
+							<TMPL_VAR GENERAL.FINAL_STORAGE_TXT>
+						</div>
+						<div style="display:table-cell; ">
+						    <select name="finalstorage<TMPL_VAR MSID>" id="finalstorage<TMPL_VAR MSID>" onchange="save_config($(this));">
+						      <optgroup label="<TMPL_VAR GENERAL.STORAGE_LOCAL>">
+						      	<option value="<TMPL_VAR LOCALSTORAGE>"><TMPL_VAR LOCALSTORAGE></option>
+						      </optgroup>
+						      <optgroup label="<TMPL_VAR GENERAL.STORAGE_SHARE>">
+								<TMPL_LOOP NETSHARES>
+								<option value="<TMPL_VAR NETSHARE_SHAREPATH>">\\<TMPL_VAR NETSHARE_SERVER>\<TMPL_VAR NETSHARE_SHARENAME> <TMPL_VAR NETSHARE_SUBFOLDER></option>
+								</TMPL_LOOP>
+						      </optgroup>
+						      <optgroup label="<TMPL_VAR GENERAL.STORAGE_USB>">
+								<TMPL_LOOP USBDEVICES>
+								<option value="<TMPL_VAR USBSTORAGE_DEVICEPATH>">#<TMPL_VAR USBSTORAGE_NO> <TMPL_VAR USBSTORAGE_DEVICE> <TMPL_VAR GENERAL.USB_STORAGE_ROOT_DROPDOWN_TEXT> <TMPL_VAR USBSTORAGE_SUBFOLDER></option>
+								</TMPL_LOOP>	
+						      </optgroup>
+						    </select>
+						</div>
+					</div>
+					<div style="display:table-row;">
+						<div style="display:table-cell; text-align:right;">
+							<TMPL_VAR GENERAL.BACKUP_INTERVAL_TXT>
+						</div>
+						<div style="display:table-cell; ">
+						    <select name="backup_interval<TMPL_VAR MSID>" id="backup_interval<TMPL_VAR MSID>" onchange="save_config($(this));">
+								<TMPL_VAR BACKUP_INTERVAL_VALUE>
+						    </select>
+						    
+						</div>
+					</div>
+					<div style="display:table-row;">
+						<div style="display:table-cell; text-align:right;">
+							<TMPL_VAR GENERAL.BACKUP_TYPE_TXT>
+						</div>
+						<div style="display:table-cell; ">
+						    <select name="file_format<TMPL_VAR MSID>" id="file_format<TMPL_VAR MSID>" onchange="save_config($(this));">
+								<TMPL_VAR BACKUP_FILE_FORMAT>
+						    </select>
+						</div>
+					</div>
+				</div>
+				<script>
 
-					</TMPL_LOOP>
-			</fieldset>
+					$( document ).ready(function() 
+					{
+						$("#finalstorage<TMPL_VAR MSID>-button").remove(); $("#finalstorage<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#finalstorage<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
+						$("#backup_interval<TMPL_VAR MSID>-button").remove(); $("#backup_interval<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#backup_interval<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
+						$("#file_format<TMPL_VAR MSID>-button").remove(); $("#file_format<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#file_format<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
+						$("#finalstorage<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_STORAGE>');
+						$("#backup_interval<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_INTERVAL>');
+						$("#file_format<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_FILE_FORMAT>');
+						if ( "<TMPL_VAR AUTOSAVE_CONFIG>" == "1" )
+						{
+							setTimeout( function() 
+							{ 
+								save_config($("#finalstorage<TMPL_VAR MSID>"));
+							}, 200*<TMPL_VAR MSID>);
+							setTimeout( function() 
+							{ 
+								save_config($("#backup_interval<TMPL_VAR MSID>"));
+							}, 250*<TMPL_VAR MSID>);
+							setTimeout( function() 
+							{ 
+								save_config($("#file_format<TMPL_VAR MSID>"));
+							}, 300*<TMPL_VAR MSID>);
+						}		
+					});
+				</script>
+			</div>
 		</div>
-	</div>
-<p>
-	<center>
-		<a id="btnbackup" data-role="button" data-mini="true" onclick="$('#Logfiletextbox').append('<hr\><div style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'><TMPL_VAR GENERAL.LOG_EXECUTING></div><hr\>'); $.get('./index.cgi?do=backup');"><TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW></a>
-	</center>
-</p>
+<BR>
+		</TMPL_LOOP>
+</center>
 </form>
 <div>
 	<table width="100%" border="0">
 		<tr>
-			<td width="50%"><a style="color:green;" scrollme="true" onclick="logscroll_change();" id="LogScroll" data-role="button" data-mini="true" href="" data-icon="arrow-d" target="_blank"><TMPL_VAR GENERAL.LABEL_JUMP_TO_END_AUTOMATICALLY>&nbsp;<img height="16px" src="<TMPL_VAR HTMLPATH>img/scroll_go.gif"></a></td>
-			<td width="50%"><a onclick="$('#Logfiletextbox').prop('innerHTML','<hr\><div style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'><TMPL_VAR GENERAL.LOG_NEWSESSION></div><hr\>'); $.get('<TMPL_VAR HTMLPATH>logfile.php?ajax&new_session=1');" id="reset_session" data-role="button" data-mini="true" href="" data-icon="star" target="_blank"><TMPL_VAR GENERAL.LABEL_RESTART_DEBUG_SESSION>&nbsp;<img height="16px" src="<TMPL_VAR HTMLPATH>img/trans.gif"></a></td>
+			<td width="50%"><a style="color:green;" scrollme="true" onclick="logscroll_change();" id="LogScroll" data-role="button" data-mini="true" href="" target="_blank"><TMPL_VAR GENERAL.LABEL_JUMP_TO_END_AUTOMATICALLY>&nbsp;<img height="16px" src="<TMPL_VAR HTMLPATH>img/scroll_go.gif"></a></td>
+			<td width="50%"><a onclick="$('#Logfiletextbox').prop('innerHTML','<hr\><div style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'><TMPL_VAR GENERAL.LOG_NEWSESSION></div><hr\>'); $.get('<TMPL_VAR HTMLPATH>logfile.php?ajax&new_session=1');" id="reset_session" data-role="button" data-mini="true" href="" target="_blank"><TMPL_VAR GENERAL.LABEL_RESTART_DEBUG_SESSION>&nbsp;<img height="16px" src="<TMPL_VAR HTMLPATH>img/trans.gif"></a></td>
 		</tr>
 	</table>
-	<div style="resize:vertical; overflow:auto; border: 1px solid #888;  background-color: transparent; font-family:monospace; color:#8080FF; overflow-y: scroll;" id="Logfiletextbox" contenteditable="true"></div>
+	<div style="resize:vertical; width:100%; border: 1px solid #888;  background-color: transparent; font-family:monospace; color:#8080FF; overflow-y: scroll;" id="Logfiletextbox" contenteditable="true"> </div>
 </div>
 <center><br>
 	<div style="display:table;">
@@ -74,6 +147,7 @@ LOOP
 						<div style="display:table-cell; border-radius: 5px;" id="delete_log_div">
 				 			<button id="delete_log_btn" onclick="$('#reset_session').trigger('click'); $('#delete_log_div').css('background-color','yellow'); $('#delete_log_btn').html('<TMPL_VAR LOGGING.LOG_BUTTON_DELETE_WORKING>'); $.ajax({url: '', type: 'GET', data: { 'delete_log':1},
 					            success: function (data) {
+					            	$.ajax({url: '<TMPL_VAR HTMLPATH>logfile.php', type: 'GET', data: { 'new_session':1}});
 					                $('#delete_log_div').css('background-color','green');
 					                $('#delete_log_btn').html('<TMPL_VAR LOGGING.LOG_BUTTON_DELETE_OK>');
 					                setTimeout( function() { $('#delete_log_div').css('background-color',''); $('#delete_log_btn').html('<TMPL_VAR LOGGING.LOG_BUTTON_DELETE>'); }, 2000);
@@ -97,7 +171,7 @@ LOOP
 </center>
 <script>
 
-$.get('<TMPL_VAR HTMLPATH>logfile.php?ajax&new_session=1');
+			$.ajax({url: '<TMPL_VAR HTMLPATH>logfile.php', type: 'GET', data: { 'new_session':1}});
 			$('#Logfiletextbox').css("height","300px");
 			setInterval(function() 
 			{
@@ -110,7 +184,7 @@ $.get('<TMPL_VAR HTMLPATH>logfile.php?ajax&new_session=1');
 				$('#Logfiletextbox').scrollTop($('#Logfiletextbox')[0].scrollHeight);
 				}
 			 });
-				}, 500);
+				}, 1500);
 				
 	function logscroll_change()
 	{
@@ -155,7 +229,68 @@ $.get('<TMPL_VAR HTMLPATH>logfile.php?ajax&new_session=1');
 		 jQuery('html,body').animate({scrollTop: x}, 400);
 	 }
 	});
+	
+	function save_config(object)
+	{
+		var before_bg_color = "";
+		var postData = {};
+		postData[$(object).attr('name')] = $(object).val();
+		$.ajax({url: '<TMPL_VAR HTMLPATH>ajax_config_handler.php', type: 'POST', data: postData,
+            success: function (data) 
+            {
+				if ( data.search(/ERROR/i) != -1 )
+				{
+	            	
+	            	if ( $(object).is(':checkbox') )
+	            	{
+		            	$('label[for='+$(object).attr('name')+']').css('background-color','#FFC0C0');
+		                setTimeout( function() { $('label[for='+$(object).attr('name')+']').css('background-color',before_bg_color); }, 1000);
+	            	}
+	            	else
+            		{
+		            	$(object).css('background-color','#FFC0C0');
+		                setTimeout( function() { $(object).css('background-color',before_bg_color); }, 1000);
+            		}
+	                console.log('<TMPL_VAR GENERAL.MY_NAME> function save_config for ' + $(object).attr('id') + ': Error => ' + data);
+				}
+				else
+				{
+	            	if ( $(object).is(':checkbox') )
+	            	{
+	            		$('label[for='+$(object).attr('name')+']').css('background-color','#C0FFC0');
+	                	setTimeout( function() { $('label[for='+$(object).attr('name')+']').css('background-color',before_bg_color); }, 1000);
+	            	}
+	            	else
+            		{
+	            		$(object).css('background-color','#C0FFC0');
+	                	setTimeout( function() { $(object).css('background-color',before_bg_color); }, 1000);
+            		}
+            		console.log('<TMPL_VAR GENERAL.MY_NAME> function save_config for ' + $(object).attr('id') + ': OK => ' + data);
+                	setTimeout( function() { $(object).css('background-color',before_bg_color); }, 1000);
+                }
+            },
+            error: function (errorThrown) 
+            {
+            	$(object).css('background-color','#FFC0C0');
+                console.log('<TMPL_VAR GENERAL.MY_NAME> function save_config for ' + $(object).attr('id') + ': Error => ' + errorThrown.status + ' => ' + errorThrown.statusText);
+                setTimeout( function() { $(object).css('background-color',before_bg_color); }, 1000);
+            }	});
+	}
 
+	function set_checkbox(object)
+	{
+		if (! $(object).is(':checked') )
+		{
+			$(object).val('on');
+			$('label[for='+$(object).attr('name')+']').removeClass("ui-checkbox-on").addClass( "ui-btn ui-corner-all ui-btn-inherit ui-btn-icon-left ui-checkbox ui-radio ui-checkbox-off" ).css("padding","20px").css("margin-left","5px").css("width","1px").css("padding-top","5px");
+		}
+		else
+		{
+			$(object).val('off');
+			$('label[for='+$(object).attr('name')+']').removeClass("ui-checkbox-off").addClass( "ui-btn ui-corner-all ui-btn-inherit ui-btn-icon-left ui-checkbox ui-radio ui-checkbox-on" ).css("padding","20px").css("margin-left","5px").css("width","1px").css("padding-top","5px");
+			//ToDo Firefox bad location of checkbox
+		}
+	}
 	$( document ).ready(function() 
 	{
 		watchDog = setInterval(function() { checkState(); },2500);
@@ -163,6 +298,7 @@ $.get('<TMPL_VAR HTMLPATH>logfile.php?ajax&new_session=1');
 		elfinderreload = setInterval(function() { jQuery('#elfinder').elfinder('instance').exec('reload'); },30000);
 		checkState();
 		checkNotifications();
+		//jQuery('html').css('overflow-y', 'auto');
 	});
 </script>
 <small><small><TMPL_VAR VERSION></small></small>
