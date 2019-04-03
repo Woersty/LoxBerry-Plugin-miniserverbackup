@@ -137,6 +137,10 @@ $(document).ready(function() {
 								}, 250*<TMPL_VAR MSID>);
 							}, 1000*<TMPL_VAR MSID>);
 						}		
+						if ( "<TMPL_VAR MS_DISABLED>" == "1" )
+						{
+							$("#MS_LOOP_ROW<TMPL_VAR MSID>").css("background-color", "#ffc0c0").addClass('ui-disabled');
+						}
 					});
 				</script>
 			</div>

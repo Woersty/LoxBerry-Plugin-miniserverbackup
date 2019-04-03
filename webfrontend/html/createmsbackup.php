@@ -339,6 +339,11 @@ foreach ($ms as $msno => $miniserver )
 			system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_SAVE'.$msno.'='.$last_save);
 		}
 	}
+	if ( $miniserver['IPAddress'] == "0.0.0.0" ) 
+	{
+		debug( $L["ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"],3);
+		continue;
+	}
 	if ( $miniserver['IPAddress'] == "" ) 
 	{
 		debug( $L["ERRORS.ERR_0003_MS_CONFIG_NO_IP"],3);
@@ -551,7 +556,7 @@ foreach ($ms as $msno => $miniserver )
 			curl_setopt($curl_save, CURLOPT_FOLLOWLOCATION, true);
 			$data = curl_exec($curl_save);
 
-			if ( filesize($workdir_data."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)])
+			if ( filesize($workdir_data."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)] && filesize($workdir_data."/".$bkpfolder.$file_to_save) != 122 )
 			{
 				debug($L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]." ".$workdir_data."/".$bkpfolder.$file_to_save." => ".filesize($workdir_data."/".$bkpfolder.$file_to_save) ." != ".$filetree["size"][array_search($file_to_save,$filetree["name"],true)],6);
 				sleep(1);
@@ -566,7 +571,7 @@ foreach ($ms as $msno => $miniserver )
 				$data = curl_exec($curl_save);
 			}
 
-			if ( filesize($workdir_data."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)])
+			if ( filesize($workdir_data."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)] && filesize($workdir_data."/".$bkpfolder.$file_to_save) != 122 )
 			{
 				debug($L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]." ".$workdir_data."/".$bkpfolder.$file_to_save." => ".filesize($workdir_data."/".$bkpfolder.$file_to_save) ." != ".$filetree["size"][array_search($file_to_save,$filetree["name"],true)],6);
 				sleep(1);
@@ -578,7 +583,7 @@ foreach ($ms as $msno => $miniserver )
 				sleep(1);
 				$data = curl_exec($curl_save);
 			}
-			if ( filesize($workdir_data."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)])
+			if ( filesize($workdir_data."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)] && filesize($workdir_data."/".$bkpfolder.$file_to_save) != 122 )
 			{
 				debug($L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]." ".$workdir_data."/".$bkpfolder.$file_to_save." => ".filesize($workdir_data."/".$bkpfolder.$file_to_save) ." != ".$filetree["size"][array_search($file_to_save,$filetree["name"],true)],6);
 				sleep(1);

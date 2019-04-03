@@ -30,6 +30,7 @@ use HTML::Entities;
 use warnings;
 use strict;
 no  strict "refs"; 
+require Time::Piece;
 
 ##########################################################################
 # Variables
@@ -64,6 +65,7 @@ my @msrow;
 my @ms;
 my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup', filename => $lbplogdir ."/". $logfile, append => 1 );
 my $do="form";
+my $msDisabled;
 our $tag_id;
 our $ms_id;
 our @config_params;
@@ -312,6 +314,18 @@ exit;
 		$ms{Name} 			= $miniservers{$ms_id}{'Name'};
 		$ms{IPAddress} 		= $miniservers{$ms_id}{'IPAddress'};
 
+		if ( $ms{IPAddress} == "0.0.0.0" )
+		{
+			my $t = Time::Piece->localtime;
+			LOGERR 	"[".$t->strftime("%Y-%m-%d %H:%M:%S")."] index.cgi: ".$L{"ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"}." ".$miniservers{$ms_id}{'Name'};
+			$msDisabled 			= 1;
+			$ms{IPAddress} = $L{"ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"};
+		}
+		else
+		{
+			$msDisabled 			= 0;
+		}
+
 		my $nsc=0;
 		my @netshares_converted;
 		my @netshares_plus_subfolder;
@@ -354,6 +368,7 @@ exit;
 				$row{'CURRENT_FILE_FORMAT'}		= $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} if ( $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} ne "" );
 				$row{'CURRENT_BACKUPS_TO_KEEP'}	= $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} if ( $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} ne "" );
 				$row{'AUTOSAVE_CONFIG'}	    	= 1 if ( $Config{"MINISERVERBACKUP.FINALSTORAGE".$ms_id} eq "" || $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} eq "" || $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} eq "" || $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} eq "" );
+				$row{'MS_DISABLED'}	    		= $msDisabled;
 				
 				my $backup_intervals;
 				foreach  (  sort { $a <=> $b } %backup_interval_minutes) 
