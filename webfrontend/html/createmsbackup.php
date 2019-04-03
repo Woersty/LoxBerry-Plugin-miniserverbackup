@@ -538,14 +538,19 @@ foreach ($ms as $msno => $miniserver )
 				continue;
 			}
 			$url = "http://".$miniserver['IPAddress'].":".$miniserver['Port']."/dev/fsget".$file_to_save;
-			debug($L["MINISERVERBACKUP.INF_0016_READ_FROM_WRITE_TO"]."\n".$url ." => ".$workdir_data."/".$bkpfolder.$file_to_save); 
 			usleep(50000);
+			debug($L["MINISERVERBACKUP.INF_0016_READ_FROM_WRITE_TO"]."\n".$url ." => ".$workdir_data."/".$bkpfolder.$file_to_save); 
 			$curl_save = curl_init(str_replace(" ","%20",$url));
 			curl_setopt($curl_save, CURLOPT_USERPWD, $miniserver['Credentials_RAW']);
 			curl_setopt($curl_save, CURLOPT_TIMEOUT, 50);
+			curl_setopt($curl_save, CURLOPT_NOPROGRESS, 1);
+			curl_setopt($curl_save, CURLOPT_FOLLOWLOCATION, 0);
+			curl_setopt($curl_save, CURLOPT_CONNECTTIMEOUT, 600); 
+			curl_setopt($curl_save, CURLOPT_TIMEOUT, 600);
 			curl_setopt($curl_save, CURLOPT_FILE, $fp) or debug($L["ERRORS.ERR_0008_PROBLEM_CREATING_BACKUP_FILE"]." ".$workdir_data."/".$bkpfolder.$file_to_save."\n".curl_error($curl),3);
 			curl_setopt($curl_save, CURLOPT_FOLLOWLOCATION, true);
 			$data = curl_exec($curl_save);
+			debug($L["MINISERVERBACKUP.INF_0016_READ_FROM_WRITE_TO"]."\n".$url ." => ".$workdir_data."/".$bkpfolder.$file_to_save." DONE"); 
 			fclose ($fp); 
 			if ( $data === FALSE)
 			{
