@@ -49,6 +49,7 @@ my @netshares 					= LoxBerry::Storage::get_netshares();
 my @usbdevices 					= LoxBerry::Storage::get_usbstorage();
 my $localstorage                = $lbpdatadir."/files";
 my %backup_interval_minutes		= (0,30,60,240,1440,10080,43200,-1);
+my %backups_to_keep_values		= (1,3,7,14,30,60,90,365);
 my %file_formats				= ('7z','zip','uncompressed');
 my $finalstorage;
 my $error_message				= "";
@@ -152,7 +153,7 @@ if (! -l $backupstate_file)
 }
 
 stat($lbpconfigdir . "/" . $pluginconfigfile);
-if (!-r _ ) 
+if (!-r _ || -z _ ) 
 {
 	$error_message = $ERR{'ERRORS.ERR_0030_ERROR_CREATE_CONFIG_DIRECTORY'};
 	mkdir $lbpconfigdir unless -d $lbpconfigdir or &error; 
@@ -339,21 +340,22 @@ exit;
 		push(@usbdevices_converted, @usbdevices);
 		push(@usbdevices_converted, @usbdevices_plus_subfolder);
 
-		push @{ $row{'MSROW'} }				, \%ms;
-		        $row{'MSID'} 				= $ms_id;
-				$row{'NETSHARES'} 			= \@netshares_converted;
-				$row{'USBDEVICES'} 			= \@usbdevices_converted;
-				$row{'LOCALSTORAGE'} 		= $localstorage;
-				$row{'CURRENT_STORAGE'}		= $localstorage;
-				$row{'CURRENT_INTERVAL'}	= 0;
-				$row{'CURRENT_FILE_FORMAT'}	= "zip";
-				$row{'CURRENT_STORAGE'}		= $Config{"MINISERVERBACKUP.FINALSTORAGE".$ms_id} if ( $Config{"MINISERVERBACKUP.FINALSTORAGE".$ms_id} ne "" );
-				$row{'CURRENT_INTERVAL'}	= $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} if ( $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} ne "" );
-				$row{'CURRENT_FILE_FORMAT'}	= $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} if ( $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} ne "" );
-				$row{'AUTOSAVE_CONFIG'}	    = 1 if ( $Config{"MINISERVERBACKUP.FINALSTORAGE".$ms_id} eq "" || $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} eq "" || $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} eq "");
+		push @{ $row{'MSROW'} }					, \%ms;
+		        $row{'MSID'} 					= $ms_id;
+				$row{'NETSHARES'} 				= \@netshares_converted;
+				$row{'USBDEVICES'} 				= \@usbdevices_converted;
+				$row{'LOCALSTORAGE'} 			= $localstorage;
+				$row{'CURRENT_STORAGE'}			= $localstorage;
+				$row{'CURRENT_INTERVAL'}		= 0;
+				$row{'CURRENT_FILE_FORMAT'}		= "zip";
+				$row{'CURRENT_BACKUPS_TO_KEEP'}	= "7";
+				$row{'CURRENT_STORAGE'}			= $Config{"MINISERVERBACKUP.FINALSTORAGE".$ms_id} if ( $Config{"MINISERVERBACKUP.FINALSTORAGE".$ms_id} ne "" );
+				$row{'CURRENT_INTERVAL'}		= $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} if ( $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} ne "" );
+				$row{'CURRENT_FILE_FORMAT'}		= $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} if ( $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} ne "" );
+				$row{'CURRENT_BACKUPS_TO_KEEP'}	= $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} if ( $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} ne "" );
+				$row{'AUTOSAVE_CONFIG'}	    	= 1 if ( $Config{"MINISERVERBACKUP.FINALSTORAGE".$ms_id} eq "" || $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} eq "" || $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} eq "" || $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} eq "" );
 				
 				my $backup_intervals;
-				
 				foreach  (  sort { $a <=> $b } %backup_interval_minutes) 
 				{ 
 					$backup_intervals = $backup_intervals . '<OPTION value="'.$_.'"> '.$L{"MINISERVERBACKUP.INTERVAL".$_}.' </OPTION>' if ( $_ ne "" );
@@ -368,6 +370,14 @@ exit;
 					LOGDEB "->".$_ if ( $_ ne "" );
 				}
 				$row{'BACKUP_FILE_FORMAT'} 	= $file_formats;
+
+				my $backups_to_keep;
+				foreach  (  sort { $a <=> $b } %backups_to_keep_values) 
+				{ 
+					$backups_to_keep = $backups_to_keep . '<OPTION value="'.$_.'"> '.$_.' </OPTION>' if ( $_ ne "" );
+					LOGDEB "->".$_ if ( $_ ne "" );
+				}
+				$row{'BACKUPS_TO_KEEP_VALUE'} 	= $backups_to_keep;
 
 		push(@template_row, \%row);
 		

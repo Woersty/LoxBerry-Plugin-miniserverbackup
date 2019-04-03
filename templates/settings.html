@@ -94,6 +94,17 @@ $(document).ready(function() {
 						    </select>
 						</div>
 					</div>
+					<div style="display:table-row;">
+						<div style="display:table-cell; text-align:right;">
+							<TMPL_VAR GENERAL.BACKUPS_TO_KEEP_TXT>
+						</div>
+						<div style="display:table-cell; ">
+						    <select name="backups_to_keep<TMPL_VAR MSID>" id="backups_to_keep<TMPL_VAR MSID>" onchange="save_config($(this));">
+								<TMPL_VAR BACKUPS_TO_KEEP_VALUE>
+						    </select>
+						    
+						</div>
+					</div>
 				</div>
 				<script>
 
@@ -102,23 +113,29 @@ $(document).ready(function() {
 						$("#finalstorage<TMPL_VAR MSID>-button").remove(); $("#finalstorage<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#finalstorage<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
 						$("#backup_interval<TMPL_VAR MSID>-button").remove(); $("#backup_interval<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#backup_interval<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
 						$("#file_format<TMPL_VAR MSID>-button").remove(); $("#file_format<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#file_format<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
+						$("#backups_to_keep<TMPL_VAR MSID>-button").remove(); $("#backups_to_keep<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#backups_to_keep<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
 						$("#finalstorage<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_STORAGE>');
 						$("#backup_interval<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_INTERVAL>');
 						$("#file_format<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_FILE_FORMAT>');
+						$("#backups_to_keep<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_BACKUPS_TO_KEEP>');
 						if ( "<TMPL_VAR AUTOSAVE_CONFIG>" == "1" )
 						{
 							setTimeout( function() 
 							{ 
 								save_config($("#finalstorage<TMPL_VAR MSID>"));
-							}, 200*<TMPL_VAR MSID>);
-							setTimeout( function() 
-							{ 
-								save_config($("#backup_interval<TMPL_VAR MSID>"));
-							}, 250*<TMPL_VAR MSID>);
-							setTimeout( function() 
-							{ 
-								save_config($("#file_format<TMPL_VAR MSID>"));
-							}, 300*<TMPL_VAR MSID>);
+								setTimeout( function() 
+								{ 
+									save_config($("#backup_interval<TMPL_VAR MSID>"));
+									setTimeout( function() 
+									{ 
+										save_config($("#file_format<TMPL_VAR MSID>"));
+										setTimeout( function() 
+										{ 
+											save_config($("#backups_to_keep<TMPL_VAR MSID>"));
+										}, 250*<TMPL_VAR MSID>);
+									}, 250*<TMPL_VAR MSID>);
+								}, 250*<TMPL_VAR MSID>);
+							}, 1000*<TMPL_VAR MSID>);
 						}		
 					});
 				</script>

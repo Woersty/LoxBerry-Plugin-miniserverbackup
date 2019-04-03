@@ -189,7 +189,7 @@ function build_tree()
 		}
 		else
 		{
-			debug($L["MINISERVERBACKUP.INF_0084_INFO_CRON_JOB_ACTIVE"],5);	
+			debug($L["MINISERVERBACKUP.INF_0084_INFO_CRON_JOB_ACTIVE"],6);	
 		}
 	}
 	else
@@ -198,7 +198,7 @@ function build_tree()
 		{
 			unlink(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR) or debug($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"],3);
 		}
-		debug($L["MINISERVERBACKUP.INF_0085_INFO_CRON_JOB_STOPPED"],5);	
+		debug($L["MINISERVERBACKUP.INF_0085_INFO_CRON_JOB_STOPPED"],6);	
 	}
 	return;
 }
