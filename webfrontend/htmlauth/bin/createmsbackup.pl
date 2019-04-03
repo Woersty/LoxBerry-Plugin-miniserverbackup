@@ -22,6 +22,8 @@
 use LoxBerry::System;
 use LoxBerry::Log;
 my $logfile 					= "backuplog.log";
+my $backupstate_name 			= "backupstate.txt";
+my $backupstate_tmp_file 		= "/tmp/".$backupstate_name;
 my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup', filename => $lbplogdir ."/". $logfile, append => 1 );
 my %ERR 						= LoxBerry::System::readlanguage();
 
@@ -34,3 +36,15 @@ if ( int $output_string ne 1 )
 {
 	LOGERR $ERR{'ERRORS.ERR_0037_UNABLE_TO_INITIATE_BACKUP'}; 
 }
+#Prevent blocking / Recreate state file if older than 1 * 60 sec and no php running)
+$error_message = $ERR{'ERRORS.ERR_0029_PROBLEM_WITH_STATE_FILE'};
+if ( -f $backupstate_tmp_file && int $output_string eq 0 )
+{
+	if ((time - (stat $backupstate_tmp_file)[9]) > (1 * 60)) 
+	{
+		open(my $fh, '>', $backupstate_tmp_file) or exit;
+		print $fh "-";
+		close $fh;
+	}
+}
+	
