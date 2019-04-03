@@ -554,22 +554,34 @@ foreach ($ms as $msno => $miniserver )
 			if ( filesize($workdir_data."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)])
 			{
 				debug($L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]." ".$workdir_data."/".$bkpfolder.$file_to_save." => ".filesize($workdir_data."/".$bkpfolder.$file_to_save) ." != ".$filetree["size"][array_search($file_to_save,$filetree["name"],true)],6);
-				$data = FALSE;
+				sleep(1);
+				$data = curl_exec($curl_save);
+				
 			}
+			
 			if ( $data === FALSE)
 			{
 				debug($L["MINISERVERBACKUP.INF_0096_DOWNLOAD_FAILED_RETRY"]."\n".$url ." => ".$workdir_data."/".$bkpfolder.$file_to_save,6); 
+				sleep(1);
 				$data = curl_exec($curl_save);
 			}
 
 			if ( filesize($workdir_data."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)])
 			{
 				debug($L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]." ".$workdir_data."/".$bkpfolder.$file_to_save." => ".filesize($workdir_data."/".$bkpfolder.$file_to_save) ." != ".$filetree["size"][array_search($file_to_save,$filetree["name"],true)],6);
-				$data = FALSE;
+				sleep(1);
+				$data = curl_exec($curl_save);
 			}
 			if ( $data === FALSE)
 			{
 				debug($L["MINISERVERBACKUP.INF_0096_DOWNLOAD_FAILED_RETRY"]."\n".$url ." => ".$workdir_data."/".$bkpfolder.$file_to_save,6); 
+				sleep(1);
+				$data = curl_exec($curl_save);
+			}
+			if ( filesize($workdir_data."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)])
+			{
+				debug($L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]." ".$workdir_data."/".$bkpfolder.$file_to_save." => ".filesize($workdir_data."/".$bkpfolder.$file_to_save) ." != ".$filetree["size"][array_search($file_to_save,$filetree["name"],true)],6);
+				sleep(1);
 				$data = curl_exec($curl_save);
 			}
 			fclose ($fp); 
