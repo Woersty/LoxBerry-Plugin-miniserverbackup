@@ -550,7 +550,28 @@ foreach ($ms as $msno => $miniserver )
 			curl_setopt($curl_save, CURLOPT_FILE, $fp) or debug($L["ERRORS.ERR_0008_PROBLEM_CREATING_BACKUP_FILE"]." ".$workdir_data."/".$bkpfolder.$file_to_save."\n".curl_error($curl),3);
 			curl_setopt($curl_save, CURLOPT_FOLLOWLOCATION, true);
 			$data = curl_exec($curl_save);
-			debug($L["MINISERVERBACKUP.INF_0016_READ_FROM_WRITE_TO"]."\n".$url ." => ".$workdir_data."/".$bkpfolder.$file_to_save." DONE"); 
+
+			if ( filesize($workdir_data."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)])
+			{
+				debug($L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]." ".$workdir_data."/".$bkpfolder.$file_to_save." => ".filesize($workdir_data."/".$bkpfolder.$file_to_save) ." != ".$filetree["size"][array_search($file_to_save,$filetree["name"],true)],6);
+				$data = FALSE;
+			}
+			if ( $data === FALSE)
+			{
+				debug($L["MINISERVERBACKUP.INF_0096_DOWNLOAD_FAILED_RETRY"]."\n".$url ." => ".$workdir_data."/".$bkpfolder.$file_to_save,6); 
+				$data = curl_exec($curl_save);
+			}
+
+			if ( filesize($workdir_data."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)])
+			{
+				debug($L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]." ".$workdir_data."/".$bkpfolder.$file_to_save." => ".filesize($workdir_data."/".$bkpfolder.$file_to_save) ." != ".$filetree["size"][array_search($file_to_save,$filetree["name"],true)],6);
+				$data = FALSE;
+			}
+			if ( $data === FALSE)
+			{
+				debug($L["MINISERVERBACKUP.INF_0096_DOWNLOAD_FAILED_RETRY"]."\n".$url ." => ".$workdir_data."/".$bkpfolder.$file_to_save,6); 
+				$data = curl_exec($curl_save);
+			}
 			fclose ($fp); 
 			if ( $data === FALSE)
 			{
@@ -558,6 +579,7 @@ foreach ($ms as $msno => $miniserver )
 			}
 			else
 			{
+				debug($L["MINISERVERBACKUP.INF_0097_DOWNLOAD_SUCCESS"]."\n".$url ." => ".$workdir_data."/".$bkpfolder.$file_to_save,6); 
 				// Set file time to guessed value read from miniserver
 				if (touch($workdir_data."/".$bkpfolder.$file_to_save, $filetree["time"][array_search($file_to_save,$filetree["name"],true)]) === FALSE )
 				{
