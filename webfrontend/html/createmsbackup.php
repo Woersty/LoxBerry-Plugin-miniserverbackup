@@ -201,6 +201,7 @@ $curl = curl_init() or debug($L["ERRORS.ERR_0002_ERROR_INIT_CURL"],3);
 curl_setopt($curl, CURLOPT_RETURNTRANSFER	, true);
 curl_setopt($curl, CURLOPT_HTTPAUTH			, constant("CURLAUTH_ANY"));
 curl_setopt($curl, CURLOPT_CUSTOMREQUEST	, "GET");
+curl_setopt($curl, CURLOPT_TIMEOUT			, 600);
 
 // Process all miniservers
 set_time_limit(0);
