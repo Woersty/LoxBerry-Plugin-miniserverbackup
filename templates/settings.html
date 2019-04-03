@@ -41,7 +41,9 @@ $(document).ready(function() {
 	<input type="hidden" name="saveformdata" value="1">
 	<input type="hidden" name="VERSION" value="<TMPL_VAR VERSION>">
 	<input type="hidden" name="MINISERVERS"  value="<TMPL_VAR MINISERVERS>">
-
+	<script>
+		var ms_to_autosave = [];
+	</script>
 		<TMPL_LOOP TEMPLATE_ROW>
 		<div style="display:inline-block;" >
 			<div id="MS_LOOP_ROW<TMPL_VAR MSID>" style="text-align:left; display:inline-block; margin-bottom:5px; width:99%; padding:10px; border: 1px solid black; border-radius: 5px; background-color: rgba(228,228,228,.1);"> 
@@ -107,7 +109,13 @@ $(document).ready(function() {
 					</div>
 				</div>
 				<script>
-
+					if ( "<TMPL_VAR AUTOSAVE_CONFIG>" == "1" )
+					{
+						ms_to_autosave.push($("#finalstorage<TMPL_VAR MSID>"));
+						ms_to_autosave.push($("#backup_interval<TMPL_VAR MSID>"));
+						ms_to_autosave.push($("#file_format<TMPL_VAR MSID>"));
+						ms_to_autosave.push($("#backups_to_keep<TMPL_VAR MSID>"));
+					}
 					$( document ).ready(function() 
 					{
 						$("#finalstorage<TMPL_VAR MSID>-button").remove(); $("#finalstorage<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#finalstorage<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
@@ -118,28 +126,9 @@ $(document).ready(function() {
 						$("#backup_interval<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_INTERVAL>');
 						$("#file_format<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_FILE_FORMAT>');
 						$("#backups_to_keep<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_BACKUPS_TO_KEEP>');
-						if ( "<TMPL_VAR AUTOSAVE_CONFIG>" == "1" )
-						{
-							setTimeout( function() 
-							{ 
-								save_config($("#finalstorage<TMPL_VAR MSID>"));
-								setTimeout( function() 
-								{ 
-									save_config($("#backup_interval<TMPL_VAR MSID>"));
-									setTimeout( function() 
-									{ 
-										save_config($("#file_format<TMPL_VAR MSID>"));
-										setTimeout( function() 
-										{ 
-											save_config($("#backups_to_keep<TMPL_VAR MSID>"));
-										}, 250*<TMPL_VAR MSID>);
-									}, 250*<TMPL_VAR MSID>);
-								}, 250*<TMPL_VAR MSID>);
-							}, 1000*<TMPL_VAR MSID>);
-						}		
 						if ( "<TMPL_VAR MS_DISABLED>" == "1" )
 						{
-							$("#MS_LOOP_ROW<TMPL_VAR MSID>").css("background-color", "#ffc0c0").addClass('ui-disabled');
+							$("#MS_LOOP_ROW<TMPL_VAR MSID>").css("background-color", "#ffc0c0"); //.addClass('ui-disabled');
 						}
 					});
 				</script>
@@ -147,6 +136,14 @@ $(document).ready(function() {
 		</div>
 <BR>
 		</TMPL_LOOP>
+<script>		
+$( document ).ready(function() 
+{
+	save_config(ms_to_autosave);
+});
+</script>
+		
+		
 </center>
 </form>
 <div>
@@ -251,7 +248,17 @@ $(document).ready(function() {
 	 }
 	});
 	
-	function save_config(object)
+	function save_config(what_to_save)
+	{
+		var delaytime = 1000;
+		$.each( what_to_save, function( key , object ) 
+		{   
+			setTimeout( function(){ write_save_config(object); }, delaytime)
+      		delaytime += 1000;
+   		});
+	}
+	
+	function write_save_config(object)
 	{
 		var before_bg_color = "";
 		var postData = {};
@@ -295,8 +302,9 @@ $(document).ready(function() {
             	$(object).css('background-color','#FFC0C0');
                 console.log('<TMPL_VAR GENERAL.MY_NAME> function save_config for ' + $(object).attr('id') + ': Error => ' + errorThrown.status + ' => ' + errorThrown.statusText);
                 setTimeout( function() { $(object).css('background-color',before_bg_color); }, 1000);
-            }	});
-	}
+            }	
+        });
+	 }
 
 	function set_checkbox(object)
 	{

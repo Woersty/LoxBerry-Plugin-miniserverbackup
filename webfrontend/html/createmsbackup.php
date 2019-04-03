@@ -347,6 +347,7 @@ foreach ($ms as $msno => $miniserver )
 	if ( $miniserver['IPAddress'] == "" ) 
 	{
 		debug( $L["ERRORS.ERR_0003_MS_CONFIG_NO_IP"],3);
+		continue;
 	}
 	else
 	{
@@ -358,7 +359,7 @@ foreach ($ms as $msno => $miniserver )
 	if(curl_exec($curl) === false)
 	{
 		debug($L["ERRORS.ERR_0018_ERROR_READ_LOCAL_MS_IP"]."\n".curl_error($curl),3);
-		return;
+		continue;
 	}	
 	else
 	{ 
@@ -370,7 +371,7 @@ foreach ($ms as $msno => $miniserver )
 		else
 		{
 			debug($L["ERRORS.ERR_0018_ERROR_READ_LOCAL_MS_IP"]."\n".$url." => ".nl2br(htmlentities($read_line)),3);
-			return;
+			continue;
 		}
 	}
 	
@@ -379,7 +380,7 @@ foreach ($ms as $msno => $miniserver )
 	if(curl_exec($curl) === false)
 	{
 		debug($L["ERRORS.ERR_0019_ERROR_READ_LOCAL_MS_VERSION"]."\n".curl_error($curl),3);
-		return;
+		continue;
 	}	
 	else
 	{ 
@@ -392,7 +393,7 @@ foreach ($ms as $msno => $miniserver )
 		else
 		{
 			debug($L["ERRORS.ERR_0019_ERROR_READ_LOCAL_MS_VERSION"]."\n".curl_error($curl),3);
-			return;
+			continue;
 		}
 	}
 
