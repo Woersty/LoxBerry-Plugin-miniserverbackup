@@ -280,7 +280,7 @@ $( document ).ready(function()
 	}
 	function checkState()
 	{
-		if ( $('#btncancel').hasClass('ui-disabled') ) return;
+	if ( $('#btncancel').hasClass('ui-disabled') ) return;
 	$.get('<TMPL_VAR HTMLPATH><TMPL_VAR BACKUPSTATEFILE>', function(data)
 		{
 				if (data.length > 1)
@@ -292,8 +292,8 @@ $( document ).ready(function()
 				else if (data == "-") 
 				{
 					$("#btnbackup").text("<TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW>");
-						//$("#btnbackup").fadeTo( "slow", 1 );
-									$('#btnbackup').removeClass('ui-disabled');
+					//$("#btnbackup").fadeTo( "slow", 1 );
+					$('#btnbackup').removeClass('ui-disabled');
 				}
 		});
 	}
@@ -362,6 +362,7 @@ $( document ).ready(function()
 		setTimeout( function(){ 
 		$('#btncancel').removeClass('ui-disabled');
 		$('#btnbackup').removeClass('ui-disabled');
+		checkState();
 		}, delaytime);
 	}
 	
