@@ -524,12 +524,19 @@ foreach ($ms as $msno => $miniserver )
 	}
 	
 	$estimated_size = array_sum($filetree["size"])/1024;
-	$wordir_space   = disk_free_space($workdir_tmp)/1024;
-	$free_space		= ($wordir_space - $estimated_size);
-	debug(str_ireplace("<free_space>",round($free_space,1),str_ireplace("<workdirbytes>",round($wordir_space,1),str_ireplace("<backupsize>",round($estimated_size,1),$L["MINISERVERBACKUP.INF_0095_CHECK_FREE_SPACE_IN_WORKDIR"]))),5);
+	if (is_link($workdir_tmp) )
+	{
+		$workdir_space   = disk_free_space(readlink($workdir_tmp))/1024;
+	}
+	else
+	{
+		$workdir_space   = disk_free_space($workdir_tmp)/1024;
+	}	
+	$free_space		= ($workdir_space - $estimated_size);
+	debug(str_ireplace("<free_space>",round($free_space,1),str_ireplace("<workdirbytes>",round($workdir_space,1),str_ireplace("<backupsize>",round($estimated_size,1),$L["MINISERVERBACKUP.INF_0095_CHECK_FREE_SPACE_IN_WORKDIR"]))),5);
 	if ( $free_space < $minimum_free_workdir/1024 )
 	{
-		debug(str_ireplace("<free_space>",round($free_space,1),str_ireplace("<workdirbytes>",round($wordir_space,1),str_ireplace("<backupsize>",round($estimated_size,1),$L["ERRORS.ERR_0045_NOT_ENOUGH_FREE_SPACE_IN_WORKDIR"]))),2);
+		debug(str_ireplace("<free_space>",round($free_space,1),str_ireplace("<workdirbytes>",round($workdir_space,1),str_ireplace("<backupsize>",round($estimated_size,1),$L["ERRORS.ERR_0045_NOT_ENOUGH_FREE_SPACE_IN_WORKDIR"]))),2);
 		$runtime = microtime(true) - $start;
 		sleep(3); // To prevent misdetection in createmsbackup.pl
 		file_put_contents($backupstate_file, "-");
