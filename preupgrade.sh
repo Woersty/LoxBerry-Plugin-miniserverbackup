@@ -52,7 +52,7 @@ echo "<INFO> Backing up existing config files"
 mv $ARGV5/config/plugins/$ARGV3/* /tmp/$ARGV1\_upgrade/config
 
 echo "<INFO> Backing up existing compare files"
-mv $ARGV5/data/plugins/$ARGV3/currentbackup /tmp/$ARGV1\_upgrade/currentbackup
+mv $ARGV5/data/plugins/$ARGV3/currentbackup /tmp/$ARGV1\_upgrade/
 
 echo "<INFO> Backing up existing log files"
 mv $ARGV5/log/plugins/$ARGV3/* /tmp/$ARGV1\_upgrade/log
