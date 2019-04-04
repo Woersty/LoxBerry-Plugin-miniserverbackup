@@ -44,6 +44,8 @@ my $helptemplatefilename		= "help.html";
 my $errortemplatefilename 		= "error.html";
 my $successtemplatefilename 	= "success.html";
 my $backupstate_name 			= "backupstate.txt";
+my $loxberry_ramdisk            = "/tmp/miniserverbackup";
+my $loxberry_datadir            = $lbpdatadir."/workdir";
 my $backupstate_file 			= $lbphtmldir."/".$backupstate_name;
 my $backupstate_tmp_file 		= "/tmp/".$backupstate_name;
 my @netshares 					= LoxBerry::Storage::get_netshares();
@@ -63,6 +65,7 @@ my @tag;
 my @tag_cfg_data;
 my @msrow;
 my @ms;
+my %row_gen;
 my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup', filename => $lbplogdir ."/". $logfile, append => 1 );
 my $do="form";
 my $msDisabled;
@@ -303,6 +306,7 @@ exit;
 		LoxBerry::Web::lbheader($template_title, $helpurl, $helptemplatefilename);
 
 	my @template_row;
+	my @general_row;
 	foreach my $ms_id (  sort keys  %miniservers) 
 	{ 
 	my @row;
@@ -313,6 +317,8 @@ exit;
 		my %ms;
 		$ms{Name} 			= $miniservers{$ms_id}{'Name'};
 		$ms{IPAddress} 		= $miniservers{$ms_id}{'IPAddress'};
+		my %gen;
+		$gen{Name} 			= "general";
 
 		if ( $ms{IPAddress} == "0.0.0.0" )
 		{
@@ -329,31 +335,58 @@ exit;
 		my $nsc=0;
 		my @netshares_converted;
 		my @netshares_plus_subfolder;
+		my @netshares_workdir;
+		my @netshares_for_workdir;
 		foreach my $netshare (@netshares) 
 		{
   			$netshares_plus_subfolder[$nsc]{NETSHARE_SHARENAME} = $netshare->{NETSHARE_SHARENAME};
   			$netshares_plus_subfolder[$nsc]{NETSHARE_SUBFOLDER} = " ".$L{"GENERAL.BACKUP_SUBFOLDER_DROPDOWN_TEXT"};
   			$netshares_plus_subfolder[$nsc]{NETSHARE_SERVER} 	= $netshare->{NETSHARE_SERVER};
   			$netshares_plus_subfolder[$nsc]{NETSHARE_SHAREPATH} = $netshare->{NETSHARE_SHAREPATH}."+";
+
+  			$netshares_for_workdir[$nsc]{NETSHARE_SHARENAME} = $netshare->{NETSHARE_SHARENAME};
+  			$netshares_for_workdir[$nsc]{NETSHARE_SERVER} 	= $netshare->{NETSHARE_SERVER};
+  			$netshares_for_workdir[$nsc]{NETSHARE_SHAREPATH} = $netshare->{NETSHARE_SHAREPATH};
     		$nsc++;
 		}
 		push(@netshares_converted, @netshares);
 		push(@netshares_converted, @netshares_plus_subfolder);
+		push(@netshares_workdir, @netshares_for_workdir);
 
 		my $udc=0;
 		my @usbdevices_converted;
 		my @usbdevices_plus_subfolder;
+		my @usbdevices_workdir;
+		my @usbdevices_for_workdir;
 		foreach my $usbdevice (@usbdevices) 
 		{
   			$usbdevices_plus_subfolder[$udc]{USBSTORAGE_DEVICE} 	= $usbdevice->{USBSTORAGE_DEVICE};
   			$usbdevices_plus_subfolder[$udc]{USBSTORAGE_SUBFOLDER} 	= " ".$L{"GENERAL.BACKUP_SUBFOLDER_DROPDOWN_TEXT"};
   			$usbdevices_plus_subfolder[$udc]{USBSTORAGE_NO} 	 	= $usbdevice->{USBSTORAGE_NO};
   			$usbdevices_plus_subfolder[$udc]{USBSTORAGE_DEVICEPATH} = $usbdevice->{USBSTORAGE_DEVICEPATH}."+";
+
+  			$usbdevices_for_workdir[$udc]{USBSTORAGE_DEVICE} 	= $usbdevice->{USBSTORAGE_DEVICE};
+  			$usbdevices_for_workdir[$udc]{USBSTORAGE_NO} 	 	= $usbdevice->{USBSTORAGE_NO};
+  			$usbdevices_for_workdir[$udc]{USBSTORAGE_DEVICEPATH} = $usbdevice->{USBSTORAGE_DEVICEPATH};
     		$udc++;
 		}
 		push(@usbdevices_converted, @usbdevices);
 		push(@usbdevices_converted, @usbdevices_plus_subfolder);
-
+		push(@usbdevices_workdir, @usbdevices_for_workdir);
+		if ( $ms_id == 1 ) #Just fill for first MS
+		{
+			        $row_gen{'WORKDIR_RAMDISK_TXT'} 			= $L{"GENERAL.WORKDIR_RAMDISK_TXT"};
+			        $row_gen{'WORKDIR_RAMDISK_VAL'} 			= $loxberry_ramdisk;
+			        $row_gen{'WORKDIR_PLUGIN_DATADIR_TXT'} 		= $L{"GENERAL.WORKDIR_PLUGIN_DATADIR_TXT"};
+			        $row_gen{'WORKDIR_PLUGIN_DATADIR'} 			= $loxberry_datadir;
+				    $row_gen{'WORKDIR_PATH'}			        = $loxberry_ramdisk;
+				    $row_gen{'WORKDIR_PATH'}			        = $Config{"MINISERVERBACKUP.WORKDIR_PATH"} if ( $Config{"MINISERVERBACKUP.WORKDIR_PATH"} ne "" );
+			        $row_gen{'WORKDIR_PATH_SUBDIR'}		        = "";
+				    $row_gen{'WORKDIR_PATH_SUBDIR'}		        = $Config{"MINISERVERBACKUP.WORKDIR_PATH_SUBDIR"} if ( $Config{"MINISERVERBACKUP.WORKDIR_PATH_SUBDIR"} ne "" );
+			        $row_gen{'NETSHARES_WORKDIR'} 				= \@netshares_workdir;
+			        $row_gen{'USBDEVICES_WORKDIR'} 				= \@usbdevices_workdir;
+					$row_gen{'AUTOSAVE_WORKDIR'}				= 1 if ( $Config{"MINISERVERBACKUP.WORKDIR_PATH"} eq "" );
+		}
 		push @{ $row{'MSROW'} }					, \%ms;
 		        $row{'MSID'} 					= $ms_id;
 				$row{'NETSHARES'} 				= \@netshares_converted;
@@ -394,12 +427,12 @@ exit;
 				}
 				$row{'BACKUPS_TO_KEEP_VALUE'} 	= $backups_to_keep;
 
-		push(@template_row, \%row);
-		
-	}	
 	
-
+		push(@template_row, \%row);
+	}	
+	push(@general_row, \%row_gen);
 	$maintemplate->param("TEMPLATE_ROW" => \@template_row);
+	$maintemplate->param("GENERAL_ROW" => \@general_row);
 	
 #	exit;
 

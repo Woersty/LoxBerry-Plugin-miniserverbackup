@@ -44,6 +44,66 @@ $(document).ready(function() {
 	<script>
 		var ms_to_autosave = [];
 	</script>
+
+<TMPL_LOOP GENERAL_ROW>
+			<div id="workdir" style="text-align:left; display:inline-block; margin-bottom:5px; width:99%; padding:10px; border: 1px solid black; border-radius: 5px; background-color: rgba(228,228,228,.1);"> 
+						<div style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(0,0,228,.1);">
+							<TMPL_VAR GENERAL.GLOBAL_PARAMETERS>
+						</div>
+				<div style="display:table;">
+					<div style="display:table-row;">
+						<div style="display:table-cell; text-align:right;">
+							<TMPL_VAR GENERAL.WORKDIR_PATH_TXT>
+						</div>
+						<div style="display:table-cell; ">
+						    <select name="workdir_path" id="workdir_path" onchange="save_config($(this));">
+						      <optgroup id="localwdp" label="<TMPL_VAR GENERAL.STORAGE_LOCAL>">
+						      	<option value="<TMPL_VAR WORKDIR_RAMDISK_VAL>"><TMPL_VAR WORKDIR_RAMDISK_TXT></option>
+						      	<option value="<TMPL_VAR WORKDIR_PLUGIN_DATADIR>"><TMPL_VAR WORKDIR_PLUGIN_DATADIR_TXT></option>
+						      </optgroup>
+						      <optgroup label="<TMPL_VAR GENERAL.STORAGE_SHARE>">
+								<TMPL_LOOP NETSHARES_WORKDIR>
+								<option value="<TMPL_VAR NETSHARE_SHAREPATH>">\\<TMPL_VAR NETSHARE_SERVER>\<TMPL_VAR NETSHARE_SHARENAME></option>
+								</TMPL_LOOP>
+						      </optgroup>
+						      <optgroup label="<TMPL_VAR GENERAL.STORAGE_USB>">
+								<TMPL_LOOP USBDEVICES_WORKDIR>
+								<option value="<TMPL_VAR USBSTORAGE_DEVICEPATH>">#<TMPL_VAR USBSTORAGE_NO> <TMPL_VAR USBSTORAGE_DEVICE> <TMPL_VAR GENERAL.USB_STORAGE_ROOT_DROPDOWN_TEXT></option>
+								</TMPL_LOOP>	
+						      </optgroup>
+						    </select>
+						</div>
+					</div>
+					<div style="display:table-row;">
+						<div style="display:table-cell; text-align:right; padding-right:5px;">
+							<label id="label_workdir_path_subdir"><TMPL_VAR GENERAL.WORKDIR_SUBDIR_TXT></label>
+						</div>
+						<div style="display:table-cell; ">
+							<input onblur="$('#workdir_path').trigger('change')" autocomplete="nope" data-validation-error-msg="<TMPL_VAR GENERAL.WORKDIR_SUBDIR_VALIDATE_ERR_TXT>" data-validation-rule="^[0-9a-zA-Z\ \_\-\.]*$" id="workdir_path_subdir" name="workdir_path_subdir" type="text" class="textfield" placeholder="<TMPL_VAR WORKDIR_SUBDIR>" value="">
+						</div>
+					</div>
+				</div>
+				<script>
+					if ( "<TMPL_VAR AUTOSAVE_WORKDIR>" == "1" )
+					{
+						ms_to_autosave.push($("#workdir_path"));
+					}
+					$( document ).ready(function() 
+					{
+						validate_enable('#workdir_path_subdir');
+						$("#workdir_path-button").remove(); $("#workdir_path").css('display','').selectmenu( "menuWidget" ); $("#workdir_path").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
+						$("#workdir_path").val('<TMPL_VAR WORKDIR_PATH>');
+						$("#workdir_path_subdir").val('<TMPL_VAR WORKDIR_PATH_SUBDIR>');
+					});
+				</script>
+			</div>
+</TMPL_LOOP>
+
+
+
+
+
+
 		<TMPL_LOOP TEMPLATE_ROW>
 		<div style="display:inline-block;" >
 			<div id="MS_LOOP_ROW<TMPL_VAR MSID>" style="text-align:left; display:inline-block; margin-bottom:5px; width:99%; padding:10px; border: 1px solid black; border-radius: 5px; background-color: rgba(228,228,228,.1);"> 
@@ -139,7 +199,10 @@ $(document).ready(function() {
 <script>		
 $( document ).ready(function() 
 {
-	save_config(ms_to_autosave);
+	if (ms_to_autosave.length > 0)
+	{
+		save_config(ms_to_autosave);
+	}
 });
 </script>
 		
@@ -217,13 +280,14 @@ $( document ).ready(function()
 	}
 	function checkState()
 	{
+		if ( $('#btncancel').hasClass('ui-disabled') ) return;
 	$.get('<TMPL_VAR HTMLPATH><TMPL_VAR BACKUPSTATEFILE>', function(data)
 		{
 				if (data.length > 1)
 				{
 					$("#btnbackup").prop('innerHTML',"<font color='#FF0000'>"+data+"</font>");
 					//$("#btnbackup").fadeTo( "slow", .8 );
-									$('#btnbackup').addClass('ui-disabled');
+					$('#btnbackup').addClass('ui-disabled');
 				}
 				else if (data == "-") 
 				{
@@ -250,12 +314,55 @@ $( document ).ready(function()
 	
 	function save_config(what_to_save)
 	{
+		$('#btncancel').addClass('ui-disabled');
+		$('#btnbackup').addClass('ui-disabled');
 		var delaytime = 1000;
+		var delaytime_to_add = 1500;
 		$.each( what_to_save, function( key , object ) 
 		{   
-			setTimeout( function(){ write_save_config(object); }, delaytime)
-      		delaytime += 1000;
+			if ( $(object).attr('name') == "workdir_path" )
+			{
+				if(  $('#workdir_path optgroup[id=localwdp]').children("option:selected").val() == null)
+				{
+					$("#workdir_path_subdir").removeClass('ui-disabled');
+				}
+				else
+				{
+					$("#workdir_path_subdir").val('');
+					$("#error-msg-workdir_path_subdir").css('display','none')
+					$("#workdir_path_subdir").addClass('ui-disabled');
+				}
+				setTimeout( function(){ write_save_config(object); }, delaytime);
+				delaytime += delaytime_to_add;
+				setTimeout( function()
+				{
+					if ( $("#error-msg-workdir_path_subdir").css('display') == 'none' )
+					{
+						write_save_config($("#workdir_path_subdir")); 
+					}
+					else
+					{
+					    $("#workdir_path_subdir").css('background-color','#FFA0A0');
+					    delaytime += delaytime_to_add;
+		                setTimeout( function() { 
+		                	$("#workdir_path_subdir").css('background-color',""); 
+		                	$("#workdir_path_subdir").val('');
+							$("#error-msg-workdir_path_subdir").css('display','none')
+
+		                	}, delaytime);
+					}
+				}, delaytime);
+			}
+			else
+			{
+				setTimeout( function(){ write_save_config(object); }, delaytime);
+			}
+      		delaytime += delaytime_to_add;
    		});
+		setTimeout( function(){ 
+		$('#btncancel').removeClass('ui-disabled');
+		$('#btnbackup').removeClass('ui-disabled');
+		}, delaytime);
 	}
 	
 	function write_save_config(object)
@@ -327,6 +434,12 @@ $( document ).ready(function()
 		elfinderreload = setInterval(function() { jQuery('#elfinder').elfinder('instance').exec('reload'); },30000);
 		checkState();
 		checkNotifications();
+		if(  $('#workdir_path optgroup[id=localwdp]').children("option:selected").val() != null)
+		{
+			$("#workdir_path_subdir").val('');
+			$("#error-msg-workdir_path_subdir").css('display','none')
+			$("#workdir_path_subdir").addClass('ui-disabled');
+		}
 		//jQuery('html').css('overflow-y', 'auto');
 	});
 </script>
