@@ -82,6 +82,14 @@ $(document).ready(function() {
 							<input onblur="$('#workdir_path').trigger('change')" autocomplete="nope" data-validation-error-msg="<TMPL_VAR GENERAL.WORKDIR_SUBDIR_VALIDATE_ERR_TXT>" data-validation-rule="^[0-9a-zA-Z\ \_\-\.]*$" id="workdir_path_subdir" name="workdir_path_subdir" type="text" class="textfield" placeholder="<TMPL_VAR WORKDIR_SUBDIR>" value="">
 						</div>
 					</div>
+					<div style="display:table-row;">
+						<div style="display:table-cell; text-align:right; padding-right:5px;">
+							<label id="label_workdir_path_subdir"><TMPL_VAR GENERAL.WORKDIR_FREE_SPACE_TXT></label>
+						</div>
+						<div style="display:table-cell; ">
+							<div id="workdir_free_space"></div>
+						</div>
+					</div>
 				</div>
 				<script>
 					if ( "<TMPL_VAR AUTOSAVE_WORKDIR>" == "1" )
@@ -278,6 +286,44 @@ $( document ).ready(function()
 			$('#LogScroll').attr('scrollme','true').css('color','green').html('<TMPL_VAR GENERAL.LABEL_JUMP_TO_END_AUTOMATICALLY>&nbsp;<img src=\'<TMPL_VAR HTMLPATH>img/scroll_go.gif\'>');
 		}
 	}
+	function checkSpace()
+	{
+	$.get('<TMPL_VAR HTMLPATH><TMPL_VAR WORKDIR_FREE>', function(data)
+		{
+				if (data.length > 1)
+				{
+					if ( data > (1024 * 1024 * 1024) ) 
+					{
+						data = data / 1024 / 1024 / 1024;
+						var displaystring = data.toFixed(2);
+						displaystring = displaystring  + " TB";
+					}
+					else if ( data > (1024 * 1024) ) 
+					{
+						data = data / 1024 / 1024;
+						var displaystring = data.toFixed(2);
+						displaystring = displaystring  + " GB";
+					}
+					else if ( data > 1024 ) 
+					{
+						data = data / 1024 / 1024;
+						var displaystring = data.toFixed(2);
+						displaystring = displaystring  + " MB";
+					}
+					else
+					{
+						displaystring = data + " kB";
+					}
+
+					$("#workdir_free_space").html(displaystring);
+				}
+				else
+				{
+					$("#workdir_free_space").html("?");
+				}
+					
+		});
+	}
 	function checkState()
 	{
 	if ( $('#btncancel').hasClass('ui-disabled') ) return;
@@ -432,9 +478,11 @@ $( document ).ready(function()
 	{
 		watchDog = setInterval(function() { checkState(); },2500);
 		notify = setInterval(function() { checkNotifications(); },15000);
+		free_space = setInterval(function() { checkSpace(); },120000);
 		elfinderreload = setInterval(function() { jQuery('#elfinder').elfinder('instance').exec('reload'); },30000);
 		checkState();
 		checkNotifications();
+		checkSpace();
 		if(  $('#workdir_path optgroup[id=localwdp]').children("option:selected").val() != null)
 		{
 			$("#workdir_path_subdir").val('');
