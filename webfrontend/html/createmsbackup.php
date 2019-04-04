@@ -1061,16 +1061,13 @@ class MSbackupZIP
 
   public static function check_def_log($filePath) 
   {
-  	global $L,$summary,$miniserver,$callid;
+  	global $L,$summary,$miniserver,$callid,$backupstate_file;
 	debug($L["MINISERVERBACKUP.INF_0080_CHECK_DEFLOG"]." (" . $miniserver['Name'] .")",5);
 	$deflog = explode("\n",file_get_contents($filePath));
 	$lookfor = "PRG Reboot";
 	$matches = array_filter($deflog, function($var) use ($lookfor) { return preg_match("/\b$lookfor\b/i", $var); });
 	$last_reboot_key = array_pop($matches);
-	
-	debug($last_reboot_key,1);
-	file_put_contents($backupstate_file, "-");
-	exit;
+
 	array_push($summary,"[$callid] <INFO> ".$L["MINISERVERBACKUP.INF_0062_LAST_MS_REBOOT"]." ".$last_reboot_key);
 	$key_in_deflog = array_search($last_reboot_key,$deflog,true);
 	$deflog = array_slice($deflog, $key_in_deflog, NULL, TRUE);
