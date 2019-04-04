@@ -137,7 +137,11 @@ if (flock($plugin_cfg_handle, LOCK_EX))
 			fwrite($plugin_cfg_handle, $config_key . '="' . $config_value .'"'."\n") or $output = $L["ERRORS.ERR_0035_ERROR_WRITE_CONFIG"];
 			if ( $config_key == "WORKDIR_PATH" )
 			{
-				system("echo '".$plugin_cfg["WORKDIR_PATH"]."/".$plugin_cfg["WORKDIR_PATH_SUBDIR"]."' > /tmp/msb_free_space");
+				if ( $plugin_cfg["WORKDIR_PATH_SUBDIR"] != "" )
+				{
+					$subdir = "/".$plugin_cfg["WORKDIR_PATH_SUBDIR"];
+				}
+				system("echo '".$plugin_cfg["WORKDIR_PATH"].$sbudir."' > /tmp/msb_free_space");
 			}
 		}
 	}
