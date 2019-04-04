@@ -18,6 +18,7 @@ mv /tmp/$ARGV1\_upgrade/log/* $ARGV5/log/plugins/$ARGV3/*
 
 echo "<INFO> Copy back existing backup archives"
 mv /tmp/$ARGV1\_upgrade/files/* $ARGV5/webfrontend/html/plugins/$ARGV3/files/ 
+ln -s $ARGV5/webfrontend/html/plugins/$ARGV3/files/ $ARGV5/data/plugins/$ARGV3/files
 
 echo "<INFO> Remove temporary folders"
 rm -r /tmp/$ARGV1\_upgrade
