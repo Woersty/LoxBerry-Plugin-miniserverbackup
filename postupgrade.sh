@@ -14,7 +14,7 @@ echo "<INFO> Copy back existing compare files"
 mv /tmp/$ARGV1\_upgrade/currentbackup $ARGV5/data/plugins/$ARGV3/
 
 echo "<INFO> Copy back existing log files"
-mv /tmp/$ARGV1\_upgrade/log/* $ARGV5/log/plugins/$ARGV3/*
+mv /tmp/$ARGV1\_upgrade/log/* $ARGV5/log/plugins/$ARGV3/
 
 echo "<INFO> Copy back existing backup archives"
 mv /tmp/$ARGV1\_upgrade/files/* $ARGV5/webfrontend/html/plugins/$ARGV3/files/ 
