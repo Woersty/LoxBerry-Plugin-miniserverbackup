@@ -135,6 +135,10 @@ if (flock($plugin_cfg_handle, LOCK_EX))
 		{
 			debug($L["MINISERVERBACKUP.INF_0071_CONFIG_PARAM_WRITTEN"]. " ". $config_key. "=" . $config_value );
 			fwrite($plugin_cfg_handle, $config_key . '="' . $config_value .'"'."\n") or $output = $L["ERRORS.ERR_0035_ERROR_WRITE_CONFIG"];
+			if ( $config_key == "WORKDIR_PATH" )
+			{
+				system("echo '".$plugin_cfg["WORKDIR_PATH"]."/".$plugin_cfg["WORKDIR_PATH_SUBDIR"]."' > /tmp/msb_free_space");
+			}
 		}
 	}
     fflush($plugin_cfg_handle); // leere Ausgabepuffer bevor die Sperre frei gegeben wird

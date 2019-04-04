@@ -226,6 +226,7 @@ if ( $plugin_cfg["WORKDIR_PATH_SUBDIR"] != "" )
 	
 debug ($L["MINISERVERBACKUP.INF_0032_CLEAN_WORKDIR_TMP"]." ".$workdir_tmp);
 create_clean_workdir_tmp($workdir_tmp);
+system("echo '".$workdir_tmp."' > /tmp/msb_free_space");
 if (!realpath($workdir_tmp)) 
 {
 	debug ($L["ERRORS.ERR_0022_PROBLEM_WITH_WORKDIR"],3);
@@ -1059,6 +1060,10 @@ class MSbackupZIP
 	$lookfor = "PRG Reboot";
 	$matches = array_filter($deflog, function($var) use ($lookfor) { return preg_match("/\b$lookfor\b/i", $var); });
 	$last_reboot_key = array_pop($matches);
+	
+	debug($last_reboot_key,1);
+	file_put_contents($backupstate_file, "-");
+	exit;
 	array_push($summary,"[$callid] <INFO> ".$L["MINISERVERBACKUP.INF_0062_LAST_MS_REBOOT"]." ".$last_reboot_key);
 	$key_in_deflog = array_search($last_reboot_key,$deflog,true);
 	$deflog = array_slice($deflog, $key_in_deflog, NULL, TRUE);

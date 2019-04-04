@@ -44,6 +44,7 @@ my $helptemplatefilename		= "help.html";
 my $errortemplatefilename 		= "error.html";
 my $successtemplatefilename 	= "success.html";
 my $backupstate_name 			= "backupstate.txt";
+my $workdirfree_name 			= "workdir.free";
 my $loxberry_ramdisk            = "/tmp/miniserverbackup";
 my $loxberry_datadir            = $lbpdatadir."/workdir";
 my $backupstate_file 			= $lbphtmldir."/".$backupstate_name;
@@ -383,6 +384,14 @@ exit;
 				    $row_gen{'WORKDIR_PATH'}			        = $Config{"MINISERVERBACKUP.WORKDIR_PATH"} if ( $Config{"MINISERVERBACKUP.WORKDIR_PATH"} ne "" );
 			        $row_gen{'WORKDIR_PATH_SUBDIR'}		        = "";
 				    $row_gen{'WORKDIR_PATH_SUBDIR'}		        = $Config{"MINISERVERBACKUP.WORKDIR_PATH_SUBDIR"} if ( $Config{"MINISERVERBACKUP.WORKDIR_PATH_SUBDIR"} ne "" );
+				    if ( $Config{"MINISERVERBACKUP.WORKDIR_PATH"} ne "" )
+				    {
+				    	my $filename = $backupstate_tmp_file;
+						open(my $fh, '>', "/tmp/msb_free_space");
+						print $fh $Config{"MINISERVERBACKUP.WORKDIR_PATH"};
+						print $fh "/".$row_gen{'WORKDIR_PATH_SUBDIR'} if ( $Config{"MINISERVERBACKUP.WORKDIR_PATH_SUBDIR"} ne "" );
+						close $fh;
+					}
 			        $row_gen{'NETSHARES_WORKDIR'} 				= \@netshares_workdir;
 			        $row_gen{'USBDEVICES_WORKDIR'} 				= \@usbdevices_workdir;
 					$row_gen{'AUTOSAVE_WORKDIR'}				= 1 if ( $Config{"MINISERVERBACKUP.WORKDIR_PATH"} eq "" );
@@ -448,6 +457,7 @@ exit;
 		#$maintemplate->param("TAGROW" => \@tagrow);
 		$maintemplate->param("HTMLPATH" => "/plugins/".$lbpplugindir."/");
 		$maintemplate->param("BACKUPSTATEFILE" => $backupstate_name);
+		$maintemplate->param("WORKDIR_FREE" => $workdirfree_name);
 	
     	print $maintemplate->output();
 		LoxBerry::Web::lbfooter();
