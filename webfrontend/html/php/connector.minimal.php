@@ -66,8 +66,8 @@ $opts = array(
 	'roots' => array(
 		array(
 			'driver'        => 'LocalFileSystem',           // driver for accessing file system (REQUIRED)
-			'path'          => '../files/',                 // path to files (REQUIRED)
-			'URL'           => dirname($_SERVER['PHP_SELF']) . '/../files/', // URL to files (REQUIRED)
+			'path'          => '../backups/',                 // path to files (REQUIRED)
+			'URL'           => dirname($_SERVER['PHP_SELF']) . '/../backups/', // URL to files (REQUIRED)
 			'uploadDeny'    => array('all'),                // All Mimetypes not allowed to upload
 			'uploadAllow'   => array('image', 'text/plain'),// Mimetype `image` and `text/plain` allowed to upload
 			'uploadOrder'   => array('deny', 'allow'),      // allowed Mimetype `image` and `text/plain` only
