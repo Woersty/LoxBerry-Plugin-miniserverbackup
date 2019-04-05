@@ -15,6 +15,7 @@ if (isset($_GET['new_session']))
 if (isset($_GET['ajax'])) 
 {
   session_start();
+  touch('../../../../log/plugins/miniserverbackup/backuplog.log');
   $handle = fopen('../../../../log/plugins/miniserverbackup/backuplog.log', 'r');
   if (isset($_SESSION['offset'])) 
   {
