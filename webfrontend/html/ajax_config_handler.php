@@ -141,7 +141,11 @@ if (flock($plugin_cfg_handle, LOCK_EX))
 				{
 					$subdir = "/".$plugin_cfg["WORKDIR_PATH_SUBDIR"];
 				}
-				system("echo '".$plugin_cfg["WORKDIR_PATH"].$sbudir."' > /tmp/msb_free_space");
+				else
+				{
+					$subdir = "";
+				}
+				system("echo '".$plugin_cfg["WORKDIR_PATH"].$subdir."' > /tmp/msb_free_space");
 			}
 		}
 	}
