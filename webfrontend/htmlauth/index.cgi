@@ -309,6 +309,7 @@ exit;
 	{ 
 	my @row;
 	my %row;
+	$backup_intervals = "";
 		 LOGDEB "Miniserver $ms_id Name => ".$miniservers{$ms_id}{'Name'};
 		 LOGDEB "Miniserver $ms_id IP   => ".$miniservers{$ms_id}{'IPAddress'};
 		

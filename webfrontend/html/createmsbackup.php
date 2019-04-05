@@ -998,6 +998,7 @@ foreach ($ms as $msno => $miniserver )
 			$message = str_ireplace("<NAME>",$miniserver['Name'],str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0098_BACKUP_OF_MINISERVER_COMPLETED"]))." ".$fileinf;
 			debug($message,5);
 			notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." (".$miniserver['Name'].")", $message);
+			array_push($summary,"[$callid] <OK> ".$message);
 	}
 	else
 	{
