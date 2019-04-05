@@ -41,8 +41,7 @@ ARGV4=$4 # Forth argument is Plugin version
 ARGV5=$5 # Fifth argument is Base folder of LoxBerry
 #echo "<INFO> Installation folder is: $ARGV5"
 
-
-if [[ -r /tmp/backupstate.txt ]]
+if [ -r /tmp/backupstate.txt ]
 then
  while :
  do

@@ -20,27 +20,6 @@
 # <ERROR> This is an error!"
 # <FAIL> This is a fail!"
 
-
-if [[ -r /tmp/backupstate.txt ]]
-then
- while :
- do
-  state=`head -c 1 /tmp/backupstate.txt`
-  if [ $state = "-" ] 
-  then
-   echo "<OK> No backup seems in progress. Continue..."
-   break
-  else
-   echo "<INFO> Backup seems in progress. Wait 10 s..."
-   cat /tmp/backupstate.txt
-   echo
-  fi
-  sleep 10
- done
-else
- echo "<OK> No backup state file. Continue..."
-fi
-
 # To use important variables from command line use the following code:
 #ARGV0=$0 # Zero argument is shell command
 #echo "<INFO> Command is: $ARGV0"
