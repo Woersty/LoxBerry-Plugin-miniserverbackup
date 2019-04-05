@@ -313,8 +313,6 @@ if (readlink($workdir_data) == $workdir_tmp)
 {
 	chmod($workdir_tmp	, 0777);
 	chmod($workdir_data	, 0777);
-	chown($workdir_tmp	, "loxberry");
-	chown($workdir_data	, "loxberry");
 	debug ($L["MINISERVERBACKUP.INF_0031_SET_WORKDIR_AS_SYMLINK"]." (".$workdir_data.")",6); 
 }
 else
