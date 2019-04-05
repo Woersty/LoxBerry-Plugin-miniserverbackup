@@ -173,10 +173,10 @@ else
   touch($plugin_config_file);
 }
 
-#Prevent blocking / Recreate state file if missing or older than 30 min
+#Prevent blocking / Recreate state file if missing or older than 60 min
 if ( is_file($backupstate_tmp) ) 
 {
-	if ( ( time() - filemtime( $backupstate_tmp ) ) > (30 * 60) ) 
+	if ( ( time() - filemtime( $backupstate_tmp ) ) > (60 * 60) ) 
 	{
 		@file_put_contents($backupstate_tmp, "-");
 	}
