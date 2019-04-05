@@ -54,7 +54,8 @@ my @usbdevices 					= LoxBerry::Storage::get_usbstorage();
 my $localstorage                = $lbpdatadir."/backup_storage";
 my %backup_interval_minutes		= (0,30,60,240,1440,10080,43200,-1);
 my %backups_to_keep_values		= (1,3,7,14,30,60,90,365);
-my %file_formats				= ('7z','zip','uncompressed');
+my @file_formats				= ('7z','zip','uncompressed');
+my $backup_intervals			= "";
 my $finalstorage;
 my $error_message				= "";
 my $no_error_template_message	= "<b>Miniserver-Backup:</b> The error template is not readable. We must abort here. Please try to reinstall the plugin.";
@@ -102,7 +103,7 @@ if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 
 # Prevent errors in Apache error log
 $R::delete_log if (0);
-$R::do if (0);
+$do = $R::do if ($R::do);
 
 my $lang = lblanguage();
 LOGDEB   "Language is: " . $lang;
@@ -189,7 +190,7 @@ if ( $R::delete_log )
 # Get plugin config
 my $plugin_cfg 		= new Config::Simple($lbpconfigdir . "/" . $pluginconfigfile);
 $plugin_cfg 		= Config::Simple->import_from($lbpconfigdir . "/" . $pluginconfigfile,  \%Config);
-$error_message      = $ERR{'ERRORS.ERR_0028_ERROR_READING_CFG'}. "<br>" . Config::Simple->error();
+$error_message      = $ERR{'ERRORS.ERR_0028_ERROR_READING_CFG'}. "<br>" . Config::Simple->error() if (Config::Simple->error());
 &error if (! %Config);
 
 # Get through all the config options
@@ -236,8 +237,8 @@ my $index = 0;
 $index++ while $netshares[$index]->{NETSHARE_STATE} eq 'Writable' ;
 splice(@netshares, $index, 1);
 
-$maintemplate->param('HTTP_SERVER','http://'.$ENV{HTTP_HOST});
-$maintemplate->param('HTTP_SERVER','https://'.$ENV{HTTP_HOST}) if ( $ENV{HTTPS} eq 'on' );
+$maintemplate->param('HTTP_SERVER','http://'.$ENV{HTTP_HOST})  if ( $ENV{HTTP_HOST} );
+$maintemplate->param('HTTP_SERVER','https://'.$ENV{HTTPS}) if ( $ENV{HTTPS} );
 
 
 $lbplogdir =~ s/$lbhomedir\/log\///; # Workaround due to missing variable for Logview
@@ -275,14 +276,9 @@ my %SUC = LoxBerry::System::readlanguage($successtemplate, $languagefile);
 # Main program
 ##########################################################################
 
-$R::do if 0; # Prevent errors
-
 
 LOGDEB "Is it a start backup call?";
-if ( $R::do eq "backup") 
-{
-	  &backup;
-}
+if ( $do eq "backup") { &backup; };
 
 LOGDEB "Call default page";
 &form;
@@ -321,7 +317,7 @@ exit;
 		my %gen;
 		$gen{Name} 			= "general";
 
-		if ( $ms{IPAddress} == "0.0.0.0" )
+		if ( $ms{IPAddress} eq "0.0.0.0" )
 		{
 			my $t = Time::Piece->localtime;
 			LOGERR 	"[".$t->strftime("%Y-%m-%d %H:%M:%S")."] index.cgi: ".$L{"ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"}." ".$miniservers{$ms_id}{'Name'};
@@ -412,7 +408,6 @@ exit;
 				$row{'AUTOSAVE_CONFIG'}	    	= 1 if ( $Config{"MINISERVERBACKUP.FINALSTORAGE".$ms_id} eq "" || $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} eq "" || $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} eq "" || $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} eq "" );
 				$row{'MS_DISABLED'}	    		= $msDisabled;
 				
-				my $backup_intervals;
 				foreach  (  sort { $a <=> $b } %backup_interval_minutes) 
 				{ 
 					$backup_intervals = $backup_intervals . '<OPTION value="'.$_.'"> '.$L{"MINISERVERBACKUP.INTERVAL".$_}.' </OPTION>' if ( $_ ne "" );
@@ -420,15 +415,15 @@ exit;
 				}
 				$row{'BACKUP_INTERVAL_VALUE'} 	= $backup_intervals;
 
-				my $file_formats;
-				foreach  (  sort { $a <=> $b } %file_formats) 
+				my $file_formats="";
+				foreach  (  sort { $a cmp $b } @file_formats) 
 				{ 
 					$file_formats = $file_formats . '<OPTION value="'.$_.'"> '.$L{"MINISERVERBACKUP.FILE_FORMAT_" . uc $_ }.' </OPTION>' if ( $_ ne "" );
 					LOGDEB "->".$_ if ( $_ ne "" );
 				}
 				$row{'BACKUP_FILE_FORMAT'} 	= $file_formats;
 
-				my $backups_to_keep;
+				my $backups_to_keep=0;
 				foreach  (  sort { $a <=> $b } %backups_to_keep_values) 
 				{ 
 					$backups_to_keep = $backups_to_keep . '<OPTION value="'.$_.'"> '.$_.' </OPTION>' if ( $_ ne "" );

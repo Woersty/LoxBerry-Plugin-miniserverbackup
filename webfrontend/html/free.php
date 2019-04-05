@@ -15,7 +15,7 @@ else
 {
 	if ( !is_readable($path) )
 	{
-		$free = exec('df --output=avail '.$path);
+		$free = shell_exec('df --output=avail '.$path.' 2>/dev/null');
 		if ( $free == 0 )
 		{
 			$free = disk_free_space($path)/1024;
@@ -26,7 +26,7 @@ else
 		}
 		if ( $free == 0 )
 		{
-			$free = exec('df --output=avail '.dirname($path));
+			$free = shell_exec('df --output=avail '.dirname($path).' 2>/dev/null');
 		}
 		if ( $free == 0 )
 		{
@@ -36,6 +36,6 @@ else
 	}
 	else
 	{
-		echo exec('df --output=avail '.$path);
+		echo shell_exec('df --output=avail '.$path.' 2>/dev/null');
 	}
 }
