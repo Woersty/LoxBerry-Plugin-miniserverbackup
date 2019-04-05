@@ -28,15 +28,7 @@ my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup', filename => $lb
 my %ERR 						= LoxBerry::System::readlanguage();
 
 # Complete rededign - from now it's PHP and not Perl anymore
-system ("/usr/bin/php -f $lbphtmldir/createmsbackup.php ".@ARGV[0]." >/dev/null 2>&1 &" );
-# Wait a second and check if PHP process is there
-sleep 1;
 my $output_string = `ps -ef | grep "$lbphtmldir/createmsbackup.php"|grep -v grep |wc -l 2>/dev/null`;
-if ( int $output_string ne 1 ) 
-{
-	notify( $lbpplugindir, $ERR{'GENERAL.MY_NAME'}, $ERR{'ERRORS.ERR_0037_UNABLE_TO_INITIATE_BACKUP'},1);
-	LOGERR $ERR{'ERRORS.ERR_0037_UNABLE_TO_INITIATE_BACKUP'}; 
-}
 if ( -f $backupstate_tmp_file && int $output_string eq 0 )
 {
 	$data="";
@@ -52,4 +44,12 @@ if ( -f $backupstate_tmp_file && int $output_string eq 0 )
 		close $fh;
 	}
 }
-	
+system ("/usr/bin/php -f $lbphtmldir/createmsbackup.php ".@ARGV[0]." >/dev/null 2>&1 &" );
+# Wait a second and check if PHP process is there
+sleep 1;
+my $output_string = `ps -ef | grep "$lbphtmldir/createmsbackup.php"|grep -v grep |wc -l 2>/dev/null`;
+if ( int $output_string ne 1 ) 
+{
+	notify( $lbpplugindir, $ERR{'GENERAL.MY_NAME'}, $ERR{'ERRORS.ERR_0037_UNABLE_TO_INITIATE_BACKUP'},1);
+	LOGERR $ERR{'ERRORS.ERR_0037_UNABLE_TO_INITIATE_BACKUP'}; 
+}
