@@ -11,14 +11,14 @@ echo "<INFO> Copy back existing config files"
 mv /tmp/$ARGV1\_upgrade/config/* $ARGV5/config/plugins/$ARGV3/
 
 echo "<INFO> Copy back existing compare files"
-mv /tmp/$ARGV1\_upgrade/currentbackup $ARGV5/data/plugins/$ARGV3/
+mv /tmp/$ARGV1\_upgrade/.currentbackup $ARGV5/data/plugins/$ARGV3/
 
 echo "<INFO> Copy back existing log files"
 mv /tmp/$ARGV1\_upgrade/log/* $ARGV5/log/plugins/$ARGV3/
 
 echo "<INFO> Copy back existing backup archives"
-mv /tmp/$ARGV1\_upgrade/files/* $ARGV5/webfrontend/html/plugins/$ARGV3/files/ 
-ln -s $ARGV5/webfrontend/html/plugins/$ARGV3/files/ $ARGV5/data/plugins/$ARGV3/files
+mv /tmp/$ARGV1\_upgrade/backups/* $ARGV5/webfrontend/html/plugins/$ARGV3/backups/ 
+ln -s $ARGV5/webfrontend/html/plugins/$ARGV3/backups/ $ARGV5/data/plugins/$ARGV3/backups
 
 echo "<INFO> Remove temporary folders"
 rm -r /tmp/$ARGV1\_upgrade

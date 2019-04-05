@@ -20,12 +20,12 @@ require_once "loxberry_log.php";
 
 $plugin_config_file 	= $lbpconfigdir."/miniserverbackup.cfg"; # Plugin config
 $workdir_data			= $lbpdatadir."/workdir";                # Working directory, on RAM-Disk by default due to $workdir_tmp
-$savedir_path 			= $lbpdatadir."/currentbackup";          # Directory to hold latest backup to compare with
+$savedir_path 			= $lbpdatadir."/.currentbackup";          # Directory to hold latest backup to compare with
 $backup_file_prefix		= "Backup_";                             # Backup name prefix
 $workdir_tmp			= "/tmp/miniserverbackup";               # The $workdir_data folder will be linked to this target
 $minimum_free_workdir	= 134217728;                             # In Bytes. Let minumum 128 MB free on workdir (RAMdisk in $workdir_tmp by default)
-$bkp_dest_dir 			= $lbphtmldir."/files";                  # Where the browser on admin page points to
-$default_finalstorage	= $lbpdatadir."/files";                  # Default localstorage
+$bkp_dest_dir 			= $lbphtmldir."/backups";                # Where the browser on admin page points to
+$default_finalstorage	= $lbpdatadir."/backups";                # Default localstorage
 $backupstate_file		= $lbphtmldir."/"."backupstate.txt";     # State file, do not change! Linked to $backupstate_tmp
 $backupstate_tmp    	= "/tmp"."/"."backupstate.txt";          # State file on RAMdisk, do not change!
 $logfilename			= "backuplog.log";      				 # Default logfile
