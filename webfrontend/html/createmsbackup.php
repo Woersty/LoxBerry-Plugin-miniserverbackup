@@ -34,7 +34,6 @@ error_reporting(E_ALL);
 ini_set("display_errors", false);        
 ini_set("log_errors", 1);
 ini_set("error_log" , $lbplogdir."/".$logfilename); 
-#ini_set("error_log", "/proc/self/fd/2"); 
 $sys_callid 		= "CID:".time('U');
 $callid 			= $sys_callid;
 $summary			= array();
@@ -45,40 +44,59 @@ function debug($message = "", $loglevel = 7)
 	if ( $plugindata['PLUGINDB_LOGLEVEL'] >= intval($loglevel) )  
 	{
 		$message = str_ireplace('"','',$message); // Remove quotes => https://github.com/mschlenstedt/Loxberry/issues/655
-		switch ($loglevel)
+		if ( isset($message) && $message != "" ) 
 		{
-		    case 0:
-		        // OFF
-		        break;
-		    case 1:
-		        error_log(          "[$callid] <ALERT> PHP: ".$message );
-				array_push($summary,"[$callid] <ALERT> PHP: ".$message);
-		        break;
-		    case 2:
-		        error_log(          "[$callid] <CRITICAL> PHP: ".$message );
-				array_push($summary,"[$callid] <CRITICAL> PHP: ".$message);
-		        break;
-		    case 3:
-		        error_log(          "[$callid] <ERROR> PHP: ".$message );
-				array_push($summary,"[$callid] <ERROR> PHP: ".$message);
-		        break;
-		    case 4:
-		        error_log(          "[$callid] <WARNING> PHP: ".$message );
-				array_push($summary,"[$callid] <WARNING> PHP: ".$message);
-		        break;
-		    case 5:
-		        error_log( "[$callid] <OK> PHP: ".$message );
-		        break;
-		    case 6:
-		        error_log( "[$callid] <INFO> PHP: ".$message );
-		        break;
-		    case 7:
-		    default:
-		        error_log( "[$callid] PHP: ".$message );
-		        break;
-			if ( $loglevel < 4 ) 
+			switch ($loglevel)
 			{
-			  if ( isset($message) && $message != "" ) notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME'], $message);
+			    case 0:
+			        // OFF
+			        break;
+			    case 1:
+			    	$message = "[$callid] <ALERT> PHP: ".$message;
+			        error_log(          $message );
+					array_push($summary,$message);
+			        break;
+			    case 2:
+			    	$message = "[$callid] <CRITICAL> PHP: ".$message;
+			        error_log(          $message );
+					array_push($summary,$message);
+			        break;
+			    case 3:
+			    	$message = "[$callid] <ERROR> PHP: ".$message;
+			        error_log(          $message );
+					array_push($summary,$message);
+			        break;
+			    case 4:
+			    	$message = "[$callid] <WARNING> PHP: ".$message;
+			        error_log(          $message );
+					array_push($summary,$message);
+			        break;
+			    case 5:
+			    	$message = "[$callid] <OK> PHP: ".$message;
+			        error_log(          $message );
+			        break;
+			    case 6:
+			    	$message = "[$callid] <INFO> PHP: ".$message;
+			        error_log(          $message );
+			        break;
+			    case 7:
+			    default:
+			    	$message = "[$callid] PHP: ".$message;
+			        error_log(          $message );
+			        break;
+			}
+			if ( $loglevel <= 3 ) 
+			{
+				$search  = array('<ALERT> PHP', '<CRITICAL> PHP', '<ERROR> PHP');
+				$replace = array($L["LOGGING.LOGLEVEL1"],$L["LOGGING.LOGLEVEL2"],$L["LOGGING.LOGLEVEL3"]);
+				notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME'], str_replace($search, $replace, $message),1);
+				return;
+			}
+			if ( $loglevel <= 4 ) 
+			{
+				$search  = array('<WARNING> PHP');
+				$replace = array($L["LOGGING.LOGLEVEL4"]);
+				notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME'], str_replace($search, $replace, $message));
 			}
 		}
 	}
@@ -102,11 +120,10 @@ if ($plugindata['PLUGINDB_LOGLEVEL'] > 5 && $plugindata['PLUGINDB_LOGLEVEL'] <= 
 touch(LBPLOGDIR."/".$logfilename); 
 debug("Check Logfile size: ".LBPLOGDIR."/".$logfilename);
 $logsize = filesize(LBPLOGDIR."/".$logfilename);
-if ( $logsize > 20971520 )
+if ( $logsize > 271520 )
 {
     debug($L["ERRORS.ERROR_LOGFILE_TOO_BIG"]." (".$logsize." Bytes)",4);
     debug("Set Logfile notification: ".LBPPLUGINDIR." ".$L['GENERAL.MY_NAME']." => ".$L['ERRORS.ERROR_LOGFILE_TOO_BIG'],7);
-    notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME'], $L["ERRORS.ERROR_LOGFILE_TOO_BIG"]." (".$logsize." Bytes)");
 	$lines_array = file(LBPLOGDIR."/".$logfilename);
 	$lines = count($lines_array); 
 	$new_output = "----------------------- ".$L["ERRORS.LOGFILE_OLDER_REMOVED"]." -----------------------\n";
@@ -967,6 +984,22 @@ foreach ($ms as $msno => $miniserver )
 				####################################################################################################
 				break;
 			}
+			$nbr_saved = count($filetree["size"]);
+			switch ($nbr_saved) 
+			{
+		    	case "0":
+					$fileinf = $L["MINISERVERBACKUP.INF_0100_NO_FILE_CHANGED"];
+					break;
+		    	case "1":
+					$fileinf = $L["MINISERVERBACKUP.INF_0098_FILE_CHANGED"]." ".formatBytes(array_sum($filetree["size"]));
+					break;
+				default:
+					$fileinf = $nbr_saved." ".$L["MINISERVERBACKUP.INF_0101_FILES_CHANGED"]." ".formatBytes(array_sum($filetree["size"]));
+					break;
+			}
+			$message = str_ireplace("<NAME>",$miniserver['Name'],str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0098_BACKUP_OF_MINISERVER_COMPLETED"]))." ".$fileinf;
+			debug($message,5);
+			notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." (".$miniserver['Name'].")", $message);
 	}
 	else
 	{
@@ -983,6 +1016,13 @@ curl_close($curl);
 debug($L["MINISERVERBACKUP.INF_0034_DEBUG_DIRECTORY_DELETE"]." -> ".$workdir_tmp);
 rrmdir($workdir_tmp);
 
+function formatBytes($bytes, $precision = 2) { 
+    $units = array('B', 'kB', 'MB', 'GB', 'TB'); 
+    $bytes = max($bytes, 0); 
+    $pow = floor(($bytes ? log($bytes) : 0) / log(1024)); 
+    $pow = min($pow, count($units) - 1); 
+    return round($bytes, $precision) . ' ' . $units[$pow]; 
+} 
 function recurse_copy($src,$dst,$copied_bytes,$filestosave) 
 { 
 	global $L, $copied_bytes,$filestosave,$backupstate_file,$msno,$workdir_tmp;
@@ -1346,7 +1386,10 @@ function sort_by_mtime($file1,$file2)
 $runtime = microtime(true) - $start;
 if ($summary)
 {
-	error_log("[$callid] <WARNING> PHP: ".$L["MINISERVERBACKUP.INF_9999_SUMMARIZE_ERRORS"]);
+	error_log(" ");
+
+	error_log("[$callid]".$L["MINISERVERBACKUP.INF_9999_SUMMARIZE_ERRORS"]);
+	error_log(" ");
 }
 foreach ($summary as &$errors) 
 {

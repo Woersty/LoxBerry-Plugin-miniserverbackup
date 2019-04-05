@@ -28,6 +28,7 @@ use Config::Simple '-strict';
 use HTML::Entities;
 #use Cwd 'abs_path';
 use warnings;
+no warnings 'uninitialized';
 use strict;
 no  strict "refs"; 
 require Time::Piece;
@@ -411,27 +412,30 @@ exit;
 				foreach  (  sort { $a <=> $b } %backup_interval_minutes) 
 				{ 
 					$backup_intervals = $backup_intervals . '<OPTION value="'.$_.'"> '.$L{"MINISERVERBACKUP.INTERVAL".$_}.' </OPTION>' if ( $_ ne "" );
-					LOGDEB "->".$_ if ( $_ ne "" );
 				}
+				LOGDEB "Backup intervals for MS# $ms_id (".$ms{Name}."): ".join(',',%backup_interval_minutes)." current is: ".$row{'CURRENT_INTERVAL'};
 				$row{'BACKUP_INTERVAL_VALUE'} 	= $backup_intervals;
 
 				my $file_formats="";
 				foreach  (  sort { $a cmp $b } @file_formats) 
 				{ 
 					$file_formats = $file_formats . '<OPTION value="'.$_.'"> '.$L{"MINISERVERBACKUP.FILE_FORMAT_" . uc $_ }.' </OPTION>' if ( $_ ne "" );
-					LOGDEB "->".$_ if ( $_ ne "" );
 				}
+				LOGDEB "File formats for MS# $ms_id (".$ms{Name}."): ".join(',',@file_formats)." current is: ".$row{'CURRENT_FILE_FORMAT'};
 				$row{'BACKUP_FILE_FORMAT'} 	= $file_formats;
 
 				my $backups_to_keep=0;
 				foreach  (  sort { $a <=> $b } %backups_to_keep_values) 
 				{ 
 					$backups_to_keep = $backups_to_keep . '<OPTION value="'.$_.'"> '.$_.' </OPTION>' if ( $_ ne "" );
-					LOGDEB "->".$_ if ( $_ ne "" );
 				}
+				LOGDEB "Backups to keep for MS# $ms_id (".$ms{Name}."): ".join(',',%backups_to_keep_values)." current is: ".$row{'CURRENT_BACKUPS_TO_KEEP'};
 				$row{'BACKUPS_TO_KEEP_VALUE'} 	= $backups_to_keep;
+				
+				LOGDEB "Current storage for MS# $ms_id (".$ms{Name}."): ".$row{'CURRENT_STORAGE'};
+				LOGDEB "Curren MS# $ms_id (".$ms{Name}.") is disabled because of invalid IP. Can happen if CloudDNS is not reachable." if ( $msDisabled eq "1" );
+				
 
-	
 		push(@template_row, \%row);
 	}	
 	push(@general_row, \%row_gen);
