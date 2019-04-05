@@ -76,6 +76,10 @@ function debug($message = "", $loglevel = 7)
 		    default:
 		        error_log( "[$callid] PHP: ".$message );
 		        break;
+			if ( $loglevel < 4 ) 
+			{
+			  if ( isset($message) && $message != "" ) notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME'], $message);
+			}
 		}
 	}
 	return;
@@ -95,6 +99,7 @@ debug(count($L)." ".$L["MINISERVERBACKUP.INF_0001_NB_LANGUAGE_STRINGS_READ"],6);
 // Warning if Loglevel > 4 (WARN)
 if ($plugindata['PLUGINDB_LOGLEVEL'] > 5 && $plugindata['PLUGINDB_LOGLEVEL'] <= 7) debug($L["MINISERVERBACKUP.INF_0026_LOGLEVEL_WARNING"]." ".$L["LOGGING.LOGLEVEL".$plugindata['PLUGINDB_LOGLEVEL']]." (".$plugindata['PLUGINDB_LOGLEVEL'].")",4);
 
+touch(LBPLOGDIR."/".$logfilename); 
 debug("Check Logfile size: ".LBPLOGDIR."/".$logfilename);
 $logsize = filesize(LBPLOGDIR."/".$logfilename);
 if ( $logsize > 20971520 )
