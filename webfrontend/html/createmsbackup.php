@@ -39,7 +39,7 @@ $callid 			= $sys_callid;
 $summary			= array();
 function debug($line,$message = "", $loglevel = 7)
 {
-	global $L, $callid, $plugindata, $summary;
+	global $L, $callid, $plugindata, $summary, $miniserver;
 	if ( $plugindata['PLUGINDB_LOGLEVEL'] >= intval($loglevel) )  
 	{
 		$message = str_ireplace('"','',$message); // Remove quotes => https://github.com/mschlenstedt/Loxberry/issues/655
@@ -90,14 +90,14 @@ function debug($line,$message = "", $loglevel = 7)
 			{
 				$search  = array('<ALERT> PHP', '<CRITICAL> PHP', '<ERROR> PHP');
 				$replace = array($L["LOGGING.NOTIFY_LOGLEVEL1"],$L["LOGGING.NOTIFY_LOGLEVEL2"],$L["LOGGING.NOTIFY_LOGLEVEL3"]);
-				notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME'], str_replace($search, $replace, $raw_message),1);
+				notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$miniserver['Name'], str_replace($search, $replace, $raw_message),1);
 				return;
 			}
 			if ( $loglevel <= 4 ) 
 			{
 				$search  = array('<WARNING> PHP');
 				$replace = array($L["LOGGING.NOTIFY_LOGLEVEL4"]);
-				notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME'], str_replace($search, $replace, $message));
+				notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$miniserver['Name'], str_replace($search, $replace, $message));
 			}
 		}
 	}
@@ -1122,7 +1122,7 @@ foreach ($ms as $msno => $miniserver )
 			}
 			$message = str_ireplace("<NAME>",$miniserver['Name'],str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0098_BACKUP_OF_MINISERVER_COMPLETED"]))." ".$fileinf;
 			debug(__line__,$message,5);
-			notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." (".$miniserver['Name'].")", $message);
+			notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$miniserver['Name'], $message);
 			array_push($summary,"[$callid] <OK> ".$message);
 	}
 	else
@@ -1144,13 +1144,13 @@ curl_close($curl);
 debug(__line__,$L["MINISERVERBACKUP.INF_0034_DEBUG_DIRECTORY_DELETE"]." -> ".$workdir_tmp);
 rrmdir($workdir_tmp);
 
-function formatBytes($bytes, $precision = 2) { 
-    $units = array('B', 'kB', 'MB', 'GB', 'TB'); 
-    $bytes = max($bytes, 0); 
-    $pow = floor(($bytes ? log($bytes) : 0) / log(1024)); 
-    $pow = min($pow, count($units) - 1); 
-    return round($bytes, $precision) . ' ' . $units[$pow]; 
-} 
+function formatBytes($size, $precision = 2)
+{
+    $base = log($size, 1024);
+    $suffixes = array('', 'kB', 'MB', 'GB', 'TB');   
+    return round(pow(1024, $base - floor($base)), $precision) .' '. $suffixes[floor($base)];
+}
+
 function recurse_copy($src,$dst,$copied_bytes,$filestosave) 
 { 
 	global $L, $copied_bytes,$filestosave,$backupstate_file,$msno,$workdir_tmp;
@@ -1277,7 +1277,7 @@ class MSbackupZIP
 		{         
 			array_push($summary,"[$callid] <CRITICAL> ".$L["ERRORS.ERR_0026_SEVERE_SD_CARD_ERRORS_DETECTED"]." => ".array_sum($error_count_severe)." => ".$L["ERRORS.ERR_0027_LAST_SD_CARD_ERROR_DETECTED"]." ".$match_severe); 		
 			array_push($summary,"[$callid] <ALERT> ".$L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]." (".$miniserver['Name'].")");
-		    notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME'], $L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]. " (" . $miniserver['Name'] .")");
+		    notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$miniserver['Name'], $L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]. " (" . $miniserver['Name'] .")");
 		}
 	}
 	return;
