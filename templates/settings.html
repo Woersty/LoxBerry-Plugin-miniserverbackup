@@ -231,7 +231,11 @@ $( document ).ready(function()
 		<div style="display:table-row;">
 			<div style="display:table-cell; ">
 				<div style="display:table; padding:10px; border: 1px solid black; border-radius: 5px; background-color: rgba(19,172,132,.2);">
-				<TMPL_VAR LOGGING.LOG_AREA> (<TMPL_VAR LOGGING.LOGLEVEL> <TMPL_VAR LOGLEVEL>)<br>
+			 		<div style="display:table-row;">
+						<div style="display:table-cell; ">
+							<TMPL_VAR LOGGING.LOG_AREA>
+			 			</div>
+		 			</div>
 			 		<div style="display:table-row;">
 						<div style="display:table-cell; border-radius: 5px;" id="delete_log_div">
 				 			<button id="delete_log_btn" onclick="$('#reset_session').trigger('click'); $('#delete_log_div').css('background-color','yellow'); $('#delete_log_btn').html('<TMPL_VAR LOGGING.LOG_BUTTON_DELETE_WORKING>'); $.ajax({url: '', type: 'GET', data: { 'delete_log':1},
@@ -247,16 +251,68 @@ $( document ).ready(function()
 					                setTimeout( function() { $('#delete_log_div').css('background-color',''); $('#delete_log_btn').html('<TMPL_VAR LOGGING.LOG_BUTTON_DELETE>');}, 2000);
 					
 					            }	}); return false;" data-role="button" data-inline="true" data-mini="true"><TMPL_VAR LOGGING.LOG_BUTTON_DELETE></button>
+				 		</div>
+		 			</div>
+			 		<div style="display:table-row;">
+						<div style="display:table-cell; border-radius: 5px;" id="level_log_div">
+							<fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+							<select name="loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>" id="loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>" data-mini="true">
+								<option value="0"><TMPL_VAR LOGGING.LOGLEVEL0></option>
+						      <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_NOTIFY>">
+								<option value="1"><TMPL_VAR LOGGING.LOGLEVEL1></option>
+								<option value="2"><TMPL_VAR LOGGING.LOGLEVEL2></option> 
+								<option value="3"><TMPL_VAR LOGGING.LOGLEVEL3></option>
+							  </optgroup>
+							  <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_NORMAL>">
+								<option value="4"><TMPL_VAR LOGGING.LOGLEVEL4></option>
+								<option value="5"><TMPL_VAR LOGGING.LOGLEVEL5></option>
+						      </optgroup>
+							  <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_FREAKS>">
+								<option value="6"><TMPL_VAR LOGGING.LOGLEVEL6></option>
+						      </optgroup>
+							  <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_DEVELOPMENT>">
+								<option value="7"><TMPL_VAR LOGGING.LOGLEVEL7></option>
+								<option value="8"><TMPL_VAR LOGGING.LOGLEVEL8></option>
+							  </optgroup>
+							</select>
+							</fieldset>
+							<script>
+								function post_value (action, pluginmd5, value)
+								{
+									console.log("Action:", action, "Plugin-MD5:", pluginmd5, "Value:", value);
+									$.post ( '/admin/system/tools/ajax-config-handler.cgi', 
+												{ 	action: action,
+													value: value,
+													pluginmd5: pluginmd5
+												});
+								}
+								$( document ).ready(function() 
+								{
+										$("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>-button").remove();
+										$("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").css('display','').selectmenu( "menuWidget" );
+										$("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
+										$("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").val("<TMPL_VAR LOGLEVEL>");
+										$("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").change(function(){
+												var val = $(this).val();
+												console.log("Loglevel", val);
+												post_value('plugin-loglevel', '<TMPL_VAR PLUGINDB_MD5_CHECKSUM>', val); 
+											});
+								});
+							</script>
+				 		</div>
+		 			</div>
+			 		<div style="display:table-row;">
+						<div style="display:table-cell; border-radius: 5px;" id="level_log_div">
 				 			<button onclick="window.open('/admin/system/tools/logfile.cgi?logfile=<TMPL_VAR LOGFILE>&amp;header=html&amp;format=template', 'log'); return false;" id="logview" data-role="button" data-inline="true" data-mini="true"><TMPL_VAR LOGGING.LOG_BUTTON_VIEW></button>
 				 			<SCRIPT> 
 				 	 			$("label").css("text-align","left").css("margin-top","8px").css("margin-bottom","-8px").css("margin-left","0px");
 							</SCRIPT>
 						</div>
 			 		</div>
-				</div>
-		 	</div>
-	 	</div>
- 	</div>
+		 		</div>
+	 		</div>
+ 		</div>
+	</div>
 </center>
 <script>
 			$.ajax({url: '<TMPL_VAR HTMLPATH>logfile.php', type: 'GET', data: { 'new_session':1}});
