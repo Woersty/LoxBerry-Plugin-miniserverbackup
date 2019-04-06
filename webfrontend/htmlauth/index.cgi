@@ -227,13 +227,15 @@ my $maintemplate = HTML::Template->new(
 		debug => 1
 		);
 my %L = LoxBerry::System::readlanguage($maintemplate, $languagefile);
-$maintemplate->param( "LBPPLUGINDIR", $lbpplugindir);
-$maintemplate->param( "MINISERVERS"	, int( keys(%miniservers)) );
-$maintemplate->param( "LOGO_ICON"	, get_plugin_icon(64) );
-$maintemplate->param( "VERSION"		, $version);
-$maintemplate->param( "LOGLEVEL" 	, $L{"LOGGING.LOGLEVEL".$plugin->{PLUGINDB_LOGLEVEL}});
-$maintemplate->param( "ELFINDER_LANG"		, $lang);
-
+$maintemplate->param( "LBPPLUGINDIR"			, $lbpplugindir);
+$maintemplate->param( "MINISERVERS"				, int( keys(%miniservers)) );
+$maintemplate->param( "LOGO_ICON"				, get_plugin_icon(64) );
+$maintemplate->param( "VERSION"					, $version);
+$maintemplate->param( "LOGLEVEL" 				, $plugin->{PLUGINDB_LOGLEVEL});
+$maintemplate->param( "ELFINDER_LANG"			, $lang);
+$maintemplate->param( "PLUGINDB_MD5_CHECKSUM"	, $plugin->{PLUGINDB_MD5_CHECKSUM});
+ 
+ 
 my $index = 0;
 $index++ while $netshares[$index]->{NETSHARE_STATE} eq 'Writable' ;
 splice(@netshares, $index, 1);
