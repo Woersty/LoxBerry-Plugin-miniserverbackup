@@ -397,7 +397,7 @@ foreach ($ms as $msno => $miniserver )
 	curl_setopt($curl, CURLOPT_URL, $url);
 	if(curl_exec($curl) === false)
 	{
-		debug($L["ERRORS.ERR_0018_ERROR_READ_LOCAL_MS_IP"]."\n".curl_error($curl),3);
+		debug($L["ERRORS.ERR_0018_ERROR_READ_LOCAL_MS_IP"]." ".curl_error($curl),3);
 		continue;
 	}	
 	else
@@ -409,7 +409,7 @@ foreach ($ms as $msno => $miniserver )
 		}
 		else
 		{
-			debug($L["ERRORS.ERR_0018_ERROR_READ_LOCAL_MS_IP"]."\n".$url." => ".nl2br(htmlentities($read_line)),3);
+			debug($L["ERRORS.ERR_0018_ERROR_READ_LOCAL_MS_IP"]." ".$url." => ".nl2br(htmlentities($read_line)),3);
 			continue;
 		}
 	}
@@ -418,7 +418,7 @@ foreach ($ms as $msno => $miniserver )
 	curl_setopt($curl, CURLOPT_URL, $url);
 	if(curl_exec($curl) === false)
 	{
-		debug($L["ERRORS.ERR_0019_ERROR_READ_LOCAL_MS_VERSION"]."\n".curl_error($curl),3);
+		debug($L["ERRORS.ERR_0019_ERROR_READ_LOCAL_MS_VERSION"]." ".curl_error($curl),3);
 		continue;
 	}	
 	else
@@ -431,7 +431,7 @@ foreach ($ms as $msno => $miniserver )
 		}
 		else
 		{
-			debug($L["ERRORS.ERR_0019_ERROR_READ_LOCAL_MS_VERSION"]."\n".curl_error($curl),3);
+			debug($L["ERRORS.ERR_0019_ERROR_READ_LOCAL_MS_VERSION"]." ".curl_error($curl),3);
 			continue;
 		}
 	}
@@ -567,6 +567,45 @@ foreach ($ms as $msno => $miniserver )
 	$curl_save = curl_init() or debug($L["ERRORS.ERR_0002_ERROR_INIT_CURL"],3);
 	curl_setopt($curl_save, CURLOPT_HTTPAUTH, constant("CURLAUTH_ANY"));
 
+	#Check if final target is on an external storage like SMB or USB
+	if (strpos($finalstorage, '/system/storage/') !== false) 
+	{                                       
+		#Yes, is on an external storage 
+		#Check if subdir must be appended
+		if (substr($finalstorage, -1) == "+")
+		{
+			$finalstorage = substr($finalstorage,0, -1);
+			exec("mountpoint '".$finalstorage."' ", $retArr, $retVal);
+			if ( $retVal == 0 )
+			{
+				debug($L["MINISERVERBACKUP.ERR_0102_VALID_MOUNTPOINT"]." (".$finalstorage.")",6);
+				
+			}
+			else
+			{
+				debug($L["ERRORS.ERR_0049_ERR_INVALID_MOUNTPOINT"]." ".$finalstorage,3);
+			}
+		}
+		else
+		{
+			exec("mountpoint '".$finalstorage."' ", $retArr, $retVal);
+			if ( $retVal == 0 )
+			{
+				debug($L["MINISERVERBACKUP.ERR_0102_VALID_MOUNTPOINT"]." (".$finalstorage.")",6);
+			}
+			else
+			{
+				debug($L["ERRORS.ERR_0049_ERR_INVALID_MOUNTPOINT"]." ".$finalstorage,3);
+			}
+		} 
+	}
+	debug($L["MINISERVERBACKUP.INF_0083_DEBUG_FINAL_TARGET"]." ".$finalstorage,5);
+	if ( !is_writeable($finalstorage) )
+	{
+		debug($L["ERRORS.ERR_0039_FINAL_STORAGE_NOT_WRITABLE"],3);
+	}
+
+	
 	if ( count($filetree["name"]) > 0 )
 	{
 		debug($L["MINISERVERBACKUP.INF_0021_START_DOWNLOAD"],5);
@@ -591,7 +630,8 @@ foreach ($ms as $msno => $miniserver )
 			}
 			$url = "http://".$miniserver['IPAddress'].":".$miniserver['Port']."/dev/fsget".$file_to_save;
 			usleep(50000);
-			debug($L["MINISERVERBACKUP.INF_0016_READ_FROM_WRITE_TO"]."\n".$url ." => ".$workdir_tmp."/".$bkpfolder.$file_to_save); 
+			debug($L["MINISERVERBACKUP.INF_0016_READ_FROM_WRITE_TO"]." ( $file_to_save )",6);
+			debug($url ." => ".$workdir_tmp."/".$bkpfolder.$file_to_save,7); 
 			$curl_save = curl_init(str_replace(" ","%20",$url));
 			curl_setopt($curl_save, CURLOPT_USERPWD, $miniserver['Credentials_RAW']);
 			curl_setopt($curl_save, CURLOPT_TIMEOUT, 50);
@@ -599,7 +639,7 @@ foreach ($ms as $msno => $miniserver )
 			curl_setopt($curl_save, CURLOPT_FOLLOWLOCATION, 0);
 			curl_setopt($curl_save, CURLOPT_CONNECTTIMEOUT, 600); 
 			curl_setopt($curl_save, CURLOPT_TIMEOUT, 600);
-			curl_setopt($curl_save, CURLOPT_FILE, $fp) or debug($L["ERRORS.ERR_0008_PROBLEM_CREATING_BACKUP_FILE"]." ".$workdir_tmp."/".$bkpfolder.$file_to_save."\n".curl_error($curl),3);
+			curl_setopt($curl_save, CURLOPT_FILE, $fp) or debug($L["ERRORS.ERR_0008_PROBLEM_CREATING_BACKUP_FILE"]." ".$workdir_tmp."/".$bkpfolder.$file_to_save." ".curl_error($curl),3);
 			curl_setopt($curl_save, CURLOPT_FOLLOWLOCATION, true);
 			$data = curl_exec($curl_save);
 
@@ -613,7 +653,7 @@ foreach ($ms as $msno => $miniserver )
 			
 			if ( $data === FALSE)
 			{
-				debug($L["MINISERVERBACKUP.INF_0096_DOWNLOAD_FAILED_RETRY"]."\n".$url ." => ".$workdir_tmp."/".$bkpfolder.$file_to_save,6); 
+				debug($L["MINISERVERBACKUP.INF_0096_DOWNLOAD_FAILED_RETRY"]." ".$url ." => ".$workdir_tmp."/".$bkpfolder.$file_to_save,6); 
 				sleep(1);
 				$data = curl_exec($curl_save);
 			}
@@ -626,7 +666,7 @@ foreach ($ms as $msno => $miniserver )
 			}
 			if ( $data === FALSE)
 			{
-				debug($L["MINISERVERBACKUP.INF_0096_DOWNLOAD_FAILED_RETRY"]."\n".$url ." => ".$workdir_tmp."/".$bkpfolder.$file_to_save,6); 
+				debug($L["MINISERVERBACKUP.INF_0096_DOWNLOAD_FAILED_RETRY"]." ".$url ." => ".$workdir_tmp."/".$bkpfolder.$file_to_save,6); 
 				sleep(1);
 				$data = curl_exec($curl_save);
 			}
@@ -639,11 +679,11 @@ foreach ($ms as $msno => $miniserver )
 			fclose ($fp); 
 			if ( $data === FALSE)
 			{
-				debug($L["ERRORS.ERR_0009_CURL_SAVE_FAILED"]." ".$workdir_tmp."/".$bkpfolder.$file_to_save."\n".curl_error($curl_save),3);
+				debug($L["ERRORS.ERR_0009_CURL_SAVE_FAILED"]." ".$workdir_tmp."/".$bkpfolder.$file_to_save." ".curl_error($curl_save),3);
 			}
 			else
 			{
-				debug($L["MINISERVERBACKUP.INF_0097_DOWNLOAD_SUCCESS"]."\n".$url ." => ".$workdir_tmp."/".$bkpfolder.$file_to_save,6); 
+				debug($L["MINISERVERBACKUP.INF_0097_DOWNLOAD_SUCCESS"]." ".$url ." => ".$workdir_tmp."/".$bkpfolder.$file_to_save,6); 
 				// Set file time to guessed value read from miniserver
 				if (touch($workdir_tmp."/".$bkpfolder.$file_to_save, $filetree["time"][array_search($file_to_save,$filetree["name"],true)]) === FALSE )
 				{
@@ -717,6 +757,7 @@ foreach ($ms as $msno => $miniserver )
 		{	
 			debug($L["ERRORS.ERR_0010_SOME_FILES_NOT_SAVED"]." ".(count($filetree["name"]) - count($save_ok_list["name"])),4);
 			debug($L["ERRORS.ERR_0011_SOME_FILES_NOT_SAVED_INFO"]."\n".implode("\n",array_diff($filetree["name"], $save_ok_list["name"])),6);
+			////todo
 		}
 		$runtime_dwl = (microtime(true) - $start_dwl);
 		debug("Runtime: ".$runtime_dwl." s");
@@ -733,15 +774,38 @@ foreach ($ms as $msno => $miniserver )
 	
 	#Move to target dir
 
-	#Check if final target is on an external storage like SMB or USB
+ 	#Check if final target is on an external storage like SMB or USB
 	if (strpos($finalstorage, '/system/storage/') !== false) 
 	{                                       
 		#Yes, is on an external storage 
 		#Check if subdir must be appended
 		if (substr($finalstorage, -1) == "+")
 		{
-			$finalstorage = substr($finalstorage,0, -1)."/".$bkpfolder;
+			$finalstorage = substr($finalstorage,0, -1);
+			exec("mountpoint '".$finalstorage."' ", $retArr, $retVal);
+			if ( $retVal == 0 )
+			{
+				debug($L["MINISERVERBACKUP.ERR_0102_VALID_MOUNTPOINT"]." (".$finalstorage.")",6);
+				
+			}
+			else
+			{
+				debug($L["ERRORS.ERR_0049_ERR_INVALID_MOUNTPOINT"]." ".$finalstorage,3);
+			}
+			$finalstorage .= "/".$bkpfolder;
 			@mkdir($finalstorage, 0777, true);
+		}
+		else
+		{
+			exec("mountpoint '".$finalstorage."' ", $retArr, $retVal);
+			if ( $retVal == 0 )
+			{
+				debug($L["MINISERVERBACKUP.ERR_0102_VALID_MOUNTPOINT"]." (".$finalstorage.")",6);
+			}
+			else
+			{
+				debug($L["ERRORS.ERR_0049_ERR_INVALID_MOUNTPOINT"]." ".$finalstorage,3);
+			}
 		} 
 	}
 	else
@@ -762,7 +826,7 @@ foreach ($ms as $msno => $miniserver )
 	if ( !is_writeable($finalstorage) )
 	{
 		debug($L["ERRORS.ERR_0039_FINAL_STORAGE_NOT_WRITABLE"],3);
-	} 
+	}
 
 	#If it's a file, delete it
 	if ( is_file($bkp_dest_dir."/".$bkpfolder) )
@@ -785,7 +849,7 @@ foreach ($ms as $msno => $miniserver )
 	}
 	#Create a fresh local link from html file browser to final storage location
 	symlink($finalstorage,$bkp_dest_dir."/".$bkpfolder);
-	debug($L["MINISERVERBACKUP.INF_0020_MOVING_TO_SAVE_DIR"]."\n".$workdir_tmp."/".$bkpfolder." =>".$savedir_path."/".$bkpfolder);
+	debug($L["MINISERVERBACKUP.INF_0020_MOVING_TO_SAVE_DIR"]." ".$workdir_tmp."/".$bkpfolder." =>".$savedir_path."/".$bkpfolder);
 	rmove($workdir_tmp."/".$bkpfolder, $savedir_path."/".$bkpfolder);
 	rrmdir($workdir_tmp."/".$bkpfolder);
 	if (is_writeable($finalstorage)) 
@@ -1186,7 +1250,7 @@ function read_ms_tree ($folder)
 	curl_setopt($curl, CURLOPT_URL, $LoxURL);
 	if(curl_exec($curl) === false)
 	{
-		debug($L["ERRORS.ERR_0004_ERROR_EXEC_CURL"]."\n".curl_error($curl),4);
+		debug($L["ERRORS.ERR_0004_ERROR_EXEC_CURL"]." ".curl_error($curl),4);
 		return;
 	}	
 	else
@@ -1202,12 +1266,12 @@ function read_ms_tree ($folder)
 			}
 			else
 			{
-				debug($L["MINISERVERBACKUP.INF_0009_GOT_DATA_FROM_MS"]."\n".$read_data);
+				debug($L["MINISERVERBACKUP.INF_0009_GOT_DATA_FROM_MS"]." ".$read_data);
 			}
 		}
 		else
 		{
-			debug($L["ERRORS.ERR_0005_CURL_GET_CONTENT_FAILED"]." ".$folder."\n".curl_error($curl).$read_data,4); 
+			debug($L["ERRORS.ERR_0005_CURL_GET_CONTENT_FAILED"]." ".$folder." ".curl_error($curl).$read_data,4); 
 			return;
 		}
 	}
@@ -1381,6 +1445,7 @@ function sort_by_mtime($file1,$file2)
     }
     return ($time1 > $time2) ? 1 : -1;
 }
+
 
 $runtime = microtime(true) - $start;
 if ($summary)
