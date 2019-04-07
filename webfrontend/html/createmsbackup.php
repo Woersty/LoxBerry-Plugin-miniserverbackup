@@ -115,8 +115,8 @@ debug(__line__,"Version: ".LBSystem::pluginversion(),5);
 $L = LBSystem::readlanguage("language.ini");
 debug(__line__,count($L)." ".$L["MINISERVERBACKUP.INF_0001_NB_LANGUAGE_STRINGS_READ"],6);
 
-// Warning if Loglevel > 4 (WARN)
-if ($plugindata['PLUGINDB_LOGLEVEL'] > 5 && $plugindata['PLUGINDB_LOGLEVEL'] <= 7) debug(__line__,$L["MINISERVERBACKUP.INF_0026_LOGLEVEL_WARNING"]." ".$L["LOGGING.LOGLEVEL".$plugindata['PLUGINDB_LOGLEVEL']]." (".$plugindata['PLUGINDB_LOGLEVEL'].")",4);
+// Warning if Loglevel > 5 (OK)
+if ($plugindata['PLUGINDB_LOGLEVEL'] > 6 && $plugindata['PLUGINDB_LOGLEVEL'] <= 7) debug(__line__,$L["MINISERVERBACKUP.INF_0026_LOGLEVEL_WARNING"]." ".$L["LOGGING.LOGLEVEL".$plugindata['PLUGINDB_LOGLEVEL']]." (".$plugindata['PLUGINDB_LOGLEVEL'].")",6);
 
 touch(LBPLOGDIR."/".$logfilename); 
 debug(__line__,"Check Logfile size: ".LBPLOGDIR."/".$logfilename);

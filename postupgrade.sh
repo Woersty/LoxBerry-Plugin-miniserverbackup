@@ -23,5 +23,7 @@ ln -s $ARGV5/webfrontend/html/plugins/$ARGV3/backups/ $ARGV5/data/plugins/$ARGV3
 echo "<INFO> Remove temporary folders"
 rm -r /tmp/$ARGV1\_upgrade
 
+php -f $ARGV5/webfrontend/html/plugins/$ARGV3/ajax_config_handler.php
+ 
 # Exit with Status 0
 exit 0
