@@ -548,8 +548,8 @@ foreach ($ms as $msno => $miniserver )
 	$folder = "/";
 	debug(__line__,$L["MINISERVERBACKUP.INF_0006_READ_DIRECTORIES_AND_FILES"]." ".$folder,6);
 	$filetree = read_ms_tree($folder);
-	debug(__line__,$L["MINISERVERBACKUP.INF_0015_BUILDING_FILELIST_COMPLETED"]." ".count($filetree["name"]),5);
-	debug(__line__,$L["MINISERVERBACKUP.INF_0048_REMOVING_ALREADY_SAVED_IDENTICAL_FILES_FROM_LIST"],5);
+	debug(__line__,$L["MINISERVERBACKUP.INF_0015_BUILDING_FILELIST_COMPLETED"]." ".count($filetree["name"]),6);
+	debug(__line__,$L["MINISERVERBACKUP.INF_0048_REMOVING_ALREADY_SAVED_IDENTICAL_FILES_FROM_LIST"],6);
 	if (!is_dir($savedir_path."/".$bkpfolder))
 	{
 		debug(__line__,$L["MINISERVERBACKUP.INF_0041_DEBUG_IS_DIR"]." -> ".$L["MINISERVERBACKUP.INF_0037_DEBUG_NO"]." -> ".$L["MINISERVERBACKUP.INF_0035_DEBUG_DIRECTORY_CREATE"]." -> ".$savedir_path."/".$bkpfolder);
@@ -619,7 +619,7 @@ foreach ($ms as $msno => $miniserver )
 		file_put_contents($backupstate_file,"-");
 		continue;
 	}
-	debug(__line__,$L["MINISERVERBACKUP.INF_0015_BUILDING_FILELIST_COMPLETED"]." ".count($filetree["name"]),5);
+	debug(__line__,$L["MINISERVERBACKUP.INF_0015_BUILDING_FILELIST_COMPLETED"]." ".count($filetree["name"]),6);
 	$curl_save = curl_init();
 	if ( !$curl_save )
 	{
@@ -743,7 +743,7 @@ foreach ($ms as $msno => $miniserver )
 					{
 						if(stristr($read_data,'Forbidden')) 
 						{
-							debug(__line__,$L["MINISERVERBACKUP.INF_0103_FORBIDDEN"]." -".$file_to_save."-",5);
+							debug(__line__,$L["MINISERVERBACKUP.INF_0103_FORBIDDEN"]." -".$file_to_save."-",6);
 							$key = array_search($file_to_save,$filetree["name"],true);
 							if ( $key === FALSE ) 
 							{
@@ -755,7 +755,7 @@ foreach ($ms as $msno => $miniserver )
 	    						unset($filetree["name"][$key]);
 	    						unset($filetree["size"][$key]);
 	    						unset($filetree["time"][$key]);
-	   							debug(__line__,$L["MINISERVERBACKUP.INF_0015_BUILDING_FILELIST_COMPLETED"]." ".count($filetree["name"]),5);
+	   							debug(__line__,$L["MINISERVERBACKUP.INF_0015_BUILDING_FILELIST_COMPLETED"]." ".count($filetree["name"]),6);
 							}
 							continue;
 						}
@@ -940,7 +940,7 @@ foreach ($ms as $msno => $miniserver )
 		switch ($fileformat) 
 		{
 		    case "ZIP":
-				debug(__line__,$L["MINISERVERBACKUP.INF_0058_CREATE_ZIP_ARCHIVE"]." <br>".$savedir_path."/".$bkpfolder." => ".$finalstorage."/".$bkpdir.$fileformat_extension,5);
+				debug(__line__,$L["MINISERVERBACKUP.INF_0058_CREATE_ZIP_ARCHIVE"]." <br>".$savedir_path."/".$bkpfolder." => ".$finalstorage."/".$bkpdir.$fileformat_extension,6);
 				file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"])." (".$L["MINISERVERBACKUP.INF_0067_STATE_ZIP"].")");
 		        MSbackupZIP::zipDir($savedir_path."/".$bkpfolder, $finalstorage."/".$bkpdir.$fileformat_extension); 
 				debug(__line__,$L["MINISERVERBACKUP.INF_0061_CREATE_ZIP_ARCHIVE_DONE"]." ".$finalstorage."/".$bkpdir.$fileformat_extension." (". round( intval( filesize($finalstorage."/".$bkpdir.$fileformat_extension) ) / 1024 / 1024 ,2 ) ." MB)",5);
@@ -952,7 +952,7 @@ foreach ($ms as $msno => $miniserver )
 				debug(__line__,$L["MINISERVERBACKUP.INF_0077_NO_COMPRESS_COPY_END"]." ".$finalstorage."/".$bkpdir." (". round( $copied_bytes / 1024 / 1024 ,2 ) ." MB)",5);
 		        break;
 		    case "7Z":
-				debug(__line__,$L["MINISERVERBACKUP.INF_0058_CREATE_ZIP_ARCHIVE"]." <br>".$savedir_path."/".$bkpfolder." => ".$finalstorage."/".$bkpdir.$fileformat_extension,5);
+				debug(__line__,$L["MINISERVERBACKUP.INF_0058_CREATE_ZIP_ARCHIVE"]." <br>".$savedir_path."/".$bkpfolder." => ".$finalstorage."/".$bkpdir.$fileformat_extension,6);
 				file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"])." (".$L["MINISERVERBACKUP.INF_0067_STATE_ZIP"].")");
 				$path = $bkp_dest_dir.'/'.$bkpfolder;
 				$latest_ctime = 0;
@@ -1234,7 +1234,7 @@ class MSbackupZIP
   public static function check_def_log($filePath) 
   {
   	global $L,$summary,$miniserver,$callid,$backupstate_file;
-	debug(__line__,$L["MINISERVERBACKUP.INF_0080_CHECK_DEFLOG"]." (" . $miniserver['Name'] .")",5);
+	debug(__line__,$L["MINISERVERBACKUP.INF_0080_CHECK_DEFLOG"]." (" . $miniserver['Name'] .")",6);
 	$deflog = explode("\n",file_get_contents($filePath));
 	$lookfor = "PRG Reboot";
 	$matches = array_filter($deflog, function($var) use ($lookfor) { return preg_match("/\b$lookfor\b/i", $var); });
