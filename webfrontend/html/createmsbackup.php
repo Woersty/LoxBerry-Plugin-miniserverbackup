@@ -468,7 +468,7 @@ foreach ($ms as $msno => $miniserver )
 			$manual_backup = 1;
 		}
 	}
-
+	$temp_finalstorage = $finalstorage;
 		#Check if final target is on an external storage like SMB or USB
 	if (strpos($finalstorage, '/system/storage/') !== false) 
 	{                                       
