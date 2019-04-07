@@ -469,7 +469,49 @@ foreach ($ms as $msno => $miniserver )
 		}
 	}
 
-	if (file_exists($finalstorage)) 
+		#Check if final target is on an external storage like SMB or USB
+	if (strpos($finalstorage, '/system/storage/') !== false) 
+	{                                       
+		#Yes, is on an external storage 
+		#Check if subdir must be appended
+		if (substr($finalstorage, -1) == "+")
+		{
+			$temp_finalstorage = substr($finalstorage,0, -1);
+			exec("mountpoint '".$temp_finalstorage."' ", $retArr, $retVal);
+			if ( $retVal == 0 )
+			{
+				debug(__line__,$L["MINISERVERBACKUP.INF_0102_VALID_MOUNTPOINT"]." (".$temp_finalstorage.")",6);
+				
+			}
+			else
+			{
+				debug(__line__,$L["ERRORS.ERR_0049_ERR_INVALID_MOUNTPOINT"]." ".$temp_finalstorage,3);
+				create_clean_workdir_tmp($workdir_tmp);
+				file_put_contents($backupstate_file,"-");
+				continue;
+			}
+		}
+		else
+		{
+			exec("mountpoint '".$finalstorage."' ", $retArr, $retVal);
+			if ( $retVal == 0 )
+			{
+				debug(__line__,$L["MINISERVERBACKUP.INF_0102_VALID_MOUNTPOINT"]." (".$finalstorage.")",6);
+				$temp_finalstorage = $finalstorage;
+			}
+			else
+			{
+				debug(__line__,$L["ERRORS.ERR_0049_ERR_INVALID_MOUNTPOINT"]." ".$finalstorage,3);
+				create_clean_workdir_tmp($workdir_tmp);
+				file_put_contents($backupstate_file,"-");
+				continue;
+			}
+		} 
+	}
+
+	
+	
+	if (is_dir($temp_finalstorage)) 
 	{
 		if ( ( $backupinterval > ((time()-$last_save)/60) || $backupinterval == 0 ) && $manual_backup != 1)
 		{
@@ -502,10 +544,8 @@ foreach ($ms as $msno => $miniserver )
 	{
 		debug(__line__,$L["MINISERVERBACKUP.INF_0091_BACKUP_DIR_NOT_FOUND_TRY_BACKUP"],5);
 	}
-
     // Set root dir to / and read it
 	$folder = "/";
-	
 	debug(__line__,$L["MINISERVERBACKUP.INF_0006_READ_DIRECTORIES_AND_FILES"]." ".$folder,6);
 	$filetree = read_ms_tree($folder);
 	debug(__line__,$L["MINISERVERBACKUP.INF_0015_BUILDING_FILELIST_COMPLETED"]." ".count($filetree["name"]),5);
@@ -590,46 +630,7 @@ foreach ($ms as $msno => $miniserver )
 	}
 	curl_setopt($curl_save, CURLOPT_HTTPAUTH, constant("CURLAUTH_ANY"));
 
-	#Check if final target is on an external storage like SMB or USB
-	if (strpos($finalstorage, '/system/storage/') !== false) 
-	{                                       
-		#Yes, is on an external storage 
-		#Check if subdir must be appended
-		if (substr($finalstorage, -1) == "+")
-		{
-			$temp_finalstorage = substr($finalstorage,0, -1);
-			exec("mountpoint '".$temp_finalstorage."' ", $retArr, $retVal);
-			if ( $retVal == 0 )
-			{
-				debug(__line__,$L["MINISERVERBACKUP.INF_0102_VALID_MOUNTPOINT"]." (".$temp_finalstorage.")",6);
-				
-			}
-			else
-			{
-				debug(__line__,$L["ERRORS.ERR_0049_ERR_INVALID_MOUNTPOINT"]." ".$temp_finalstorage,3);
-				create_clean_workdir_tmp($workdir_tmp);
-				file_put_contents($backupstate_file,"-");
-				continue;
-			}
-		}
-		else
-		{
-			exec("mountpoint '".$finalstorage."' ", $retArr, $retVal);
-			if ( $retVal == 0 )
-			{
-				debug(__line__,$L["MINISERVERBACKUP.INF_0102_VALID_MOUNTPOINT"]." (".$finalstorage.")",6);
-			}
-			else
-			{
-				debug(__line__,$L["ERRORS.ERR_0049_ERR_INVALID_MOUNTPOINT"]." ".$finalstorage,3);
-				create_clean_workdir_tmp($workdir_tmp);
-				file_put_contents($backupstate_file,"-");
-				continue;
-			}
-		} 
-	}
 
-	
 	
 	$crit_issue=0;
 	if ( count($filetree["name"]) > 0 )
@@ -684,6 +685,7 @@ foreach ($ms as $msno => $miniserver )
 			{
 				debug(__line__,$L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]." ".$workdir_tmp."/".$bkpfolder.$file_to_save." => ".filesize($workdir_tmp."/".$bkpfolder.$file_to_save) ." != ".$filetree["size"][array_search($file_to_save,$filetree["name"],true)],6);
 				sleep(1);
+				curl_setopt($curl_save, CURLOPT_FILE, $fp) or $curl_save_issue=1;
 				$data = curl_exec($curl_save);
 				
 			}
@@ -692,6 +694,7 @@ foreach ($ms as $msno => $miniserver )
 			{
 				debug(__line__,$L["MINISERVERBACKUP.INF_0096_DOWNLOAD_FAILED_RETRY"]." ".$url ." => ".$workdir_tmp."/".$bkpfolder.$file_to_save,6); 
 				sleep(1);
+				curl_setopt($curl_save, CURLOPT_FILE, $fp) or $curl_save_issue=1;
 				$data = curl_exec($curl_save);
 			}
 
@@ -699,18 +702,21 @@ foreach ($ms as $msno => $miniserver )
 			{
 				debug(__line__,$L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]." ".$workdir_tmp."/".$bkpfolder.$file_to_save." => ".filesize($workdir_tmp."/".$bkpfolder.$file_to_save) ." != ".$filetree["size"][array_search($file_to_save,$filetree["name"],true)],6);
 				sleep(1);
+				curl_setopt($curl_save, CURLOPT_FILE, $fp) or $curl_save_issue=1;
 				$data = curl_exec($curl_save);
 			}
 			if ( $data === FALSE)
 			{
 				debug(__line__,$L["MINISERVERBACKUP.INF_0096_DOWNLOAD_FAILED_RETRY"]." ".$url ." => ".$workdir_tmp."/".$bkpfolder.$file_to_save,6); 
 				sleep(1);
+				curl_setopt($curl_save, CURLOPT_FILE, $fp) or $curl_save_issue=1;
 				$data = curl_exec($curl_save);
 			}
 			if ( filesize($workdir_tmp."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)] && filesize($workdir_tmp."/".$bkpfolder.$file_to_save) != 122 )
 			{
 				debug(__line__,$L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]." ".$workdir_tmp."/".$bkpfolder.$file_to_save." => ".filesize($workdir_tmp."/".$bkpfolder.$file_to_save) ." != ".$filetree["size"][array_search($file_to_save,$filetree["name"],true)],6);
 				sleep(1);
+				curl_setopt($curl_save, CURLOPT_FILE, $fp) or $curl_save_issue=1;
 				$data = curl_exec($curl_save);
 			}
 			fclose ($fp); 
