@@ -597,16 +597,16 @@ foreach ($ms as $msno => $miniserver )
 		#Check if subdir must be appended
 		if (substr($finalstorage, -1) == "+")
 		{
-			$finalstorage = substr($finalstorage,0, -1);
-			exec("mountpoint '".$finalstorage."' ", $retArr, $retVal);
+			$temp_finalstorage = substr($finalstorage,0, -1);
+			exec("mountpoint '".$temp_finalstorage."' ", $retArr, $retVal);
 			if ( $retVal == 0 )
 			{
-				debug(__line__,$L["MINISERVERBACKUP.INF_0102_VALID_MOUNTPOINT"]." (".$finalstorage.")",6);
+				debug(__line__,$L["MINISERVERBACKUP.INF_0102_VALID_MOUNTPOINT"]." (".$temp_finalstorage.")",6);
 				
 			}
 			else
 			{
-				debug(__line__,$L["ERRORS.ERR_0049_ERR_INVALID_MOUNTPOINT"]." ".$finalstorage,3);
+				debug(__line__,$L["ERRORS.ERR_0049_ERR_INVALID_MOUNTPOINT"]." ".$temp_finalstorage,3);
 				create_clean_workdir_tmp($workdir_tmp);
 				file_put_contents($backupstate_file,"-");
 				continue;
@@ -628,15 +628,9 @@ foreach ($ms as $msno => $miniserver )
 			}
 		} 
 	}
-	debug(__line__,$L["MINISERVERBACKUP.INF_0083_DEBUG_FINAL_TARGET"]." ".$finalstorage,5);
-	if ( !is_writeable($finalstorage) )
-	{
-		debug(__line__,$L["ERRORS.ERR_0039_FINAL_STORAGE_NOT_WRITABLE"],3);
-		create_clean_workdir_tmp($workdir_tmp);
-		file_put_contents($backupstate_file,"-");
-		continue;
-	}
 
+	
+	
 	$crit_issue=0;
 	if ( count($filetree["name"]) > 0 )
 	{
@@ -962,7 +956,7 @@ foreach ($ms as $msno => $miniserver )
 				{
 	  				$filepath = "{$path}/{$entry}";
 	  				// could do also other checks than just checking whether the entry is a file
-	  				if (is_file($filepath) && filectime($filepath) > $latest_ctime && substr($filepath,-3) == $fileformat_extension ) 
+	  				if (is_file($filepath) && filectime($filepath) > $latest_ctime && substr($filepath,-3) == $fileformat_extension && substr(basename($filepath),0,strlen($backup_file_prefix)) == $backup_file_prefix  ) 
 					{
 						$latest_ctime = filectime($filepath);
 						$latest_filename = $entry;
@@ -1053,7 +1047,7 @@ foreach ($ms as $msno => $miniserver )
 				break;
 		    case "7Z":
 				####################################################################################################
-				debug(__line__,str_ireplace("<cleaninfo>",$finalstorage."/".$backup_file_prefix.trim($local_ip[1])."_*".$fileformat_extension,str_ireplace("<number>",$backups_to_keep,$L["MINISERVERBACKUP.INF_0092_CLEAN_UP_BACKUP"])),5);
+				debug(__line__,str_ireplace("<cleaninfo>",$finalstorage."/".$backup_file_prefix.trim($local_ip[1])."_*".$fileformat_extension,str_ireplace("<number>",$backups_to_keep,$L["MINISERVERBACKUP.INF_0092_CLEAN_UP_BACKUP"])),6);
 				$files = glob($finalstorage."/".$backup_file_prefix.trim($local_ip[1])."_*".$fileformat_extension, GLOB_NOSORT);
 				usort($files,"sort_by_mtime");
 				$keeps = $files;
@@ -1078,8 +1072,7 @@ foreach ($ms as $msno => $miniserver )
 					}
 					unset($deletions);
 				}
-				####################################################################################################
-				debug(__line__,str_ireplace("<cleaninfo>",$finalstorage."/Incremental_".$backup_file_prefix.trim($local_ip[1])."_*".$fileformat_extension,str_ireplace("<number>",$backups_to_keep,$L["MINISERVERBACKUP.INF_0092_CLEAN_UP_BACKUP"])),5);
+				debug(__line__,str_ireplace("<cleaninfo>",$finalstorage."/Incremental_".$backup_file_prefix.trim($local_ip[1])."_*".$fileformat_extension,str_ireplace("<number>",$backups_to_keep,$L["MINISERVERBACKUP.INF_0092_CLEAN_UP_BACKUP"])),6);
 				$files = glob($finalstorage."/Incremental_".$backup_file_prefix.trim($local_ip[1])."_*".$fileformat_extension, GLOB_NOSORT);
 				usort($files,"sort_by_mtime");
 				$keeps = $files;
@@ -1104,6 +1097,7 @@ foreach ($ms as $msno => $miniserver )
 					}
 					unset($deletions);
 				}
+
 				####################################################################################################
 				break;
 			}
@@ -1133,7 +1127,6 @@ foreach ($ms as $msno => $miniserver )
 		continue;
 
 	}
-
 	debug(__line__,$L["MINISERVERBACKUP.INF_0032_CLEAN_WORKDIR_TMP"]." ".$workdir_tmp);
 	create_clean_workdir_tmp($workdir_tmp);
 	file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
