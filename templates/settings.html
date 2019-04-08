@@ -14,10 +14,13 @@
 	</center>
 	<br><a id="btncancel" data-role="button" data-inline="true" data-mini="true" data-icon="arrow-l" href="/admin/system/index.cgi"><TMPL_VAR GENERAL.LABEL_BUTTON_BACK></a>
 </center>
-<link rel="stylesheet" href="<TMPL_VAR HTMLPATH>style.css">
-<link rel="stylesheet" type="text/css" href="<TMPL_VAR HTMLPATH>css/elfinder.min.css">
-<link rel="stylesheet" type="text/css" href="<TMPL_VAR HTMLPATH>css/theme.css">
-<script src="<TMPL_VAR HTMLPATH>js/jquery-ui-1.12.0.min.js"></script>
+<link rel="stylesheet" href="<TMPL_VAR HTMLPATH>style.css" />
+<link rel="stylesheet" type="text/css" href="<TMPL_VAR HTMLPATH>css/elfinder.min.css" />
+<link rel="stylesheet" type="text/css" href="<TMPL_VAR HTMLPATH>css/theme.css" />
+<link rel="stylesheet" href="<TMPL_VAR HTMLPATH>css/vex.css" />
+<link rel="stylesheet" href="<TMPL_VAR HTMLPATH>css/vex-theme-os.css" />
+<script src="<TMPL_VAR HTMLPATH>js/vex.combined.min.js"></script>
+<script src="<TMPL_VAR HTMLPATH>js/jquery-ui.min.js"></script>
 <script src="<TMPL_VAR HTMLPATH>js/elfinder.min.js"></script>
 <script src="<TMPL_VAR HTMLPATH>js/i18n/elfinder.<TMPL_VAR ELFINDER_LANG>.js"></script>
 <script type="text/javascript" charset="utf-8">
@@ -33,10 +36,12 @@ $(document).ready(function() {
 		 , lang: '<TMPL_VAR ELFINDER_LANG>'                    // language 
 	});
 });
+                 
+            
 </script>
 <form method="post" data-ajax="false" name="main_form" id="main_form" action="./index.cgi">
-<center>
 <div id="elfinder"></div>
+<center>
 <BR>
 	<input type="hidden" name="saveformdata" value="1">
 	<input type="hidden" name="VERSION" value="<TMPL_VAR VERSION>">
@@ -226,6 +231,9 @@ $( document ).ready(function()
 	</table>
 	<div style="resize:vertical; width:100%; border: 1px solid #888;  background-color: transparent; font-family:monospace; color:#8080FF; overflow-y: scroll;" id="Logfiletextbox" contenteditable="true"> </div>
 </div>
+
+
+
 <center><br>
 	<div style="display:table;">
 		<div style="display:table-row;">
@@ -428,8 +436,51 @@ $( document ).ready(function()
 			{
 				if(  $('#workdir_path optgroup[id=localwdp]').children("option:selected").val() == null)
 				{
-					$("#local_wdp_div").fadeIn(1500);
-					//$("#workdir_path_subdir").removeClass('ui-disabled');
+					if ( $("#local_wdp_div").css('display') == "none" )
+					{
+						$("#workdir_path_subdir").val('workdir');
+						$("#local_wdp_div").fadeIn(2500);
+					}
+					if ( $("#workdir_path_subdir").val() == "" )
+					{
+						var whatclicked=false;
+						vex.dialog.prompt({
+							className:			'vex-theme-os example',
+							showCloseButton:	false,
+							placeholder : "<TMPL_VAR DIALOG.DIALOG_PERMIT>",
+                        	buttons: 			[
+                            						$.extend({}, vex.dialog.buttons.OK, { text: '<TMPL_VAR DIALOG.OK_BUTTON>' }),
+                            						$.extend({}, vex.dialog.buttons.CANCEL, { text: '<TMPL_VAR DIALOG.CANCEL_BUTTON>' })  
+                        						],
+							unsafeMessage: 		'<b><font color="red"><TMPL_VAR DIALOG.DIALOG_TITLE></font></b><hr><TMPL_VAR DIALOG.DIALOG_INFO>',
+							callback: function()
+							{  
+								if ( whatclicked == true )
+								{
+									if (  $(".vex-dialog-prompt-input").val() == "OK" )
+									{
+										setTimeout( function(){ write_save_config( $("#workdir_path") ); }, delaytime);
+										delaytime += delaytime_to_add;
+										setTimeout( function(){ write_save_config( $("#workdir_path_subdir") ); }, delaytime);
+									}
+									else
+									{
+										$(object).css('background-color','#FFC0C0');
+										location.reload();
+									}
+								}
+								else
+								{
+									$(object).css('background-color','#FFC0C0');
+									location.reload();
+								}
+							}});
+							$(".vex-dialog-button").click(function() 
+							{
+									whatclicked = $(this).hasClass('vex-first');
+							});
+						return;
+					}
 				}
 				else
 				{
@@ -550,7 +601,6 @@ $( document ).ready(function()
 			//$("#workdir_path_subdir").addClass('ui-disabled');
 			$("#local_wdp_div").fadeOut(500);
 		}
-		//jQuery('html').css('overflow-y', 'auto');
 	});
 </script>
 <small><small><TMPL_VAR VERSION></small></small>
