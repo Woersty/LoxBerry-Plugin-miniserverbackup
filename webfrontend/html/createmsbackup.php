@@ -1441,7 +1441,7 @@ function create_clean_workdir_tmp($workdir_tmp)
 */
 function rmove($src, $dest)
 {
-	global $savedir_path,$bkpfolder;
+	global $savedir_path,$bkpfolder,$L;
 	// If source is not a directory stop processing
 	if(!is_dir($src)) 
 	{
