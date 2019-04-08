@@ -1239,45 +1239,52 @@ class MSbackupZIP
 	$lookfor = "PRG Reboot";
 	$matches = array_filter($deflog, function($var) use ($lookfor) { return preg_match("/\b$lookfor\b/i", $var); });
 	$last_reboot_key = array_pop($matches);
-
 	array_push($summary,"[$callid] <INFO> ".$L["MINISERVERBACKUP.INF_0062_LAST_MS_REBOOT"]." ".$last_reboot_key);
 	$key_in_deflog = array_search($last_reboot_key,$deflog,true);
 	$deflog = array_slice($deflog, $key_in_deflog, NULL, TRUE);
 	$lookfor = "SDC number of ";
-	$matches = array_filter($deflog, function($var) use ($lookfor) { return preg_match("/\b$lookfor\b/i", $var); });
-	if ( $matches !== false )
+	$SDC_matches = array_filter($deflog, function($var) use ($lookfor) { return preg_match("/\b$lookfor\b/i", $var); });
+	if ( $SDC_matches !== false )
 	{
 		$error_count = array();
 		$error_count_severe = array();
-	  	foreach ($matches as $match)
+		foreach ($SDC_matches as $match)
 	  	{
-			if ( preg_match("/\bSDC number of errors: \b(\d).*/i", $match, $founds) ) 
+			if ( preg_match("/\bSDC number of errors: \b(\d*).*/i", $match, $founds) ) 
 			{
 	  			array_push($error_count,$founds[1]);
 			}
-			else if ( preg_match("/\bSDC number of severe errors: \b(\d).*/i", $match, $founds_severe) )
+			else if ( preg_match("/\bSDC number of severe errors: \b(\d*).*/i", $match, $founds_severe) )
 			{
 				array_push($error_count_severe,$founds_severe[1]);
 	  			$match_severe = $match;
 			}
 		}
-		if ( count($error_count) > 0 )
+
+		if ( array_sum($error_count) > 0 )
 		{          		
-			if ( count($error_count) > 10 )
+			if ( array_sum($error_count) > 20 )
 			{
 				array_push($summary,"[$callid] <WARNING> ".$L["ERRORS.ERR_0025_SD_CARD_ERRORS_DETECTED"]." => ".array_sum($error_count)." => ".$L["ERRORS.ERR_0027_LAST_SD_CARD_ERROR_DETECTED"]." ".$match);
+				array_push($summary,"[$callid] <INFO> ".$L["MINISERVERBACKUP.INF_0104_SUMMARY_SD_ERRORS"]."\n[$callid] <INFO> ".join("\n[$callid] <INFO>",$SDC_matches));
 			}
 			else
 			{
 				array_push($summary,"[$callid] <INFO> ".$L["ERRORS.ERR_0025_SD_CARD_ERRORS_DETECTED"]." => ".array_sum($error_count)." => ".$L["ERRORS.ERR_0027_LAST_SD_CARD_ERROR_DETECTED"]." ".$match);
+				array_push($summary,"[$callid] <INFO> ".$L["MINISERVERBACKUP.INF_0104_SUMMARY_SD_ERRORS"]."\n[$callid] <INFO> ".join("\n[$callid] <INFO>",$SDC_matches));
 			}
+			
 		}
 		if ( count($error_count_severe) > 0 )
 		{         
 			array_push($summary,"[$callid] <CRITICAL> ".$L["ERRORS.ERR_0026_SEVERE_SD_CARD_ERRORS_DETECTED"]." => ".array_sum($error_count_severe)." => ".$L["ERRORS.ERR_0027_LAST_SD_CARD_ERROR_DETECTED"]." ".$match_severe); 		
+			array_push($summary,"[$callid] <INFO> ".$L["MINISERVERBACKUP.INF_0104_SUMMARY_SD_ERRORS"]."\n[$callid] <INFO> ".join("\n[$callid] <INFO>",$SDC_matches));
 			array_push($summary,"[$callid] <ALERT> ".$L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]." (".$miniserver['Name'].")");
-		    notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$miniserver['Name'], $L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]. " (" . $miniserver['Name'] .")");
+		    notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$miniserver['Name'], $L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]. " (" . $miniserver['Name'] .")\n".join("",$SDC_matches)."\n".$L["MINISERVERBACKUP.INF_0062_LAST_MS_REBOOT"]." ".$last_reboot_key);
 		}
+
+
+		
 	}
 	return;
   }
