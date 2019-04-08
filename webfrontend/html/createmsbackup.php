@@ -43,6 +43,7 @@ function debug($line,$message = "", $loglevel = 7)
 	if ( $plugindata['PLUGINDB_LOGLEVEL'] >= intval($loglevel) )  
 	{
 		$message = str_ireplace('"','',$message); // Remove quotes => https://github.com/mschlenstedt/Loxberry/issues/655
+		$raw_message = $message;
 		if ( $plugindata['PLUGINDB_LOGLEVEL'] == 7 ) $message .= " ".$L["ERRORS.LINE"]." ".$line;
 		if ( isset($message) && $message != "" ) 
 		{
@@ -97,7 +98,7 @@ function debug($line,$message = "", $loglevel = 7)
 			{
 				$search  = array('<WARNING> PHP');
 				$replace = array($L["LOGGING.NOTIFY_LOGLEVEL4"]);
-				notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$miniserver['Name'], str_replace($search, $replace, $message));
+				notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$miniserver['Name'], str_replace($search, $replace, $raw_message));
 			}
 		}
 	}
@@ -667,7 +668,6 @@ foreach ($ms as $msno => $miniserver )
 			debug(__line__,$url ." => ".$workdir_tmp."/".$bkpfolder.$file_to_save,7); 
 			$curl_save = curl_init(str_replace(" ","%20",$url));
 			curl_setopt($curl_save, CURLOPT_USERPWD, $miniserver['Credentials_RAW']);
-			curl_setopt($curl_save, CURLOPT_TIMEOUT, 50);
 			curl_setopt($curl_save, CURLOPT_NOPROGRESS, 1);
 			curl_setopt($curl_save, CURLOPT_FOLLOWLOCATION, 0);
 			curl_setopt($curl_save, CURLOPT_CONNECTTIMEOUT, 600); 
@@ -1278,17 +1278,35 @@ class MSbackupZIP
 			}
 			
 		}
+			
 		if ( count($error_count_severe) > 0 )
 		{         
 			array_push($summary,"[$callid] <CRITICAL> ".$L["ERRORS.ERR_0026_SEVERE_SD_CARD_ERRORS_DETECTED"]." => ".array_sum($error_count_severe)." => ".$L["ERRORS.ERR_0027_LAST_SD_CARD_ERROR_DETECTED"]." ".$match_severe); 		
 			array_push($summary,"[$callid] <INFO> ".$L["MINISERVERBACKUP.INF_0104_SUMMARY_SD_ERRORS"]."\n[$callid] <INFO> ".join("\n[$callid] <INFO>",$SDC_matches));
 			array_push($summary,"[$callid] <ALERT> ".$L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]." (".$miniserver['Name'].")");
-		    notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$miniserver['Name'], $L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]. " (" . $miniserver['Name'] .")\n".join("",$SDC_matches)."\n".$L["MINISERVERBACKUP.INF_0062_LAST_MS_REBOOT"]." ".$last_reboot_key);
+		    notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$miniserver['Name'], $L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]. " (" . $miniserver['Name'] .") ".$L["MINISERVERBACKUP.INF_0062_LAST_MS_REBOOT"]." ".$last_reboot_key);		}
 		}
-
-
 		
-	}
+		if ( count($error_count_severe) > 0  ||  array_sum($error_count) > 50 )
+		{
+			$url = "http://".$miniserver['IPAddress'].":".$miniserver['Port']."/dev/sys/sdtest";
+			debug(__line__,$L["MINISERVERBACKUP.INF_0105_PERFORM_SD_TEST"],6);
+			$curl_save = curl_init(str_replace(" ","%20",$url));
+			curl_setopt($curl_save, CURLOPT_USERPWD, $miniserver['Credentials_RAW']);
+			curl_setopt($curl_save, CURLOPT_NOPROGRESS, 1);
+			curl_setopt($curl_save, CURLOPT_FOLLOWLOCATION, 0);
+			curl_setopt($curl_save, CURLOPT_CONNECTTIMEOUT, 60); 
+			curl_setopt($curl_save, CURLOPT_TIMEOUT, 60);
+			curl_setopt($curl_save, CURLOPT_RETURNTRANSFER, true); 
+			$output_sd_test = curl_exec($curl_save);
+			curl_close($curl_save); 
+			$search  = array('<?xml version="1.0" encoding="utf-8"?>',"\n","\r",'<LL control="dev/sys/sdtest" value="', '/>');
+			$replace = array('','','','','');
+			$test_result = str_replace($search, $replace, $output_sd_test);
+			$pos = strpos($test_result, ",");
+			array_push($summary,"[$callid] <INFO> ".$L["MINISERVERBACKUP.INF_0106_RESULT_SD_TEST"]." ".substr($test_result,0,$pos));
+			array_push($summary,"[$callid] <INFO> ".substr($test_result,$pos+2));
+		}
 	return;
   }
 } 
