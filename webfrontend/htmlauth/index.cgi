@@ -20,6 +20,7 @@
 ##########################################################################
 
 use LoxBerry::Storage;
+use File::Basename;
 use LoxBerry::Web;
 use LoxBerry::Log;
 use CGI::Carp qw(fatalsToBrowser);
@@ -376,9 +377,9 @@ exit;
 		push(@usbdevices_workdir, @usbdevices_for_workdir);
 		if ( $ms_id == 1 ) #Just fill for first MS
 		{
-			        $row_gen{'WORKDIR_RAMDISK_TXT'} 			= $L{"GENERAL.WORKDIR_RAMDISK_TXT"};
+			        $row_gen{'WORKDIR_RAMDISK_TXT'} 			= $L{"GENERAL.WORKDIR_RAMDISK_TXT"}." [".$loxberry_ramdisk."]";
 			        $row_gen{'WORKDIR_RAMDISK_VAL'} 			= $loxberry_ramdisk;
-			        $row_gen{'WORKDIR_PLUGIN_DATADIR_TXT'} 		= $L{"GENERAL.WORKDIR_PLUGIN_DATADIR_TXT"};
+			        $row_gen{'WORKDIR_PLUGIN_DATADIR_TXT'} 		= $L{"GENERAL.WORKDIR_PLUGIN_DATADIR_TXT"}." [".dirname($loxberry_datadir)."/workdir]";
 			        $row_gen{'WORKDIR_PLUGIN_DATADIR'} 			= $loxberry_datadir;
 				    $row_gen{'WORKDIR_PATH'}			        = $loxberry_ramdisk;
 				    $row_gen{'WORKDIR_PATH'}			        = $Config{"MINISERVERBACKUP.WORKDIR_PATH"} if ( $Config{"MINISERVERBACKUP.WORKDIR_PATH"} ne "" );
