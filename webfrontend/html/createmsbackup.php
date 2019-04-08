@@ -212,6 +212,7 @@ if ( ! is_link($backupstate_file) )
 {
 	if ( is_file($backupstate_file) )
 	{
+		debug(__line__,$L["MINISERVERBACKUP.INF_0045_DEBUG_DELETE_FILE"]." -> ".$dir."/".$object);
 		@unlink($backupstate_file);
 	}
 	@symlink($backupstate_tmp, $backupstate_file);
@@ -892,6 +893,7 @@ foreach ($ms as $msno => $miniserver )
 	#If it's a file, delete it
 	if ( is_file($bkp_dest_dir."/".$bkpfolder) )
 	{
+		debug(__line__,$L["MINISERVERBACKUP.INF_0045_DEBUG_DELETE_FILE"]." -> ".$bkp_dest_dir."/".$bkpfolder);
 		@unlink($bkp_dest_dir."/".$bkpfolder);
 	}
 	#If it's no link, delete it
@@ -906,6 +908,7 @@ foreach ($ms as $msno => $miniserver )
 	else
 	{
 		#If it's link, delete it
+		debug(__line__,$L["MINISERVERBACKUP.INF_0045_DEBUG_DELETE_FILE"]." -> ".$bkp_dest_dir."/".$bkpfolder);
 		unlink($bkp_dest_dir."/".$bkpfolder);
 	}
 	#Create a fresh local link from html file browser to final storage location
@@ -1470,12 +1473,17 @@ function rmove($src, $dest)
 		else if(!$f->isDot() && $f->isDir()) 
 		{
 			rmove($f->getRealPath(), "$dest/$f");
+			debug(__line__,$L["MINISERVERBACKUP.INF_0034_DEBUG_DIRECTORY_DELETE"]." -> ".$f->getRealPath());
 			rmdir($f->getRealPath());
 		}
 	}
 	if ( $src != $savedir_path."/".$bkpfolder."/" ) 
 	{
-		if (is_file($src)) unlink($src);
+		if (is_file($src)) 
+		{
+			debug(__line__,$L["MINISERVERBACKUP.INF_0045_DEBUG_DELETE_FILE"]." -> ".$src);
+			unlink($src);
+		}
 	}
 }
 
@@ -1498,10 +1506,19 @@ function rrmdir($dir)
 		{
 			if ($object != "." && $object != "..") 
 			{
-			  if (filetype($dir."/".$object) == "dir") rrmdir($dir."/".$object); else unlink($dir."/".$object);
+				if (filetype($dir."/".$object) == "dir") 
+			  	{
+			  		rrmdir($dir."/".$object);
+				}
+			 	else 
+			 	{
+			 		debug(__line__,$L["MINISERVERBACKUP.INF_0045_DEBUG_DELETE_FILE"]." -> ".$dir."/".$object);
+			 		unlink($dir."/".$object);
+			 	}
 			}
 		}
 		reset($objects);
+		debug(__line__,$L["MINISERVERBACKUP.INF_0034_DEBUG_DIRECTORY_DELETE"]." -> ".$dir);
 		rmdir($dir);
 	}
 }
