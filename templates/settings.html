@@ -424,6 +424,17 @@ $( document ).ready(function()
 	 }
 	});
 	
+	
+	function makeworkdir(length) {
+	  var text = "";
+	  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	
+	  for (var i = 0; i < length; i++)
+	    text += possible.charAt(Math.floor(Math.random() * possible.length));
+	
+	  return text;
+	}
+	
 	function save_config(what_to_save)
 	{
 		$('#btncancel').addClass('ui-disabled');
@@ -438,55 +449,16 @@ $( document ).ready(function()
 				{
 					if ( $("#local_wdp_div").css('display') == "none" )
 					{
-						$("#workdir_path_subdir").val('workdir');
-						$("#local_wdp_div").fadeIn(2500);
-					}
-					if ( $("#workdir_path_subdir").val() == "" )
-					{
-						var whatclicked=false;
-						vex.dialog.prompt({
-							className:			'vex-theme-os example',
-							showCloseButton:	false,
-							placeholder : "<TMPL_VAR DIALOG.DIALOG_PERMIT>",
-                        	buttons: 			[
-                            						$.extend({}, vex.dialog.buttons.OK, { text: '<TMPL_VAR DIALOG.OK_BUTTON>' }),
-                            						$.extend({}, vex.dialog.buttons.CANCEL, { text: '<TMPL_VAR DIALOG.CANCEL_BUTTON>' })  
-                        						],
-							unsafeMessage: 		'<b><font color="red"><TMPL_VAR DIALOG.DIALOG_TITLE></font></b><hr><TMPL_VAR DIALOG.DIALOG_INFO>',
-							callback: function()
-							{  
-								if ( whatclicked == true )
-								{
-									if (  $(".vex-dialog-prompt-input").val() == "OK" )
-									{
-										setTimeout( function(){ write_save_config( $("#workdir_path") ); }, delaytime);
-										delaytime += delaytime_to_add;
-										setTimeout( function(){ write_save_config( $("#workdir_path_subdir") ); }, delaytime);
-									}
-									else
-									{
-										$(object).css('background-color','#FFC0C0');
-										location.reload();
-									}
-								}
-								else
-								{
-									$(object).css('background-color','#FFC0C0');
-									location.reload();
-								}
-							}});
-							$(".vex-dialog-button").click(function() 
-							{
-									whatclicked = $(this).hasClass('vex-first');
-							});
-						return;
+						$("#workdir_path_subdir").val(makeworkdir(10));
+						$('#workdir_path_subdir').removeClass('ui-disabled');
+						$("#local_wdp_div").fadeIn(500);
 					}
 				}
 				else
 				{
+					$('#workdir_path_subdir').addClass('ui-disabled');
 					$("#workdir_path_subdir").val('');
 					$("#error-msg-workdir_path_subdir").css('display','none')
-					//$("#workdir_path_subdir").addClass('ui-disabled');
 					$("#local_wdp_div").fadeOut(1500);
 				}
 				setTimeout( function(){ write_save_config(object); }, delaytime);
@@ -527,6 +499,14 @@ $( document ).ready(function()
 	{
 		var before_bg_color = "";
 		var postData = {};
+		
+		if ( $(object).attr('name') == "workdir_path_subdir" && $('#workdir_path optgroup[id=localwdp]').children("option:selected").val() == null )
+		{
+			if ( $("#workdir_path_subdir").val() == "" )
+			{
+				$("#workdir_path_subdir").val(makeworkdir(10));
+			}
+		}
 		postData[$(object).attr('name')] = $(object).val();
 		$.ajax({url: '<TMPL_VAR HTMLPATH>ajax_config_handler.php', type: 'POST', data: postData,
             success: function (data) 
