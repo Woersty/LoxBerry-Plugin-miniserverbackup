@@ -21,21 +21,22 @@
 <script src="<TMPL_VAR HTMLPATH>js/elfinder.min.js"></script>
 <script src="<TMPL_VAR HTMLPATH>js/i18n/elfinder.<TMPL_VAR ELFINDER_LANG>.js"></script>
 <script type="text/javascript" charset="utf-8">
-// Documentation for client options:
-// https://github.com/Studio-42/elFinder/wiki/Client-configuration-options
-$(document).ready(function() 
-{
-	$('#elfinder').elfinder(
+	var miniservers=[];
+	var auto_save = 0;
+	// Documentation for client options:
+	// https://github.com/Studio-42/elFinder/wiki/Client-configuration-options
+	$(document).ready(function() 
 	{
-		defaultView: 'list',
-		width: '100%',
-		sort: 'nameDirsFirst',
-		sortDirect: 'desc',
-		url : '<TMPL_VAR HTMLPATH>php/connector.minimal.php'  // connector URL 
-		 , lang: '<TMPL_VAR ELFINDER_LANG>'                    // language 
+		$('#elfinder').elfinder(
+		{
+			defaultView: 'list',
+			width: '100%',
+			sort: 'nameDirsFirst',
+			sortDirect: 'desc',
+			url : '<TMPL_VAR HTMLPATH>php/connector.minimal.php'  // connector URL 
+			 , lang: '<TMPL_VAR ELFINDER_LANG>'                    // language 
+		});
 	});
-});
-var miniservers=[];
 </script>
 <!-- Filebrowser //-->
 <DIV id="elfinder"></DIV>
@@ -178,18 +179,16 @@ var miniservers=[];
 						}
 					});
 					var nbr_miniservers = miniservers.push('<TMPL_VAR MSID>');
+					// Autosave
+					if ( "<TMPL_VAR AUTOSAVE_CONFIG>" == "1" || "<TMPL_VAR AUTOSAVE_WORKDIR>" == "1" )
+					{
+						auto_save = 1;
+					}
 				</script>
 			</DIV>
 		</DIV>
 		<BR>
 	</TMPL_LOOP>
-	<script>
-	// Autosave
-	if ( "<TMPL_VAR AUTOSAVE_CONFIG>" == "1" || "<TMPL_VAR AUTOSAVE_WORKDIR>" == "1" )
-	{
-		save_config();
-	}
-	</script>
 </CENTER>
 <DIV>
 	<table width="100%" border="0">
@@ -497,6 +496,7 @@ var miniservers=[];
 		checkNotifications();
 		// Event handler for save
 		$('.to_save').on("change", function(){ save_config(); });
+		if ( auto_save == 1 ) save_config();
 	});
 </script>
 <small><small><TMPL_VAR VERSION></small></small>
