@@ -1,4 +1,5 @@
 <?php
+
 # Get notifications in html format 
 require_once "loxberry_system.php";
 $plugin_config_file = $lbpconfigdir."/miniserverbackup.cfg";
@@ -87,9 +88,8 @@ else
   touch($plugin_config_file);
 }
 
-foreach ($_POST as $config_key => $config_value)
+foreach ($_REQUEST as $config_key => $config_value)
 {
-	$output .= strtoupper($config_key). "=" . $config_value . " ";
 	$plugin_cfg[strtoupper($config_key)] = $config_value;
 }
 
@@ -102,7 +102,7 @@ if (php_sapi_name() === 'cli')
 		{
 			$cli_config = preg_split("/[=]+/",$argv[1]);
 			$plugin_cfg[strtoupper($cli_config[0])] = $cli_config[1];
-			$output .= strtoupper($cli_config[0]). "=" . $cli_config[1] . " ";
+			$output .= "console.log(".strtoupper($cli_config[0]). "=" . $cli_config[1] . ");\n";
 		}
 	}
 } 
@@ -113,7 +113,9 @@ $plugin_cfg["VERSION"] = LBSystem::pluginversion();
 ksort($plugin_cfg);
 $plugin_cfg_handle = fopen($plugin_config_file, 'w');
 
-$ms = LBSystem::get_miniservers();
+LBSystem::read_generalcfg();
+$ms = $miniservers;
+
 if (!is_array($ms)) 
 {
 	debug($L["ERRORS.ERR_0001_NO_MINISERVERS_CONFIGURED"],3);
@@ -133,8 +135,6 @@ if (flock($plugin_cfg_handle, LOCK_EX))
 		}
 		else
 		{
-			debug($L["MINISERVERBACKUP.INF_0071_CONFIG_PARAM_WRITTEN"]. " ". $config_key. "=" . $config_value );
-			fwrite($plugin_cfg_handle, $config_key . '="' . $config_value .'"'."\n") or $output = $L["ERRORS.ERR_0035_ERROR_WRITE_CONFIG"];
 			if ( $config_key == "WORKDIR_PATH" )
 			{
 				$subdir = "";
@@ -147,6 +147,23 @@ if (flock($plugin_cfg_handle, LOCK_EX))
 				}
 				system("echo '".$plugin_cfg["WORKDIR_PATH"].$subdir."' > /tmp/msb_free_space");
 			}
+			
+	
+		
+		debug($L["MINISERVERBACKUP.INF_0071_CONFIG_PARAM_WRITTEN"]. " ". $config_key. "=" . $config_value );
+		$written = fwrite($plugin_cfg_handle, $config_key . '="' . $config_value .'"'."\n");
+		if ( !$written )
+		{
+			$output .= "show_error('".$L["ERRORS.ERR_0035_ERROR_WRITE_CONFIG"]." => ".$config_key."');\n";
+			$output .= "$('#".strtolower($config_key)."').css('background-color','#FFC0C0');\n";
+		}
+		else
+		{
+			$output .= "$('#".strtolower($config_key)."').css('background-color','#C0FFC0');\n";
+			$output .= "setTimeout( function() { $('#".strtolower($config_key)."').css('background-color',''); }, 3000);\n";
+		}
+		
+			
 		}
 	}
     fflush($plugin_cfg_handle); // leere Ausgabepuffer bevor die Sperre frei gegeben wird
@@ -154,65 +171,42 @@ if (flock($plugin_cfg_handle, LOCK_EX))
 } 
 else 
 {
-	$output = "ERROR: ".$L["ERRORS.ERR_0035_ERROR_WRITE_CONFIG"];
+	$output .= "show_error('".$L["ERRORS.ERR_0035_ERROR_WRITE_CONFIG"]."');\n";
 	debug($L["ERRORS.ERR_0035_ERROR_WRITE_CONFIG"],3);
 }
 fclose($plugin_cfg_handle);
 
-function build_tree()
+foreach ($plugin_cfg as $config_key => $config_value)
 {
-	global $output, $plugin_cfg, $L, $ms;
-	$all_interval_used = 0;
-	foreach ($plugin_cfg as $config_key => $config_value)
+	#If at least one job is configured, set cronjob
+	if ( strpos($config_key, 'BACKUP_INTERVAL') !== false && intval($config_value) > 0 ) 
 	{
-		#If at least one job is configured, set cronjob
-		if ( strpos($config_key, 'BACKUP_INTERVAL') !== false && intval($config_value) > 0 ) 
-		{
-			$all_interval_used = $all_interval_used + $config_value;
-		}
-		
-		#Write config for storage
-		$finalstorage = preg_replace('/^FINALSTORAGE(\d+)/i', '$1', $config_key);
-		if ( intval($finalstorage) > 0 ) 
-		{
-			if ( substr($config_value, -1) == "+" )
-			{
-				$config_value = substr($config_value, 0, -1)."/".str_pad(intval($finalstorage),3,0,STR_PAD_LEFT)."_".$ms[$finalstorage]["Name"];
-			}
-			if ( !is_dir($config_value) ) { mkdir($config_value, 0777, true); }
-			if ( !is_writable($config_value) || !is_dir($config_value) ) 
-			{
-				$output = $L["ERRORS.ERR_0039_FINAL_STORAGE_NOT_WRITABLE"].": ".$config_value;
-				debug ($output, 3);
-			}
-		}
+		$all_interval_used = $all_interval_used + $config_value;
 	}
-	#Create Cron-Job
-	if ( $all_interval_used > 0 )
+}
+#Create Cron-Job
+if ( $all_interval_used > 0 )
+{
+	if ( ! is_link(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR)  )
 	{
-		if ( ! is_link(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR)  )
-		{
-			@symlink(LBPHTMLAUTHDIR."/bin/createmsbackup.pl", LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR);
-		}
-			
-		if ( ! is_link(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR) )
-		{
-			debug($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"],3);	
-		}
-		else
-		{
-			debug($L["MINISERVERBACKUP.INF_0084_INFO_CRON_JOB_ACTIVE"],6);	
-		}
+		@symlink(LBPHTMLAUTHDIR."/bin/createmsbackup.pl", LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR);
+	}
+		
+	if ( ! is_link(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR) )
+	{
+		debug($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"],3);	
 	}
 	else
 	{
-		if ( is_link(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR) )
-		{
-			unlink(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR) or debug($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"],3);
-		}
-		debug($L["MINISERVERBACKUP.INF_0085_INFO_CRON_JOB_STOPPED"],6);	
+		debug($L["MINISERVERBACKUP.INF_0084_INFO_CRON_JOB_ACTIVE"],6);	
 	}
-	return;
 }
-build_tree();
+else
+{
+	if ( is_link(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR) )
+	{
+		unlink(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR) or debug($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"],3);
+	}
+	debug($L["MINISERVERBACKUP.INF_0085_INFO_CRON_JOB_STOPPED"],6);	
+}
 echo $output;

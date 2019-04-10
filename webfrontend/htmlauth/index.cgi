@@ -439,7 +439,7 @@ exit;
 				$row{'CURRENT_INTERVAL'}		= $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} if ( $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} ne "" );
 				$row{'CURRENT_FILE_FORMAT'}		= $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} if ( $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} ne "" );
 				$row{'CURRENT_BACKUPS_TO_KEEP'}	= $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} if ( $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} ne "" );
-				$row{'AUTOSAVE_CONFIG'}	    	= 1 if ( $Config{"MINISERVERBACKUP.FINALSTORAGE".$ms_id} eq "" || $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} eq "" || $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} eq "" || $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} eq "" );
+				$row{'AUTOSAVE_CONFIG'}	    	= 1;# if ( $Config{"MINISERVERBACKUP.FINALSTORAGE".$ms_id} eq "" || $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} eq "" || $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} eq "" || $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} eq "" );
 				$row{'MS_DISABLED'}	    		= $msDisabled;
 				
 				foreach  (  sort { $a <=> $b } %backup_interval_minutes) 
@@ -475,14 +475,9 @@ exit;
 	$maintemplate->param("TEMPLATE_ROW" => \@template_row);
 	$maintemplate->param("GENERAL_ROW" => \@general_row);
 	
-#	exit;
-
-
-
     # Parse some strings from language file into template 
 		our $str_tags    	  	= $L{"default.TXT_BLUETOOTH_TAGS"};
 	
-		
 		# Parse page
 
 		# Parse page footer		
