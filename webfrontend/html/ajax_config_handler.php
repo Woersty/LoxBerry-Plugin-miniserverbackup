@@ -175,7 +175,7 @@ else
 	debug($L["ERRORS.ERR_0035_ERROR_WRITE_CONFIG"],3);
 }
 fclose($plugin_cfg_handle);
-
+$all_interval_used = 0;
 foreach ($plugin_cfg as $config_key => $config_value)
 {
 	#If at least one job is configured, set cronjob
