@@ -154,7 +154,8 @@ if ( is_file($backupstate_file) )
 
 // Read Miniservers
 debug(__line__,$L["MINISERVERBACKUP.INF_0002_READ_MINISERVERS"]);
-$ms = LBSystem::get_miniservers();
+LBSystem::read_generalcfg();
+$ms = $miniservers;
 if (!is_array($ms)) 
 {
 	debug(__line__,$L["ERRORS.ERR_0001_NO_MINISERVERS_CONFIGURED"],3);
@@ -351,29 +352,12 @@ if (!is_dir($savedir_path))
 }
 debug(__line__,$L["MINISERVERBACKUP.INF_0046_BACKUP_BASE_FOLDER_OK"]." (".$savedir_path.")",6); 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 foreach ($ms as $msno => $miniserver ) 
 {
 	file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
 	$callid 	= $sys_callid." MS#".$msno;
     debug(__line__,$L["MINISERVERBACKUP.INF_0004_PROCESSING_MINISERVER"]." ".$msno."/".count($ms)." => ".$miniserver['Name'],5);
+
 	$filetree["name"] 		= array();
 	$filetree["size"] 		= array();
 	$filetree["time"] 		= array();
@@ -400,7 +384,29 @@ foreach ($ms as $msno => $miniserver )
 			system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_SAVE'.$msno.'='.$last_save);
 		}
 	}
-	if ( $miniserver['IPAddress'] == "0.0.0.0" ) 
+
+
+	if ($miniserver['UseCloudDNS'] && $miniserver['CloudURL']) 
+	{
+		if ( isset($checkurl) ) 
+		{
+			debug(__line__, "Sleep 30 befor ask ".$miniserver['Name'],1);
+			sleep(30);
+		}
+		$checkurl = "http://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
+		$response = file_get_contents($checkurl);
+		$ip_info = json_decode($response);
+		$ip_info = explode(":",$ip_info->IP);
+		$miniserver['IPAddress']=$ip_info[0];
+		if (count($ip_info) == 2) {
+			$miniserver['Port']=$ip_info[1];
+		} else {
+			$miniserver['Port']=80;
+		}
+			debug(__line__, "CloudDNS:". $miniserver['IPAddress']    ,1);
+	}
+
+	if ( $miniserver['IPAddress'] == "0.0.0.0" || $miniserver['IPAddress'] == "" ) 
 	{
 		debug(__line__, $L["ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"],3);
 		continue;
