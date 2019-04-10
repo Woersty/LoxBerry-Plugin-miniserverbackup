@@ -337,7 +337,7 @@ exit;
 
 	my @template_row;
 	my @general_row;
-	foreach my $ms_id (  sort { $a <=> $b } keys(%miniservers) ) 
+	for ($ms_id = 1; $ms_id<=%miniservers; $ms_id++) 
 	{ 
 	my @row;
 	my %row;
@@ -354,7 +354,7 @@ exit;
 		if ( $ms{IPAddress} eq "CloudDNS" )
 		{
 			my $t = Time::Piece->localtime;
-			LOGERR 	"[".$t->strftime("%Y-%m-%d %H:%M:%S")."] index.cgi: ".$L{"ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"}." ".$miniservers{$ms_id}{'Name'};
+			#LOGERR 	"[".$t->strftime("%Y-%m-%d %H:%M:%S")."] index.cgi: ".$L{"ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"}." ".$miniservers{$ms_id}{'Name'};
 #			$msDisabled 			= 1;
 #			$ms{IPAddress} = $L{"ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"};
 		}
