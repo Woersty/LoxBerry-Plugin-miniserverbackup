@@ -386,8 +386,14 @@ foreach ($ms as $msno => $miniserver )
 	}
 
 
-	if ($miniserver['UseCloudDNS'] && $miniserver['CloudURL']) 
+	if ($miniserver['UseCloudDNS'] == "on" ) 
 	{
+		debug(__line__, "CloudURL used for ".$miniserver['Name'],1);
+		if ( $miniserver['CloudURL'] == "" )
+		{
+			debug(__line__, "CloudURL empty for ".$miniserver['Name'],1);
+		}
+		
 		if ( isset($checkurl) ) 
 		{
 			debug(__line__, "Sleep 30 befor ask ".$miniserver['Name'],1);
@@ -403,7 +409,11 @@ foreach ($ms as $msno => $miniserver )
 		} else {
 			$miniserver['Port']=80;
 		}
-			debug(__line__, "CloudDNS:". $miniserver['IPAddress']    ,1);
+		debug(__line__, "CloudDNS for ".$miniserver['Name']." tells us: ". $miniserver['IPAddress']    ,1);
+	}
+	else
+	{
+				debug(__line__, "CloudURL not used for ".$miniserver['Name'],1);
 	}
 
 	if ( $miniserver['IPAddress'] == "0.0.0.0" || $miniserver['IPAddress'] == "" ) 
