@@ -396,88 +396,90 @@
 	
 	function save_config()
 	{
-		// Retrigger check of correct subdir
-		if ( validate_chk_value('#workdir_path_subdir') )
-		{
-			setTimeout( function() 
-			{ 
-				// Array with POST data to save
-				var postData = {};
-		
-				// Add workdir_path
-				postData['workdir_path'] = $('#workdir_path').val();
-		
-				// Check if workdir_path is a local workdir path (RAM Disk or Loxberry microSD card)
-				if ( $('#workdir_path optgroup[id=localwdp]').children('option:selected').val() == null )
-				{
-					// No, it's not local
-					// Check, if subdir input field area is invisible
-					if ( $("#local_wdp_div").css('display') == "none" )
-						{
-							// Yes 
-							// Generate random name 
-							$("#workdir_path_subdir").val(make_random_name_for_workdir(10));
-							// Display the workdir subdir area
-							$("#local_wdp_div").fadeIn(500);
-						}
-					// Check, if subdir is empty 
-					if ( $('#workdir_path_subdir').val() == '' )
+		setTimeout( function() 
+		{ 
+			// Array with POST data to save
+			var postData = {};
+	
+			// Add workdir_path
+			postData['workdir_path'] = $('#workdir_path').val();
+	
+			// Check if workdir_path is a local workdir path (RAM Disk or Loxberry microSD card)
+			if ( $('#workdir_path optgroup[id=localwdp]').children('option:selected').val() == null )
+			{
+				// No, it's not local
+				// Check, if subdir input field area is invisible
+				if ( $("#local_wdp_div").css('display') == "none" )
 					{
-						// Yes, subdir is empty => generate a random name
-						$('#workdir_path_subdir').val(make_random_name_for_workdir(10));
+						// Yes 
+						// Generate random name 
+						$("#workdir_path_subdir").val(make_random_name_for_workdir(10));
+						// Display the workdir subdir area
+						$("#local_wdp_div").fadeIn(500);
 					}
-				}
-				else
+				// Check, if subdir is empty 
+				if ( $('#workdir_path_subdir').val() == '' )
 				{
-					// Yes, it's local 
-					// Clear subdir
-					$("#workdir_path_subdir").val('');
-					// Hide error message
-					$("#error-msg-workdir_path_subdir").css('display','none')
-					// Hide workdir subdir area
-					$("#local_wdp_div").fadeOut(1500);
+					// Yes, subdir is empty => generate a random name
+					$('#workdir_path_subdir').val(make_random_name_for_workdir(10));
 				}
+			}
+			else
+			{
+				// Yes, it's local 
+				// Clear subdir
+				$("#workdir_path_subdir").val('');
+				// Hide error message
+				$("#error-msg-workdir_path_subdir").css('display','none')
+				// Hide workdir subdir area
+				$("#local_wdp_div").fadeOut(1500);
+			}
+			
+			// Retrigger check of correct subdir
+			if ( validate_chk_value('#workdir_path_subdir') )
+			{
 				// Add workdir_path_subdir
 				postData['workdir_path_subdir'] = $("#workdir_path_subdir").val();
-		
-				// Go through all miniservers
-				miniservers.forEach(function(miniserver_id) 
-				{
-					// Add values per Miniserver
-					postData['finalstorage'+miniserver_id] = $('#finalstorage'+miniserver_id).val();
-					postData['backup_interval'+miniserver_id] = $('#backup_interval'+miniserver_id).val();
-					postData['file_format'+miniserver_id] = $('#file_format'+miniserver_id).val();
-					postData['backups_to_keep'+miniserver_id] = $('#backups_to_keep'+miniserver_id).val();
-				});		
-		
-				// Disable input fields and buttons			
-				$('.to_disable_on_save').addClass('ui-disabled');
-		
-				// Empty variables
-		       	var object_to_be_saved = "";
-		       	
-		       	// Send datas
-				$.ajax({url: '<TMPL_VAR HTMLPATH>ajax_config_handler.php', type: 'POST', data : postData,
-		            success: function (data) 
-		            {
-			            eval(data);
-		            },
-		            error: function (errorThrown) 
-		            {
-			            alert('save_failed');
-		                console.log('<TMPL_VAR GENERAL.MY_NAME> function save_config failed: Error => ' + errorThrown.status + ' => ' + errorThrown.statusText);
-		            }	
-		        });
-		       	setTimeout( function() { checkSpace();  }, 500);
-				// Enable input fields and buttons			
-				$('.to_disable_on_save').removeClass('ui-disabled');
-			}, 500);
-		}
-		else
-		{
-			$('#workdir_path_subdir').css('background-color','#FFC0C0');
-			return;
-		}
+			}
+			else
+			{
+				$('#workdir_path_subdir').css('background-color','#FFC0C0');
+				show_error('<TMPL_VAR GENERAL.WORKDIR_SUBDIR_VALIDATE_ERR_TXT>');
+				return;
+			}
+	
+			// Go through all miniservers
+			miniservers.forEach(function(miniserver_id) 
+			{
+				// Add values per Miniserver
+				postData['finalstorage'+miniserver_id] = $('#finalstorage'+miniserver_id).val();
+				postData['backup_interval'+miniserver_id] = $('#backup_interval'+miniserver_id).val();
+				postData['file_format'+miniserver_id] = $('#file_format'+miniserver_id).val();
+				postData['backups_to_keep'+miniserver_id] = $('#backups_to_keep'+miniserver_id).val();
+			});		
+	
+			// Disable input fields and buttons			
+			$('.to_disable_on_save').addClass('ui-disabled');
+	
+			// Empty variables
+	       	var object_to_be_saved = "";
+	       	
+	       	// Send datas
+			$.ajax({url: '<TMPL_VAR HTMLPATH>ajax_config_handler.php', type: 'POST', data : postData,
+	            success: function (data) 
+	            {
+		            eval(data);
+	            },
+	            error: function (errorThrown) 
+	            {
+		            alert('save_failed');
+	                console.log('<TMPL_VAR GENERAL.MY_NAME> function save_config failed: Error => ' + errorThrown.status + ' => ' + errorThrown.statusText);
+	            }	
+	        });
+	       	setTimeout( function() { checkSpace();  }, 500);
+			// Enable input fields and buttons			
+			$('.to_disable_on_save').removeClass('ui-disabled');
+		}, 500);
 	}
 	
 	$( document ).ready(function() 
