@@ -204,11 +204,41 @@ if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 		LOGDEB "Plugin config line => ".$_."=".$Config{$_}; 
 	} 
 }
-my %miniservers;
-%miniservers = LoxBerry::System::get_miniservers();
+	my $miniservercount;
+	
+	my %miniservers;
+	my $mscfg = new Config::Simple("$lbhomedir/config/system/general.cfg") or return undef;
+	my $miniservercount = $mscfg->param("BASE.MINISERVERS") or Carp::carp ("BASE.MINISERVERS is 0 or not defined in general.cfg\n");
+	my $clouddnsaddress = $mscfg->param("BASE.CLOUDDNS"); # or Carp::carp ("BASE.CLOUDDNS not defined in general.cfg\n");
+
+	for (my $msnr = 1; $msnr <= $miniservercount; $msnr++) {
+		$miniservers{$msnr}{Name} = $mscfg->param("MINISERVER$msnr.NAME");
+		$miniservers{$msnr}{IPAddress} = $mscfg->param("MINISERVER$msnr.IPADDRESS");
+		$miniservers{$msnr}{Admin} = $mscfg->param("MINISERVER$msnr.ADMIN");
+		$miniservers{$msnr}{Pass} = $mscfg->param("MINISERVER$msnr.PASS");
+		$miniservers{$msnr}{Credentials} = $miniservers{$msnr}{Admin} . ':' . $miniservers{$msnr}{Pass};
+		$miniservers{$msnr}{Note} = $mscfg->param("MINISERVER$msnr.NOTE");
+		$miniservers{$msnr}{Port} = $mscfg->param("MINISERVER$msnr.PORT");
+		$miniservers{$msnr}{UseCloudDNS} = $mscfg->param("MINISERVER$msnr.USECLOUDDNS");
+		$miniservers{$msnr}{CloudURLFTPPort} = $mscfg->param("MINISERVER$msnr.CLOUDURLFTPPORT");
+		$miniservers{$msnr}{CloudURL} = $mscfg->param("MINISERVER$msnr.CLOUDURL");
+		$miniservers{$msnr}{Admin_RAW} = URI::Escape::uri_unescape($miniservers{$msnr}{Admin});
+		$miniservers{$msnr}{Pass_RAW} = URI::Escape::uri_unescape($miniservers{$msnr}{Pass});
+		$miniservers{$msnr}{Credentials_RAW} = $miniservers{$msnr}{Admin_RAW} . ':' . $miniservers{$msnr}{Pass_RAW};
+		
+		$miniservers{$msnr}{SecureGateway} = $mscfg->param("MINISERVER$msnr.SECUREGATEWAY");
+		$miniservers{$msnr}{EncryptResponse} = $mscfg->param("MINISERVER$msnr.ENCRYPTRESPONSE");
+
+		if (LoxBerry::System::is_enabled($miniservers{$msnr}{UseCloudDNS}) && ($miniservers{$msnr}{CloudURL})) 
+		{
+			$miniservers{$msnr}{IPAddress} = "CloudDNS";
+		}
+	
+	}               
+               
 $error_message = $ERR{'ERRORS.ERR_0033_MS_CONFIG_NO_IP'}."<br>".$ERR{'ERRORS.ERR_0034_MS_CONFIG_NO_IP_SUGGESTION'};  
 &error if (! %miniservers);
-&error if (  $miniservers{1}{IPAddress} eq "" );
+
 LOGDEB "Miniserver config read.";
 if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 {
@@ -218,7 +248,6 @@ if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 		 LOGDEB "Miniserver #$_ IP   => ".$miniservers{$_}{'IPAddress'};
 	} 
 }
-
 my $maintemplate = HTML::Template->new(
 		filename => $lbptemplatedir . "/" . $maintemplatefilename,
 		global_vars => 1,
@@ -322,12 +351,12 @@ exit;
 		my %gen;
 		$gen{Name} 			= "general";
 
-		if ( $ms{IPAddress} eq "0.0.0.0" )
+		if ( $ms{IPAddress} eq "CloudDNS" )
 		{
 			my $t = Time::Piece->localtime;
 			LOGERR 	"[".$t->strftime("%Y-%m-%d %H:%M:%S")."] index.cgi: ".$L{"ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"}." ".$miniservers{$ms_id}{'Name'};
-			$msDisabled 			= 1;
-			$ms{IPAddress} = $L{"ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"};
+#			$msDisabled 			= 1;
+#			$ms{IPAddress} = $L{"ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"};
 		}
 		else
 		{
