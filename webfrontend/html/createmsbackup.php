@@ -391,13 +391,13 @@ foreach ($ms as $msno => $miniserver )
 		debug(__line__, "CloudURL used for ".$miniserver['Name'],1);
 		if ( $miniserver['CloudURL'] == "" )
 		{
-			debug(__line__, "CloudURL empty for ".$miniserver['Name'],1);
+			debug(__line__,$L["MINISERVERBACKUP.INF_0108_NO_PREVIOUS_CLOUD_DNS_QUERY_FOUND_PROCEED"]." => ".$miniserver['Name'],5);
 		}
 		
 		if ( isset($checkurl) ) 
 		{
-			debug(__line__, "Sleep 30 befor ask ".$miniserver['Name'],1);
-			sleep(30);
+			debug(__line__,$L["MINISERVERBACKUP.INF_0107_SLEEP_BEFORE_SENDING_NEXT_CLOUD_DNS_QUERY"]." => ".$miniserver['Name'],5);
+			sleep(61);
 		}
 		$checkurl = "http://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
 		$response = file_get_contents($checkurl);
@@ -409,11 +409,11 @@ foreach ($ms as $msno => $miniserver )
 		} else {
 			$miniserver['Port']=80;
 		}
-		debug(__line__, "CloudDNS for ".$miniserver['Name']." tells us: ". $miniserver['IPAddress']    ,1);
+		debug(__line__,$L["MINISERVERBACKUP.INF_0109_CLOUD_DNS_QUERY_RESULT"]." => ".$miniserver['Name']." @ ".$miniserver['IPAddress'],5);
 	}
 	else
 	{
-				debug(__line__, "CloudURL not used for ".$miniserver['Name'],1);
+		debug(__line__,$L["MINISERVERBACKUP.INF_0110_CLOUD_DNS_NOT_USED"]." => ".$miniserver['Name']." @ ".$miniserver['IPAddress'],5);
 	}
 
 	if ( $miniserver['IPAddress'] == "0.0.0.0" || $miniserver['IPAddress'] == "" ) 
