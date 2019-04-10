@@ -337,7 +337,7 @@ exit;
 
 	my @template_row;
 	my @general_row;
-	foreach my $ms_id (  sort keys  %miniservers) 
+	foreach my $ms_id (  sort { $a <=> $b } %miniservers) 
 	{ 
 	my @row;
 	my %row;
