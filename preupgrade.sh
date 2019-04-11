@@ -41,25 +41,26 @@ ARGV4=$4 # Forth argument is Plugin version
 ARGV5=$5 # Fifth argument is Base folder of LoxBerry
 #echo "<INFO> Installation folder is: $ARGV5"
 
-if [ -r /tmp/backupstate.txt ]
-then
  while :
  do
-  state=`head -c 1 /tmp/backupstate.txt`
-  if [[ "$state" = "-" || "$state" = "" ]]  
+  if [ -r /tmp/backupstate.txt ]
   then
-   echo "<OK> No backup seems in progress. Continue..."
-   break
+    state=`head -c 1 /tmp/backupstate.txt`
+    if [[ "$state" = "-" || "$state" = "" ]]  
+    then
+     echo "<OK> No backup seems in progress. Continue..."
+     break
+    else
+     echo "<INFO> Backup seems in progress. Wait 10 s..."
+     cat /tmp/backupstate.txt
+     echo
+    fi
+    sleep 10
   else
-   echo "<INFO> Backup seems in progress. Wait 10 s..."
-   cat /tmp/backupstate.txt
-   echo
+   echo "<OK> No backup state file. Continue..."
+   break
   fi
-  sleep 10
- done
-else
- echo "<OK> No backup state file. Continue..."
-fi
+done
 
 
 echo "<INFO> Creating temporary folders for upgrading"
