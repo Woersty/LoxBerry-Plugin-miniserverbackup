@@ -388,14 +388,17 @@ foreach ($ms as $msno => $miniserver )
 	if ( $backupinterval != -1 )
 	{
 		if ( isset($plugin_cfg["LAST_SAVE".$msno]) ) $last_save = $plugin_cfg["LAST_SAVE".$msno];
-		if ( $last_save >= time() ) 
+		if ( $last_save >= time() || $last_save == "" ) 
 		{
 			debug(__line__, $L["ERRORS.ERR_0043_ERR_LAST_SAVE_INVALID"],6);	
 			$last_save = time() - (intval($backupinterval)*60) - 1;
 			system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_SAVE'.$msno.'='.$last_save);
 		}
 	}
-
+	else
+	{
+		$last_save = time();
+	}
 	#Manual Backup Button on Admin page
 	$manual_backup = 0;
 	if (isset($argv[1])) 
@@ -406,9 +409,9 @@ foreach ($ms as $msno => $miniserver )
 		}
 	}
 
-	if ( ( $backupinterval > ((time()-$last_save)/60) || $backupinterval == 0 ) && $manual_backup != 1)
+	if ( ( $backupinterval > ((time()-intval($last_save))/60) || $backupinterval == 0 ) && $manual_backup != 1)
 	{
-	    debug(__line__,str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-$last_save)/60,1),str_ireplace("<datetime>",date ("d-M-Y H:i:s", $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
+	    debug(__line__,str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-intval($last_save))/60,1),str_ireplace("<datetime>",date ("d-M-Y H:i:s", $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
 		debug(__line__,$L["MINISERVERBACKUP.INF_0089_INTERVAL_NOT_ELAPSED"],5);
 		continue;
 	}
@@ -427,7 +430,7 @@ foreach ($ms as $msno => $miniserver )
 			}
 			else
 			{
-			    debug(__line__,str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-$last_save)/60,1),str_ireplace("<datetime>",date ("d-M-Y H:i:s", $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
+			    debug(__line__,str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-intval($last_save))/60,1),str_ireplace("<datetime>",date ("d-M-Y H:i:s", $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
 				debug(__line__,$L["MINISERVERBACKUP.INF_0088_INTERVAL_ELAPSED"],5);
 			}
 		}
