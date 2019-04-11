@@ -48,7 +48,7 @@ system ("/usr/bin/php -f $lbphtmldir/createmsbackup.php ".@ARGV[0]." >/dev/null 
 # Wait a second and check if PHP process is there
 sleep 1;
 my $output_string = `ps -ef | grep "$lbphtmldir/createmsbackup.php"|grep -v grep |wc -l 2>/dev/null`;
-if ( int $output_string ne 1 ) 
+if ( int $output_string == 0 ) 
 {
 	notify( $lbpplugindir, $ERR{'GENERAL.MY_NAME'}, $ERR{'ERRORS.ERR_0037_UNABLE_TO_INITIATE_BACKUP'},1);
 	LOGERR $ERR{'ERRORS.ERR_0037_UNABLE_TO_INITIATE_BACKUP'}; 
