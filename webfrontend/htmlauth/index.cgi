@@ -229,7 +229,7 @@ if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 		$miniservers{$msnr}{SecureGateway} = $mscfg->param("MINISERVER$msnr.SECUREGATEWAY");
 		$miniservers{$msnr}{EncryptResponse} = $mscfg->param("MINISERVER$msnr.ENCRYPTRESPONSE");
 
-		if (LoxBerry::System::is_enabled($miniservers{$msnr}{UseCloudDNS}) && ($miniservers{$msnr}{CloudURL})) 
+		if ( ($miniservers{$msnr}{UseCloudDNS} eq "on" ) && ( $miniservers{$msnr}{CloudURL} ne "" )) 
 		{
 			$miniservers{$msnr}{IPAddress} = "CloudDNS";
 		}

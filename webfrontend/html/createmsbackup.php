@@ -105,6 +105,17 @@ function debug($line,$message = "", $loglevel = 7)
 	return;
 }
 
+function getHttpCode($http_response_header)
+{
+    if(is_array($http_response_header))
+    {
+        $parts=explode(' ',$http_response_header[0]);
+        if(count($parts)>1) //HTTP/1.0 <code> <text>
+            return intval($parts[1]); //Get code
+    }
+    return 0;
+}
+
 // Plugindata
 $plugindata = LBSystem::plugindata();
 debug(__line__,"Loglevel: ".$plugindata['PLUGINDB_LOGLEVEL'],6);
@@ -400,16 +411,60 @@ foreach ($ms as $msno => $miniserver )
 			sleep(61);
 		}
 		$checkurl = "http://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
-		$response = file_get_contents($checkurl);
-		$ip_info = json_decode($response);
-		$ip_info = explode(":",$ip_info->IP);
-		$miniserver['IPAddress']=$ip_info[0];
-		if (count($ip_info) == 2) {
-			$miniserver['Port']=$ip_info[1];
-		} else {
-			$miniserver['Port']=80;
+		$response = @file_get_contents($checkurl);
+#		$response = '{"cmd":"getip","IP":"","Code":403}';
+		$response = json_decode($response,true);
+		// Possible is
+		// cmd getip
+		// IP xxx.xxx.xxx.xxx
+		// Code 403 (Forbidden) 200 (OK)    
+		// LastUpdated 2018-03-11 16:52:30
+		// PortOpen   (true/false)
+		// DNS-Status registered
+		
+		$code=getHttpCode($http_response_header);
+		
+		debug(__line__,$code . " vs. Code: ".$response["Code"],1);
+		$cloudcancel=0;
+		switch ($code) 
+		{
+		    case "200":
+				debug(__line__,$L["MINISERVERBACKUP.INF_0109_CLOUD_DNS_QUERY_RESULT"]." ".$miniserver['Name']." => IP: ".$response["IP"]." Code: ".$response["Code"]." LastUpdated: ".$response["LastUpdated"]." PortOpen: ".$response["PortOpen"]." DNS-Status: ".$response["DNS-Status"],5);
+				$ip_info = explode(":",$response["IP"]);
+				$miniserver['IPAddress']=$ip_info[0];
+				if (count($ip_info) == 2) 
+				{
+					$miniserver['Port']=$ip_info[1];
+				}
+				else 
+				{
+					$miniserver['Port']=80;
+				}
+				if ( $response["PortOpen"] != "true" ) 
+				{
+					debug(__line__, $L["ERRORS.ERR_0050_CLOUDDNS_PORT_NOT_OPEN"]." ".$response["LastUpdated"],3);
+					$cloudcancel=1;
+				}
+			break;
+
+			case "403":
+				debug(__line__,$L["ERRORS.ERR_0051_CLOUDDNS_ERROR_403"]." => ".$miniserver['Name'],4);
+				$cloudcancel=1;
+			break;
+
+			default;
+				debug(__line__,$L["MINISERVERBACKUP.ERR_0052_CLOUDDNS_UNEXPECTED_ERROR"]." => ".$miniserver['Name']." => ".str_replace("&", "", http_build_query($response)),3);
+				$cloudcancel=1;
 		}
-		debug(__line__,$L["MINISERVERBACKUP.INF_0109_CLOUD_DNS_QUERY_RESULT"]." => ".$miniserver['Name']." @ ".$miniserver['IPAddress'],5);
+		if ( $cloudcancel == 1 )
+		{
+			continue;
+		}
+		if ( $miniserver['IPAddress'] == "" || $miniserver['IPAddress'] == "0.0.0.0" ) 
+		{
+			debug(__line__, $L["ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"],3);
+			continue;
+		}
 	}
 	else
 	{
@@ -439,7 +494,7 @@ foreach ($ms as $msno => $miniserver )
 		continue;
 	}	
 	else
-	{ 
+	{   $local_ip = [];
 		$read_line= curl_multi_getcontent($curl) or $read_line = ""; 
 		if(preg_match("/.*dev\/cfg\/ip.*value.*\"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\".*$/i", $read_line, $local_ip))
 		{
