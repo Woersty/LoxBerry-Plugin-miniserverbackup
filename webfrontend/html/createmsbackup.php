@@ -397,6 +397,11 @@ foreach ($ms as $msno => $miniserver )
 	}
 
 
+	if ( $backupinterval == -1 )
+	{
+		debug(__line__,$L["MINISERVERBACKUP.INF_0090_BACKUPS_DISABLED"],5);
+		continue;
+	}
 	if ($miniserver['UseCloudDNS'] == "on" ) 
 	{
 		debug(__line__,$L["MINISERVERBACKUP.INF_0111_CLOUD_DNS_USED"]." => ".$miniserver['Name'],6);
