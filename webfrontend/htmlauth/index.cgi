@@ -337,7 +337,7 @@ exit;
 
 	my @template_row;
 	my @general_row;
-	for ($ms_id = 1; $ms_id<=%miniservers; $ms_id++) 
+	for ($ms_id = 1; $ms_id<=$miniservercount; $ms_id++) 
 	{ 
 	my @row;
 	my %row;

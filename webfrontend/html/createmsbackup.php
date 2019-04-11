@@ -438,7 +438,7 @@ foreach ($ms as $msno => $miniserver )
 				}
 				if ( $response["PortOpen"] != "true" ) 
 				{
-					debug(__line__, $L["ERRORS.ERR_0050_CLOUDDNS_PORT_NOT_OPEN"]." ".$response["LastUpdated"],3);
+					debug(__line__, str_ireplace("<miniserver>",$miniserver['Name'],$L["ERRORS.ERR_0050_CLOUDDNS_PORT_NOT_OPEN"])." ".$response["LastUpdated"],3);
 					$cloudcancel=1;
 				}
 			break;
@@ -460,11 +460,6 @@ foreach ($ms as $msno => $miniserver )
 		{
 			continue;
 		}
-		if ( $miniserver['IPAddress'] == "" || $miniserver['IPAddress'] == "0.0.0.0" ) 
-		{
-			debug(__line__, $L["ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"],3);
-			continue;
-		}
 	}
 	else
 	{
@@ -473,7 +468,7 @@ foreach ($ms as $msno => $miniserver )
 
 	if ( $miniserver['IPAddress'] == "0.0.0.0" || $miniserver['IPAddress'] == "" ) 
 	{
-		debug(__line__, $L["ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"],3);
+		debug(__line__, $L["ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"]." => ".$miniserver['Name'],3);
 		continue;
 	}
 	if ( $miniserver['IPAddress'] == "" ) 
