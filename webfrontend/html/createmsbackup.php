@@ -385,12 +385,12 @@ foreach ($ms as $msno => $miniserver )
 	$backups_to_keep		= $plugin_cfg["BACKUPS_TO_KEEP".$msno];
 	
 	$last_save 				= "";
-	if ( isset($plugin_cfg["LAST_SAVE".$msno]) && $backupinterval != -1 )
+	if ( $backupinterval != -1 )
 	{
-		$last_save			= $plugin_cfg["LAST_SAVE".$msno];
-		if ( $last_save == "" || $last_save >= time() ) 
+		if ( isset($plugin_cfg["LAST_SAVE".$msno]) ) $last_save = $plugin_cfg["LAST_SAVE".$msno];
+		if ( $last_save >= time() ) 
 		{
-			debug(__line__, $L["ERRORS.ERR_0043_ERR_LAST_SAVE_IN_FUTURE"]." ".date("Y-m-d H:i:s",$last_save),4);	
+			debug(__line__, $L["ERRORS.ERR_0043_ERR_LAST_SAVE_INVALID"],6);	
 			$last_save = time() - (intval($backupinterval)*60) - 1;
 			system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_SAVE'.$msno.'='.$last_save);
 		}
