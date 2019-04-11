@@ -71,13 +71,13 @@ mkdir -p /tmp/$ARGV1\_upgrade/log
 mkdir -p /tmp/$ARGV1\_upgrade/backups
 
 echo "<INFO> Backing up existing config files"
-mv $ARGV5/config/plugins/$ARGV3/* /tmp/$ARGV1\_upgrade/config
+mv $ARGV5/config/plugins/$ARGV3/* /tmp/$ARGV1\_upgrade/config/
 
 echo "<INFO> Backing up existing compare files"
 mv $ARGV5/data/plugins/$ARGV3/.currentbackup /tmp/$ARGV1\_upgrade/
 
 echo "<INFO> Backing up existing log files"
-mv $ARGV5/log/plugins/$ARGV3/* /tmp/$ARGV1\_upgrade/log
+mv $ARGV5/log/plugins/$ARGV3/* /tmp/$ARGV1\_upgrade/log/
 
 echo "<INFO> Backing up existing backup archives"
 mv $ARGV5/webfrontend/html/plugins/$ARGV3/backups/* /tmp/$ARGV1\_upgrade/backups/
