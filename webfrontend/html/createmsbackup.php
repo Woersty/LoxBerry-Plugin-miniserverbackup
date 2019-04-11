@@ -399,7 +399,7 @@ foreach ($ms as $msno => $miniserver )
 
 	if ($miniserver['UseCloudDNS'] == "on" ) 
 	{
-		debug(__line__, "CloudURL used for ".$miniserver['Name'],1);
+		debug(__line__,$L["MINISERVERBACKUP.INF_0111_CLOUD_DNS_USED"]." => ".$miniserver['Name'],6);
 		if ( $miniserver['CloudURL'] == "" )
 		{
 			debug(__line__,$L["MINISERVERBACKUP.INF_0108_NO_PREVIOUS_CLOUD_DNS_QUERY_FOUND_PROCEED"]." => ".$miniserver['Name'],5);
@@ -412,7 +412,6 @@ foreach ($ms as $msno => $miniserver )
 		}
 		$checkurl = "http://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
 		$response = @file_get_contents($checkurl);
-#		$response = '{"cmd":"getip","IP":"","Code":403}';
 		$response = json_decode($response,true);
 		// Possible is
 		// cmd getip
@@ -421,10 +420,7 @@ foreach ($ms as $msno => $miniserver )
 		// LastUpdated 2018-03-11 16:52:30
 		// PortOpen   (true/false)
 		// DNS-Status registered
-		
 		$code=getHttpCode($http_response_header);
-		
-		debug(__line__,$code . " vs. Code: ".$response["Code"],1);
 		$cloudcancel=0;
 		switch ($code) 
 		{
@@ -449,6 +445,10 @@ foreach ($ms as $msno => $miniserver )
 
 			case "403":
 				debug(__line__,$L["ERRORS.ERR_0051_CLOUDDNS_ERROR_403"]." => ".$miniserver['Name'],4);
+				$cloudcancel=1;
+			break;
+			case "418":
+				debug(__line__,$L["ERRORS.ERR_0053_CLOUDDNS_ERROR_418"]." => ".$miniserver['Name'],4);
 				$cloudcancel=1;
 			break;
 
