@@ -46,7 +46,7 @@ then
  while :
  do
   state=`head -c 1 /tmp/backupstate.txt`
-  if [ $state = "-" ] 
+  if [ $state = "-" || $state = "" ] 
   then
    echo "<OK> No backup seems in progress. Continue..."
    break
