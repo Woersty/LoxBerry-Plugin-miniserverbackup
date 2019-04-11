@@ -156,7 +156,7 @@ if ( is_file($backupstate_file) )
 {
 	if ( file_get_contents($backupstate_file) != "-" && file_get_contents($backupstate_file) != "" )
 	{
-		debug(__line__,$L["ERRORS.ERR_0042_ERR_BACKUP_RUNNING"]." ".$backupstate_file,4);
+		debug(__line__,$L["ERRORS.ERR_0042_ERR_BACKUP_RUNNING"]." ".$backupstate_file,6);
 		sleep(3);
 		exit(1);
 	}
