@@ -397,11 +397,33 @@ foreach ($ms as $msno => $miniserver )
 	}
 
 
-	if ( $backupinterval == -1 )
+	if ( ( $backupinterval > ((time()-$last_save)/60) || $backupinterval == 0 ) && $manual_backup != 1)
 	{
-		debug(__line__,$L["MINISERVERBACKUP.INF_0090_BACKUPS_DISABLED"],5);
+	    debug(__line__,str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-$last_save)/60,1),str_ireplace("<datetime>",date ("d-M-Y H:i:s", $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
+		debug(__line__,$L["MINISERVERBACKUP.INF_0089_INTERVAL_NOT_ELAPSED"],5);
 		continue;
 	}
+	else
+	{
+		if ( $backupinterval == -1 )
+		{
+			debug(__line__,$L["MINISERVERBACKUP.INF_0090_BACKUPS_DISABLED"],5);
+			continue;
+		}
+		else
+		{
+			if ( $manual_backup == 1 )
+			{
+				debug(__line__,$L["MINISERVERBACKUP.INF_0086_INFO_MANUAL_BACKUP_REQUEST"],5);
+			}
+			else
+			{
+			    debug(__line__,str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-$last_save)/60,1),str_ireplace("<datetime>",date ("d-M-Y H:i:s", $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
+				debug(__line__,$L["MINISERVERBACKUP.INF_0088_INTERVAL_ELAPSED"],5);
+			}
+		}
+	}
+
 	if ($miniserver['UseCloudDNS'] == "on" ) 
 	{
 		debug(__line__,$L["MINISERVERBACKUP.INF_0111_CLOUD_DNS_USED"]." => ".$miniserver['Name'],6);
@@ -585,36 +607,7 @@ foreach ($ms as $msno => $miniserver )
 
 	
 	
-	if (is_dir($temp_finalstorage)) 
-	{
-		if ( ( $backupinterval > ((time()-$last_save)/60) || $backupinterval == 0 ) && $manual_backup != 1)
-		{
-		    debug(__line__,str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-$last_save)/60,1),str_ireplace("<datetime>",date ("d-M-Y H:i:s", $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
-			debug(__line__,$L["MINISERVERBACKUP.INF_0089_INTERVAL_NOT_ELAPSED"],5);
-			continue;
-		}
-		else
-		{
-			if ( $backupinterval == -1 )
-			{
-				debug(__line__,$L["MINISERVERBACKUP.INF_0090_BACKUPS_DISABLED"],5);
-				continue;
-			}
-			else
-			{
-				if ( $manual_backup == 1 )
-				{
-					debug(__line__,$L["MINISERVERBACKUP.INF_0086_INFO_MANUAL_BACKUP_REQUEST"],5);
-				}
-				else
-				{
-				    debug(__line__,str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-$last_save)/60,1),str_ireplace("<datetime>",date ("d-M-Y H:i:s", $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
-					debug(__line__,$L["MINISERVERBACKUP.INF_0088_INTERVAL_ELAPSED"],5);
-				}
-			}
-		}
-	}
-	else
+	if (!is_dir($temp_finalstorage)) 
 	{
 		debug(__line__,$L["MINISERVERBACKUP.INF_0091_BACKUP_DIR_NOT_FOUND_TRY_BACKUP"],5);
 	}
