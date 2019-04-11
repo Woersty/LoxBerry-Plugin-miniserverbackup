@@ -133,7 +133,7 @@ if ($plugindata['PLUGINDB_LOGLEVEL'] > 6 && $plugindata['PLUGINDB_LOGLEVEL'] <= 
 touch(LBPLOGDIR."/".$logfilename); 
 debug(__line__,"Check Logfile size: ".LBPLOGDIR."/".$logfilename);
 $logsize = filesize(LBPLOGDIR."/".$logfilename);
-if ( $logsize > 271520 )
+if ( $logsize > 20971520 )
 {
     debug(__line__,$L["ERRORS.ERROR_LOGFILE_TOO_BIG"]." (".$logsize." Bytes)",4);
     debug(__line__,"Set Logfile notification: ".LBPPLUGINDIR." ".$L['GENERAL.MY_NAME']." => ".$L['ERRORS.ERROR_LOGFILE_TOO_BIG'],7);
@@ -408,7 +408,7 @@ foreach ($ms as $msno => $miniserver )
 		if ( isset($checkurl) ) 
 		{
 			debug(__line__,$L["MINISERVERBACKUP.INF_0107_SLEEP_BEFORE_SENDING_NEXT_CLOUD_DNS_QUERY"]." => ".$miniserver['Name'],5);
-			sleep(300);
+			sleep(61);
 		}
 		$checkurl = "http://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
 		$response = @file_get_contents($checkurl);
