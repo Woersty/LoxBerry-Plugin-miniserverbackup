@@ -396,6 +396,15 @@ foreach ($ms as $msno => $miniserver )
 		}
 	}
 
+	#Manual Backup Button on Admin page
+	$manual_backup = 0;
+	if (isset($argv[1])) 
+	{
+		if ( $argv[1] == "manual" )
+		{
+			$manual_backup = 1;
+		}
+	}
 
 	if ( ( $backupinterval > ((time()-$last_save)/60) || $backupinterval == 0 ) && $manual_backup != 1)
 	{
@@ -555,15 +564,6 @@ foreach ($ms as $msno => $miniserver )
 	$bkpdir 	= $backup_file_prefix.trim($local_ip[1])."_".date("YmdHis",time())."_".$ms_version_dir;
 	debug(__line__,$L["MINISERVERBACKUP.INF_0027_CREATE_BACKUPFOLDER"]." ".$bkpdir." + ".$bkpfolder,6);
 
-	#Manual Backup Button on Admin page
-	$manual_backup = 0;
-	if (isset($argv[1])) 
-	{
-		if ( $argv[1] == "manual" )
-		{
-			$manual_backup = 1;
-		}
-	}
 	$temp_finalstorage = $finalstorage;
 		#Check if final target is on an external storage like SMB or USB
 	if (strpos($finalstorage, '/system/storage/') !== false) 
