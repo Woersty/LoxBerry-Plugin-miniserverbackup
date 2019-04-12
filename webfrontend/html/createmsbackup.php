@@ -385,7 +385,7 @@ foreach ($ms as $msno => $miniserver )
 	$backups_to_keep		= $plugin_cfg["BACKUPS_TO_KEEP".$msno];
 	
 	$last_save 				= "";
-	if ( $backupinterval != -1 )
+	if ( $backupinterval != "-1" )
 	{
 		if ( isset($plugin_cfg["LAST_SAVE".$msno]) ) $last_save = $plugin_cfg["LAST_SAVE".$msno];
 		if ( $last_save >= time() || $last_save == "" ) 
@@ -409,7 +409,7 @@ foreach ($ms as $msno => $miniserver )
 		}
 	}
 
-	if ( ( $backupinterval > ((time()-intval($last_save))/60) || $backupinterval == 0 ) && $manual_backup != 1)
+	if ( ( $backupinterval > ((time()-intval($last_save))/60) || $backupinterval == "0" ) && $manual_backup != "1")
 	{
 	    debug(__line__,str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-intval($last_save))/60,1),str_ireplace("<datetime>",date ("d-M-Y H:i:s", $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
 		debug(__line__,$L["MINISERVERBACKUP.INF_0089_INTERVAL_NOT_ELAPSED"],5);
@@ -417,14 +417,14 @@ foreach ($ms as $msno => $miniserver )
 	}
 	else
 	{
-		if ( $backupinterval == -1 )
+		if ( $backupinterval == "-1" )
 		{
 			debug(__line__,$L["MINISERVERBACKUP.INF_0090_BACKUPS_DISABLED"],5);
 			continue;
 		}
 		else
 		{
-			if ( $manual_backup == 1 )
+			if ( $manual_backup == "1" )
 			{
 				debug(__line__,$L["MINISERVERBACKUP.INF_0086_INFO_MANUAL_BACKUP_REQUEST"],5);
 			}
@@ -447,7 +447,7 @@ foreach ($ms as $msno => $miniserver )
 		if ( isset($checkurl) ) 
 		{
 			debug(__line__,$L["MINISERVERBACKUP.INF_0107_SLEEP_BEFORE_SENDING_NEXT_CLOUD_DNS_QUERY"]." => ".$miniserver['Name'],5);
-			sleep(61);
+			sleep(300);
 		}
 		$checkurl = "http://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
 		$response = @file_get_contents($checkurl);
@@ -1396,8 +1396,8 @@ function secondsToTime($seconds)
     $dtF = new \DateTime('@0');
     $dtT = new \DateTime("@$seconds");
 	if ($seconds > 86400) return $dtF->diff($dtT)->format('%a '.$L["MINISERVERBACKUP.INF_0054_DAYS"].' %h:%i:%s '.$L["MINISERVERBACKUP.INF_0055_HOURS"]);
-	if ($seconds > 3600)  return $dtF->diff($dtT)->format('%h:%i:%s '.$L["MINISERVERBACKUP.INF_0055_HOURS"]);
-	if ($seconds > 60)    return $dtF->diff($dtT)->format('%i:%s '.$L["MINISERVERBACKUP.INF_0056_MINUTES"]);
+	if ($seconds > 3600)  return $dtF->diff($dtT)->format('%h:%I:%S '.$L["MINISERVERBACKUP.INF_0055_HOURS"]);
+	if ($seconds > 60)    return $dtF->diff($dtT)->format('%i:%S '.$L["MINISERVERBACKUP.INF_0056_MINUTES"]);
                           return $dtF->diff($dtT)->format('%s '.$L["MINISERVERBACKUP.INF_0057_SECONDS"]);
 }
 
