@@ -375,7 +375,10 @@
 	
 	function checkNotifications()
 	{
-		$.ajax({url: '<TMPL_VAR HTMLPATH>/get_notifications.php', type: 'GET', data: { 'package':'<TMPL_VAR LBPPLUGINDIR>', 'name':'<TMPL_VAR GENERAL.MY_NAME>'} }).success(function(data) {  $( '#notifblock' ).html(data).trigger('create'); if ( data.length > 10 ) { $('#notifblock').scrollToMe(); } }) ;
+		if ( $("#notifdeleteall").attr('deleting') != 1 )
+		{
+			$.ajax({url: '<TMPL_VAR HTMLPATH>/get_notifications.php', type: 'GET', data: { 'package':'<TMPL_VAR LBPPLUGINDIR>', 'name':'<TMPL_VAR GENERAL.MY_NAME>'} }).success(function(data) {  $( '#notifblock' ).html(data).trigger('create'); }) ;
+		}
 	}
 	
 	function make_random_name_for_workdir(length) 
@@ -482,16 +485,17 @@
 		}, 500);
 	}
 	
-	// Scroll function for notify
-	jQuery.fn.extend(
-	{
-	 scrollToMe: function () 
-	 {
-		 var x = jQuery(this).offset().top - 50;
-		 jQuery('html,body').animate({scrollTop: x}, 400);
-	 }
-	});
-	
+//	// Scroll function for notify
+//	// Use like:   if ( data.length > 10 ) { $('#notifblock').scrollToMe(); }
+//	jQuery.fn.extend(
+//	{
+//	 scrollToMe: function () 
+//	 {
+//		 var x = jQuery(this).offset().top - 50;
+//		 jQuery('html,body').animate({scrollTop: x}, 400);
+//	 }
+//	});
+//	
 	$( document ).ready(function() 
 	{
 		if(  $('#workdir_path optgroup[id=localwdp]').children("option:selected").val() != null)
