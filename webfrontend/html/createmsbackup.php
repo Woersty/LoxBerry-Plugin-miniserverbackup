@@ -447,7 +447,7 @@ foreach ($ms as $msno => $miniserver )
 		if ( isset($checkurl) ) 
 		{
 			debug(__line__,$L["MINISERVERBACKUP.INF_0107_SLEEP_BEFORE_SENDING_NEXT_CLOUD_DNS_QUERY"]." => ".$miniserver['Name'],5);
-			sleep(300);
+			sleep(600);
 		}
 		$checkurl = "http://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
 		$response = @file_get_contents($checkurl);
@@ -753,7 +753,31 @@ foreach ($ms as $msno => $miniserver )
 			if ( filesize($workdir_tmp."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)] && filesize($workdir_tmp."/".$bkpfolder.$file_to_save) != 122 )
 			{
 				debug(__line__,$L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]." ".$workdir_tmp."/".$bkpfolder.$file_to_save." => ".filesize($workdir_tmp."/".$bkpfolder.$file_to_save) ." != ".$filetree["size"][array_search($file_to_save,$filetree["name"],true)],6);
-				sleep(1);
+				sleep(1); 
+				$LoxURL  = "http://".$miniserver['IPAddress'].":".$miniserver['Port']."/dev/fslist".dirname($filetree["name"][array_search($file_to_save,$filetree["name"],true)]);
+				curl_setopt($curl_save, CURLOPT_URL, $LoxURL);
+				curl_setopt($curl_save, CURLOPT_RETURNTRANSFER, 1); 
+				$read_data = curl_exec($curl_save);
+				curl_setopt($curl_save, CURLOPT_RETURNTRANSFER, 0); 
+				$read_data = trim($read_data);
+				$read_data_line = explode("\n",$read_data);
+				$base = basename($filetree["name"][array_search($file_to_save,$filetree["name"],true)]);
+				foreach ( array_filter($read_data_line, function($var) use ($base) { return preg_match("/\b$base\b/i", $var); }) as $linefound )
+				{
+					preg_match("/^-\s*(\d*)\s([a-zA-z]{3})\s(\d{1,2})\s(\d{1,2}:\d{1,2})\s(.*)$/i", $linefound, $filename);
+					if ($filename[1] == 0)
+					{
+						debug(__line__,$L["ERRORS.ERR_0014_ZERO_FILESIZE"]." ".$folder.$filename[5]." (".$filename[1]." Bytes)",5);
+					}
+					else
+					{
+						debug(__line__,$L["MINISERVERBACKUP.INF_0014_EXTRACTED_NAME_FILE"]." ".$folder.$filename[5]." (".$filename[1]." Bytes)",6);
+
+						debug(__line__,"old: ".$filetree["size"][array_search($file_to_save,$filetree["name"],true)],1);
+						$filetree["size"][array_search($file_to_save,$filetree["name"],true)] = $filename[1];
+						debug(__line__,"new: ".$filetree["size"][array_search($file_to_save,$filetree["name"],true)],1);
+					}
+				}
 				curl_setopt($curl_save, CURLOPT_FILE, $fp) or $curl_save_issue=1;
 				$data = curl_exec($curl_save);
 				
