@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ARGV0=$0 # Zero argument is shell command
 ARGV1=$1 # First argument is temp folder during install

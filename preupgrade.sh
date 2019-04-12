@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Bash script which is executed in case of an update (if this plugin is already
 # installed on the system). This script is executed as very first step (*BEFORE*
@@ -46,7 +46,7 @@ ARGV5=$5 # Fifth argument is Base folder of LoxBerry
   if [ -r /tmp/backupstate.txt ]
   then
     state=`head -c 1 /tmp/backupstate.txt`
-    if [[ "$state" = "-" || "$state" = "" ]]  
+    if [ "$state" = "-" || "$state" = "" ]  
     then
      echo "<OK> No backup seems in progress. Continue..."
      break
