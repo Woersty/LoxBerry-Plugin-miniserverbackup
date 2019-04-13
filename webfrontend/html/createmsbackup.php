@@ -452,7 +452,7 @@ foreach ($ms as $msno => $miniserver )
 		if ( isset($checkurl) ) 
 		{
 			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0107_SLEEP_BEFORE_SENDING_NEXT_CLOUD_DNS_QUERY"]." => ".$miniserver['Name'],5);
-			sleep(600);
+			sleep(1200);
 		}
 		$checkurl = "http://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
 		$response = @file_get_contents($checkurl);
@@ -492,7 +492,7 @@ foreach ($ms as $msno => $miniserver )
 				$cloudcancel=1;
 			break;
 			case "418":
-				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0053_CLOUDDNS_ERROR_418"]." => ".$miniserver['Name'],5);
+				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0053_CLOUDDNS_ERROR_418"]." => ".$miniserver['Name'],4);
 				$cloudcancel=1;
 			break;
 
