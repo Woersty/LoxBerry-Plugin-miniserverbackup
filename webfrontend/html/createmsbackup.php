@@ -636,6 +636,7 @@ foreach ($ms as $msno => $miniserver )
 	$folder = "/";
 	debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0006_READ_DIRECTORIES_AND_FILES"]." ".$folder,6);
 	$filetree = read_ms_tree($folder);
+	$full_backup_size = array_sum($filetree["size"]);
 	debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0015_BUILDING_FILELIST_COMPLETED"]." ".count($filetree["name"]),6);
 	debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0048_REMOVING_ALREADY_SAVED_IDENTICAL_FILES_FROM_LIST"],6);
 	if (!is_dir($savedir_path."/".$bkpfolder))
@@ -1019,6 +1020,18 @@ foreach ($ms as $msno => $miniserver )
 	rrmdir($workdir_tmp."/".$bkpfolder);
 	if (is_writeable($finalstorage)) 
 	{
+		if ( get_free_space($finalstorage) < $full_backup_size + 32000000 )
+		{
+			debug (__line__,$L["ERRORS.ERR_0054_NOT_ENOUGH_FREE_SPACE"]." ".formatBytes($full_backup_size)." => ".formatBytes(get_free_space($finalstorage)),2);
+			create_clean_workdir_tmp($workdir_tmp);
+			file_put_contents($backupstate_file, "-");
+			continue;
+		}
+		else
+		{
+			debug (__line__,$L["MINISERVERBACKUP.INF_0114_ENOUGH_FREE_SPACE"]." ".formatBytes(get_free_space($finalstorage)),5);
+		}
+		
 		switch (strtoupper($plugin_cfg["FILE_FORMAT".$msno])) 
 		{
 		    case "ZIP":
@@ -1248,6 +1261,7 @@ rrmdir($workdir_tmp);
 
 function formatBytes($size, $precision = 2)
 {
+	if ( !is_numeric( $size ) || $size == 0 ) return "0 kB";
     $base = log($size, 1024);
     $suffixes = array('', 'kB', 'MB', 'GB', 'TB');   
     return round(pow(1024, $base - floor($base)), $precision) .' '. $suffixes[floor($base)];
@@ -1652,6 +1666,14 @@ function sort_by_mtime($file1,$file2)
     return ($time1 > $time2) ? 1 : -1;
 }
 
+function get_free_space ( $path )
+{
+	$base=dirname($path);
+	$free = @exec('if [ -d "'.$path.'" ]; then df -k --output=avail '.$path.' 2>/dev/null |grep -v Avail; fi');
+	if ( $free == "" ) $free = @exec('if [ -d "'.$base.'" ]; then df -k --output=avail '.$base.' 2>/dev/null |grep -v Avail; fi');
+	if ( $free == "" ) $free = "0";
+	return $free*1024;
+}
 
 $runtime = microtime(true) - $start;
 if ($summary)
