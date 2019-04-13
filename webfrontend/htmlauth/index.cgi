@@ -170,6 +170,7 @@ if (!-r _ || -z _ )
 	open my $configfileHandle, ">", $lbpconfigdir . "/" . $pluginconfigfile or &error;
 		print $configfileHandle "[MSBACKUP]\n";
 		print $configfileHandle "VERSION=$version\n";
+		print $configfileHandle "MSBACKUP_USE=off\n";
 	close $configfileHandle;
 	$error_message = $ERR{'MINISERVERBACKUP.INF_0070_CREATE_CONFIG_OK'};
 	&error; 
@@ -264,7 +265,8 @@ $maintemplate->param( "VERSION"					, $version);
 $maintemplate->param( "LOGLEVEL" 				, $plugin->{PLUGINDB_LOGLEVEL});
 $maintemplate->param( "ELFINDER_LANG"			, $lang);
 $maintemplate->param( "PLUGINDB_MD5_CHECKSUM"	, $plugin->{PLUGINDB_MD5_CHECKSUM});
- 
+$maintemplate->param( "MSBACKUP_USE"			, "off");
+$maintemplate->param( "MSBACKUP_USE"			, $Config{"MINISERVERBACKUP.MSBACKUP_USE"}) if ( $Config{"MINISERVERBACKUP.MSBACKUP_USE"} ne "" );
  
 my $index = 0;
 $index++ while $netshares[$index]->{NETSHARE_STATE} eq 'Writable' ;

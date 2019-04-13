@@ -1,6 +1,13 @@
 <CENTER>
-	<IMG src="<TMPL_VAR LOGO_ICON>"><BR>
-</CENTER>
+	<IMG src="<TMPL_VAR LOGO_ICON>">
+	<BR>
+	<b><TMPL_VAR GENERAL.HEADER_TEXT></b>
+	<BR><BR>
+	<select name="msbackup_use" id="msbackup_use" class="to_save">
+		<option value="off"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_OFF></option>
+		<option value="on"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_ON></option>
+	</select>
+ </CENTER>
 <BR>
 <DIV id="notifblock">
 	<!-- NOTIFICATIONS //-->
@@ -8,7 +15,6 @@
 	<!-- NOTIFICATIONS //-->
 </DIV>
 <CENTER>
-	<b><TMPL_VAR GENERAL.HEADER_TEXT></b>
 	<CENTER>
 		<a id="btnbackup" class="to_disable_on_save" data-role="button" data-mini="true" onclick="$('#Logfiletextbox').append('<hr\><DIV style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'><TMPL_VAR GENERAL.LOG_EXECUTING></DIV><hr\>'); $.get('./index.cgi?do=backup');"><TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW></a>
 	</CENTER>
@@ -36,6 +42,10 @@
 			url : '<TMPL_VAR HTMLPATH>php/connector.minimal.php'  // connector URL 
 			 , lang: '<TMPL_VAR ELFINDER_LANG>'                    // language 
 		});
+		$("#msbackup_use-button").remove(); 
+		$("#msbackup_use").css('display','').selectmenu( "menuWidget" ); 
+		$("#msbackup_use").addClass( "ui-mini ui-btn ui-corner-all ui-shadow" );
+		$("#msbackup_use").val("<TMPL_VAR MSBACKUP_USE>"); 
 	});
 </script>
 <!-- Filebrowser //-->
@@ -358,6 +368,20 @@
 	function checkState()
 	{
 		if ( $('#btncancel').hasClass('ui-disabled') ) return;
+
+		if ( $("#msbackup_use").val() == "on" )
+		{
+			$('#btnbackup').removeClass('ui-disabled');
+			$("#msbackup_use").css('background-color','rgba(128,255,128,.2)');
+		}
+		else
+		{
+			$('#btnbackup').addClass('ui-disabled');
+			$("#msbackup_use").css('background-color','rgba(255,128,128,.2)');
+			return;
+		}
+
+
 		$.get('<TMPL_VAR HTMLPATH><TMPL_VAR BACKUPSTATEFILE>', function(data)
 		{
 			if (data.length > 1)
@@ -403,6 +427,9 @@
 		{ 
 			// Array with POST data to save
 			var postData = {};
+	
+			// Add general on/off switch
+			postData['msbackup_use'] = $('#msbackup_use').val();
 	
 			// Add workdir_path
 			postData['workdir_path'] = $('#workdir_path').val();

@@ -216,6 +216,19 @@ else
   touch($plugin_config_file);
 }
 
+# Check if Plugin is disabled
+if ( $plugin_cfg["MSBACKUP_USE"] == "on" )
+{
+	debug(__line__,$L["MINISERVERBACKUP.INF_0112_PLUGIN_ENABLED"],5);
+}
+else
+{
+	$runtime = microtime(true) - $start;
+	sleep(3); // To prevent misdetection in createmsbackup.pl
+	debug(__line__,$L["MINISERVERBACKUP.INF_0113_PLUGIN_DISABLED"],5);
+	exit(1);
+}
+
 #Prevent blocking / Recreate state file if missing or older than 60 min
 if ( is_file($backupstate_tmp) ) 
 {
