@@ -3,10 +3,22 @@
 	<BR>
 	<b><TMPL_VAR GENERAL.HEADER_TEXT></b>
 	<BR><BR>
-	<select name="msbackup_use" id="msbackup_use" class="to_save">
-		<option value="off"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_OFF></option>
-		<option value="on"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_ON></option>
-	</select>
+	<TABLE>
+		<TR>
+			<TD>
+				<select name="msbackup_use" id="msbackup_use" class="to_save">
+					<option value="off"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_OFF></option>
+					<option value="on"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_ON></option>
+				</select>
+			</TD>
+			<TD>
+				<select name="msbackup_use_notify" id="msbackup_use_notify" class="to_save">
+					<option value="off"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_NOTIFY_OFF></option>
+					<option value="on"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_NOTIFY_ON></option>
+				</select>
+			</TD>
+		</TR>
+	</TABLE>
  </CENTER>
 <BR>
 <DIV id="notifblock">
@@ -46,6 +58,11 @@
 		$("#msbackup_use").css('display','').selectmenu( "menuWidget" ); 
 		$("#msbackup_use").addClass( "ui-mini ui-btn ui-corner-all ui-shadow" );
 		$("#msbackup_use").val("<TMPL_VAR MSBACKUP_USE>"); 
+
+		$("#msbackup_use_notify-button").remove(); 
+		$("#msbackup_use_notify").css('display','').selectmenu( "menuWidget" ); 
+		$("#msbackup_use_notify").addClass( "ui-mini ui-btn ui-corner-all ui-shadow" );
+		$("#msbackup_use_notify").val("<TMPL_VAR MSBACKUP_USE_NOTIFY>"); 
 	});
 </script>
 <!-- Filebrowser //-->
@@ -367,32 +384,38 @@
 	
 	function checkState()
 	{
-		if ( $('#btncancel').hasClass('ui-disabled') ) return;
+		if ( $("#msbackup_use_notify").val() == "on" )
+		{
+			$("#msbackup_use_notify").css('background-color','rgba(128,255,128,.2)');
+		}
+		else
+		{
+			$("#msbackup_use_notify").css('background-color','rgba(255,128,128,.2)');
+		}
 
 		if ( $("#msbackup_use").val() == "on" )
 		{
-			$('#btnbackup').removeClass('ui-disabled');
 			$("#msbackup_use").css('background-color','rgba(128,255,128,.2)');
 		}
 		else
 		{
-			$('#btnbackup').addClass('ui-disabled');
 			$("#msbackup_use").css('background-color','rgba(255,128,128,.2)');
 			return;
 		}
 
+		if ( $('#btncancel').hasClass('ui-disabled') ) return;
 
 		$.get('<TMPL_VAR HTMLPATH><TMPL_VAR BACKUPSTATEFILE>', function(data)
 		{
 			if (data.length > 1)
 			{
-				$("#btnbackup").prop('innerHTML',"<font color='#FF0000'>"+data+"</font>");
 				$('#btnbackup').addClass('ui-disabled');
+				$("#btnbackup").prop('innerHTML',"<font color='#FF0000'>"+data+"</font>");
 			}
 			else if (data == "-") 
 			{
-				$("#btnbackup").text("<TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW>");
 				$('#btnbackup').removeClass('ui-disabled');
+				$("#btnbackup").text("<TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW>");
 			}
 		});
 	}
@@ -430,6 +453,9 @@
 	
 			// Add general on/off switch
 			postData['msbackup_use'] = $('#msbackup_use').val();
+	
+			// Add notify on/off switch
+			postData['msbackup_use_notify'] = $('#msbackup_use_notify').val();
 	
 			// Add workdir_path
 			postData['workdir_path'] = $('#workdir_path').val();

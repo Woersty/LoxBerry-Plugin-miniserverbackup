@@ -37,7 +37,7 @@ ini_set("error_log" , $lbplogdir."/".$logfilename);
 $summary			= array();
 function debug($line,$message = "", $loglevel = 7)
 {
-	global $L, $plugindata, $summary, $miniserver,$msno;
+	global $L, $plugindata, $summary, $miniserver,$msno,$plugin_cfg;
 	if ( $plugindata['PLUGINDB_LOGLEVEL'] >= intval($loglevel) )  
 	{
 		$message = preg_replace('/["]/','',$message); // Remove quotes => https://github.com/mschlenstedt/Loxberry/issues/655
@@ -97,14 +97,14 @@ function debug($line,$message = "", $loglevel = 7)
 			{
 				$search  = array('<ALERT> PHP', '<CRITICAL> PHP', '<ERROR> PHP');
 				$replace = array($L["LOGGING.NOTIFY_LOGLEVEL1"],$L["LOGGING.NOTIFY_LOGLEVEL2"],$L["LOGGING.NOTIFY_LOGLEVEL3"]);
-				notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$msi, str_replace($search, $replace, $raw_message),1);
+				if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$msi, str_replace($search, $replace, $raw_message),1);
 				return;
 			}
 			if ( $loglevel <= 4 ) 
 			{
 				$search  = array('<WARNING> PHP');
 				$replace = array($L["LOGGING.NOTIFY_LOGLEVEL4"]);
-				notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$msi, str_replace($search, $replace, $raw_message));
+				if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$msi, str_replace($search, $replace, $raw_message));
 			}
 		}
 	}
@@ -1212,7 +1212,7 @@ foreach ($ms as $msno => $miniserver )
 			}
 			$message = str_ireplace("<NAME>",$miniserver['Name'],str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0098_BACKUP_OF_MINISERVER_COMPLETED"]))." ".$fileinf;
 			debug(__line__,"MS#".$msno." ".$message,5);
-			notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$miniserver['Name'], $message);
+			if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$miniserver['Name'], $message);
 			array_push($summary,"MS#".$msno." "."<OK> ".$message);
 	}
 	else
@@ -1370,7 +1370,7 @@ class MSbackupZIP
 			array_push($summary,"MS#".$msno." "."<CRITICAL> ".$L["ERRORS.ERR_0026_SEVERE_SD_CARD_ERRORS_DETECTED"]." => ".array_sum($error_count_severe)." => ".$L["ERRORS.ERR_0027_LAST_SD_CARD_ERROR_DETECTED"]." ".$match_severe); 		
 			array_push($summary,"MS#".$msno." "."<INFO> ".$L["MINISERVERBACKUP.INF_0104_SUMMARY_SD_ERRORS"]."\n"."MS#".$msno." "."<INFO> ".join("\n"."MS#".$msno." "."<INFO>",str_ireplace('\n','',$SDC_matches)));
 			array_push($summary,"MS#".$msno." "."<ALERT> ".$L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]." (".$miniserver['Name'].")");
-		    notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." "."MS#".$msno." ".$miniserver['Name'], $L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]. " (" . $miniserver['Name'] .") ".$L["MINISERVERBACKUP.INF_0062_LAST_MS_REBOOT"]." ".$last_reboot_key);		}
+		    if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." "."MS#".$msno." ".$miniserver['Name'], $L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]. " (" . $miniserver['Name'] .") ".$L["MINISERVERBACKUP.INF_0062_LAST_MS_REBOOT"]." ".$last_reboot_key);		}
 		}
 		
 		if ( count($error_count_severe) > 0  ||  array_sum($error_count) > 50 )
