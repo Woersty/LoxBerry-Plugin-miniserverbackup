@@ -492,7 +492,7 @@ foreach ($ms as $msno => $miniserver )
 				$cloudcancel=1;
 			break;
 			case "418":
-				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0053_CLOUDDNS_ERROR_418"]." => ".$miniserver['Name'],4);
+				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0053_CLOUDDNS_ERROR_418"]." => ".$miniserver['Name'],5);
 				$cloudcancel=1;
 			break;
 
