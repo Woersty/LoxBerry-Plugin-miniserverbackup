@@ -26,6 +26,66 @@
 		<TMPL_VAR NOTIFICATIONS>
 	<!-- NOTIFICATIONS //-->
 </DIV>
+<style>
+#alert_form{ display:none; }
+#alert_form {
+	margin: 0 0 0 0;
+	left: 0px;
+	top: 0px;
+    width: 100%;
+    z-index: 2;
+    height: 100%;
+    max-height: 1080px;
+    position: fixed;
+    background: rgba(70, 71, 72, 0.69);
+}
+#sub_alert_form { 
+	width: 240px;  
+	height: 110px;
+    margin: 0 auto;
+    background: white;
+    margin-top: 75px;
+    padding: 45px;
+    border: 1px solid #9E9E9E;
+    border-radius: .25em .25em .4em .4em;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    background-color: rgba(255,225,225,.9);
+}
+#sub_alert_form span {
+	position: relative;
+    float: right;
+    font-weight: 700;
+    margin-top: -40px;
+    height: 15px;
+    font-size: 18px;
+    width: 15px;
+    line-height: 15px;
+    margin-right: -40px;
+    border: 2px solid #ffffff;
+    color: #ffffff;
+    padding: 7px;
+    background-color: rgba(255,128,128,.9);
+}
+
+span#alert_form_close:hover {
+	cursor:pointer;
+    color: #e0190b;
+}
+
+@media screen and (max-width: 440px) {
+	#sub_alert_form { 
+		width: 290px; 
+		padding: 35px;
+	}
+}
+</style>
+<div id="alert_form" > 
+ 	 <div id="sub_alert_form"> 
+  	 	<span id="alert_form_close"> X </span>
+ 	 	 	<div id="error_message"></div>
+ 	 </div>
+</div>
 <CENTER>
 	<CENTER>
 		<a id="btnbackup" class="to_disable_on_save" data-role="button" data-mini="true" onclick="$('#Logfiletextbox').append('<hr\><DIV style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'><TMPL_VAR GENERAL.LOG_EXECUTING></DIV><hr\>'); $.get('./index.cgi?do=backup');"><TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW></a>
@@ -439,11 +499,17 @@
 	
 	function show_error(error)
 	{
-		// ToDO
-		alert(error);
+		// Modal form
+ 		$("#alert_form").on('click', function(e){ if (e.target !== this) return; });
+		// Build and show....
+		$("#error_message").html("<table style='width:100%;'><tr><td style='width:100%; font-weight:bold;'><TMPL_VAR ERRORS.ERR_TITLE></td></tr><tr><td><hr></td></tr><tr><td>"+error+"</td></tr></table>");
+		$("#alert_form").show();
+		$("#alert_form_close").on('click', function(e){  // close button code. 
+		$('#alert_form').fadeOut('slow');
+	});
 		return;
 	}
-	
+
 	function save_config()
 	{
 		setTimeout( function() 
