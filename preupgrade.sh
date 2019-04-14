@@ -65,7 +65,7 @@ done
 
 echo "<INFO> Creating temporary folders for upgrading"
 mkdir -p /tmp/$ARGV1\_upgrade/config
-mkdir -p /tmp/$ARGV1\_upgrade/data
+mkdir -p $ARGV5/data/plugins/$ARGV3_upgrade 
 mkdir -p /tmp/$ARGV1\_upgrade/log
 mkdir -p /tmp/$ARGV1\_upgrade/backups
 shopt -s dotglob
@@ -78,7 +78,7 @@ mv $ARGV5/webfrontend/html/plugins/$ARGV3/backups/* /tmp/$ARGV1\_upgrade/backups
 
 echo "<INFO> Backing up existing compare files"
 unlink $ARGV5/data/plugins/$ARGV3/backups
-mv -v $ARGV5/data/plugins/$ARGV3/* /tmp/$ARGV1\_upgrade/data
+mv -v $ARGV5/data/plugins/$ARGV3/* $ARGV5/data/plugins/$ARGV3_upgrade 
 
 echo "<INFO> Backing up existing log files"
 mv $ARGV5/log/plugins/$ARGV3/* /tmp/$ARGV1\_upgrade/log/
