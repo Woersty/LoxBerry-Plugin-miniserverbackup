@@ -12,8 +12,8 @@ echo "<INFO> Moving back existing config files"
 mv -v /tmp/$ARGV1\_upgrade/config/* $ARGV5/config/plugins/$ARGV3/
 
 echo "<INFO> Moving back existing compare files"
-mv -v $ARGV5/data/plugins/$ARGV3_upgrade/* $ARGV5/data/plugins/$ARGV3/
-rm -rf $ARGV5/data/plugins/$ARGV3_upgrade
+mv -v $ARGV5/data/plugins/$ARGV3."_upgrade"/* $ARGV5/data/plugins/$ARGV3/
+rm -rf $ARGV5/data/plugins/$ARGV3."_upgrade"
 
 echo "<INFO> Moving back existing log files"
 mv -v /tmp/$ARGV1\_upgrade/log/* $ARGV5/log/plugins/$ARGV3/
