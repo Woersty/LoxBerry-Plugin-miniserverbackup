@@ -68,6 +68,7 @@ mkdir -p /tmp/$ARGV1\_upgrade/config
 mkdir -p /tmp/$ARGV1\_upgrade/data
 mkdir -p /tmp/$ARGV1\_upgrade/log
 mkdir -p /tmp/$ARGV1\_upgrade/backups
+shopt -s dotglob
 
 echo "<INFO> Backing up existing config files"
 mv -v $ARGV5/config/plugins/$ARGV3/* /tmp/$ARGV1\_upgrade/config/
