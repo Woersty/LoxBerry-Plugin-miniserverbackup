@@ -451,7 +451,9 @@ exit;
 				$systemdatetime         		= $L{"GENERAL.NO_LAST_SAVE"};
 	  			$systemdatetime         		= qx(echo  $Config{"MINISERVERBACKUP.LAST_SAVE".$ms_id}| $awkbin '{print strftime("$L{"GENERAL.DATE_TIME_FORMAT"}", \$0)}') if ( $Config{"MINISERVERBACKUP.LAST_SAVE".$ms_id} ne "");
 				$row{'LAST_SAVE'}				= $systemdatetime;
- 				
+ 				$row{'LAST_REBOOT'}				= $L{"GENERAL.NO_LAST_REBOOT_INFO"};
+	  			$row{'LAST_REBOOT'}				= $Config{"MINISERVERBACKUP.LAST_REBOOT".$ms_id} if ( $Config{"MINISERVERBACKUP.LAST_REBOOT".$ms_id} ne "" );
+
 				foreach  (  sort { $a <=> $b } %backup_interval_minutes) 
 				{ 
 					$backup_intervals = $backup_intervals . '<OPTION value="'.$_.'"> '.$L{"MINISERVERBACKUP.INTERVAL".$_}.' </OPTION>' if ( $_ ne "" );
