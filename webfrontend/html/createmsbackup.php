@@ -1348,7 +1348,7 @@ class MSbackupZIP
 
   public static function check_def_log($filePath) 
   {
-  	global $L,$summary,$miniserver,$backupstate_file,$msno;
+  	global $L,$summary,$miniserver,$backupstate_file,$msno,$plugin_cfg;
 	debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0080_CHECK_DEFLOG"]." (" . $miniserver['Name'] .")",6);
 	$deflog = explode("\n",file_get_contents($filePath));
 	$lookfor = "PRG Reboot";
