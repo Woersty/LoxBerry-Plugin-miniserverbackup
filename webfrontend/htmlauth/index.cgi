@@ -449,7 +449,7 @@ exit;
 
 				my $systemdatetime;
 				$systemdatetime         		= $L{"GENERAL.NO_LAST_SAVE"};
-	  			$systemdatetime         		= qx(echo  $Config{"MINISERVERBACKUP.LAST_SAVE".$ms_id}| $awkbin '{print strftime("%c", \$0)}') if ( $Config{"MINISERVERBACKUP.LAST_SAVE".$ms_id} ne "");
+	  			$systemdatetime         		= qx(echo  $Config{"MINISERVERBACKUP.LAST_SAVE".$ms_id}| $awkbin '{print strftime("$L{"GENERAL.DATE_TIME_FORMAT"}", \$0)}') if ( $Config{"MINISERVERBACKUP.LAST_SAVE".$ms_id} ne "");
 				$row{'LAST_SAVE'}				= $systemdatetime;
  				
 				foreach  (  sort { $a <=> $b } %backup_interval_minutes) 
