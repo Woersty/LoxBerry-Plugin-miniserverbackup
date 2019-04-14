@@ -248,6 +248,15 @@ span#alert_form_close:hover {
 						    </select>
 						</DIV>
 					</DIV>
+					<DIV style="display:table-row;">
+						<DIV style="display:table-cell; text-align:right;">
+							<TMPL_VAR GENERAL.LAST_SAVE_TIME_TXT>
+						</DIV>
+						<DIV style="display:table-cell; ">
+							<DIV name="last_save<TMPL_VAR MSID>" id="last_save<TMPL_VAR MSID>"><TMPL_VAR LAST_SAVE>
+							</DIV>
+						</DIV>
+					</DIV>
 				</DIV>
 				<script>
 					$( document ).ready(function() 

@@ -77,7 +77,6 @@ our $tag_id;
 our $ms_id;
 our @config_params;
 our @language_strings;
-
 ##########################################################################
 # Read Settings
 ##########################################################################
@@ -212,6 +211,7 @@ if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 	my $mscfg = new Config::Simple("$lbhomedir/config/system/general.cfg") or return undef;
 	my $miniservercount = $mscfg->param("BASE.MINISERVERS") or Carp::carp ("BASE.MINISERVERS is 0 or not defined in general.cfg\n");
 	my $clouddnsaddress = $mscfg->param("BASE.CLOUDDNS"); # or Carp::carp ("BASE.CLOUDDNS not defined in general.cfg\n");
+	my $awkbin         	= $mscfg->param("BINARIES.AWK");
 
 	for (my $msnr = 1; $msnr <= $miniservercount; $msnr++) {
 		$miniservers{$msnr}{Name} = $mscfg->param("MINISERVER$msnr.NAME");
@@ -446,7 +446,12 @@ exit;
 				$row{'CURRENT_BACKUPS_TO_KEEP'}	= $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} if ( $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} ne "" );
 				$row{'AUTOSAVE_CONFIG'}	    	= 1 if ( $Config{"MINISERVERBACKUP.FINALSTORAGE".$ms_id} eq "" || $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} eq "" || $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} eq "" || $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} eq "" );
 				$row{'MS_DISABLED'}	    		= $msDisabled;
-				
+
+				my $systemdatetime;
+				$systemdatetime         		= $L{"GENERAL.NO_LAST_SAVE"};
+	  			$systemdatetime         		= qx(echo  $Config{"MINISERVERBACKUP.LAST_SAVE".$ms_id}| $awkbin '{print strftime("%c", \$0)}') if ( $Config{"MINISERVERBACKUP.LAST_SAVE".$ms_id} ne "");
+				$row{'LAST_SAVE'}				= $systemdatetime;
+ 				
 				foreach  (  sort { $a <=> $b } %backup_interval_minutes) 
 				{ 
 					$backup_intervals = $backup_intervals . '<OPTION value="'.$_.'"> '.$L{"MINISERVERBACKUP.INTERVAL".$_}.' </OPTION>' if ( $_ ne "" );
