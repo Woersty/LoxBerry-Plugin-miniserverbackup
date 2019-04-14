@@ -74,14 +74,14 @@ echo "<INFO> Backing up existing config files"
 mv -v $ARGV5/config/plugins/$ARGV3/* /tmp/$ARGV1\_upgrade/config/
 
 echo "<INFO> Backing up existing backup archives"
-mv $ARGV5/webfrontend/html/plugins/$ARGV3/backups/* /tmp/$ARGV1\_upgrade/backups/
+mv -v $ARGV5/webfrontend/html/plugins/$ARGV3/backups/* $ARGV5/data/plugins/$ARGV3"_backups"
 
 echo "<INFO> Backing up existing compare files"
 unlink $ARGV5/data/plugins/$ARGV3/backups
 mv -v $ARGV5/data/plugins/$ARGV3/* $ARGV5/data/plugins/$ARGV3"_upgrade"
 
 echo "<INFO> Backing up existing log files"
-mv $ARGV5/log/plugins/$ARGV3/* /tmp/$ARGV1\_upgrade/log/
+mv -v $ARGV5/log/plugins/$ARGV3/* /tmp/$ARGV1\_upgrade/log/
 
 
 # Exit with Status 0

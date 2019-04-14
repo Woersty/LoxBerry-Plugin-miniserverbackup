@@ -19,8 +19,9 @@ echo "<INFO> Moving back existing log files"
 mv -v /tmp/$ARGV1\_upgrade/log/* $ARGV5/log/plugins/$ARGV3/
 
 echo "<INFO> Moving back existing backup archives"
-mv -v /tmp/$ARGV1\_upgrade/backups/* $ARGV5/webfrontend/html/plugins/$ARGV3/backups/
+mv -v $ARGV5/data/plugins/$ARGV3"_backups"/* $ARGV5/webfrontend/html/plugins/$ARGV3/backups/
 ln -s $ARGV5/webfrontend/html/plugins/$ARGV3/backups/ $ARGV5/data/plugins/$ARGV3/backups
+rm -rf $ARGV5/data/plugins/$ARGV3"_backups"
 
 echo "<INFO> Remove temporary folders"
 rm -r /tmp/$ARGV1\_upgrade
