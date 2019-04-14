@@ -464,7 +464,7 @@ foreach ($ms as $msno => $miniserver )
 		if ( isset($checkurl) ) 
 		{
 			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0107_SLEEP_BEFORE_SENDING_NEXT_CLOUD_DNS_QUERY"]." => ".$miniserver['Name'],5);
-			sleep(1200);
+			sleep(1860);
 		}
 		$checkurl = "http://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
 		$response = @file_get_contents($checkurl);
