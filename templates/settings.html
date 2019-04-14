@@ -257,6 +257,15 @@ span#alert_form_close:hover {
 							</DIV>
 						</DIV>
 					</DIV>
+					<DIV style="display:table-row;">
+						<DIV style="display:table-cell; text-align:right;">
+							<TMPL_VAR GENERAL.LAST_REBOOT_TXT>
+						</DIV>
+						<DIV style="display:table-cell; ">
+							<DIV name="last_reboot<TMPL_VAR MSID>" id="last_reboot<TMPL_VAR MSID>">&nbsp;<TMPL_VAR LAST_REBOOT>
+							</DIV>
+						</DIV>
+					</DIV>
 				</DIV>
 				<script>
 					$( document ).ready(function() 

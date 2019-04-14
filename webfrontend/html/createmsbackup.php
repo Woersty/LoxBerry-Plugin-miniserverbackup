@@ -410,7 +410,6 @@ foreach ($ms as $msno => $miniserver )
 		{
 			debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0043_ERR_LAST_SAVE_INVALID"],6);	
 			$last_save = time() - (intval($backupinterval)*60) - 1;
-			system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_SAVE'.$msno.'='.$last_save);
 		}
 	}
 	else
@@ -1105,8 +1104,6 @@ foreach ($ms as $msno => $miniserver )
 				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0061_CREATE_ZIP_ARCHIVE_DONE"]." ".$finalstorage."/".$bkpdir.$fileformat_extension." (". round( intval( filesize($finalstorage."/".$bkpdir.$fileformat_extension) ) / 1024 / 1024 ,2 ) ." MB)",5);
 		        break;
 		}
-		system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_SAVE'.$msno.'='.time());
-		
 		
 		switch ($fileformat) 
 		{
@@ -1253,6 +1250,7 @@ foreach ($ms as $msno => $miniserver )
 	debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0032_CLEAN_WORKDIR_TMP"]." ".$workdir_tmp);
 	create_clean_workdir_tmp($workdir_tmp);
 	file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
+	system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_SAVE'.$msno.'='.time());
 }
 debug(__line__,$L["MINISERVERBACKUP.INF_0019_BACKUPS_COMPLETE"],5);
 curl_close($curl); 
@@ -1357,6 +1355,10 @@ class MSbackupZIP
 	$matches = array_filter($deflog, function($var) use ($lookfor) { return preg_match("/\b$lookfor\b/i", $var); });
 	$last_reboot_key = array_pop($matches);
 	array_push($summary,"MS#".$msno." "."<INFO> ".$L["MINISERVERBACKUP.INF_0062_LAST_MS_REBOOT"]." ".$last_reboot_key);
+	if ( isset ( $last_reboot_key ) ) 
+	{
+		system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_REBOOT'.$msno.'="'.$last_reboot_key.'"');
+	}
 	$key_in_deflog = array_search($last_reboot_key,$deflog,true);
 	$deflog = array_slice($deflog, $key_in_deflog, NULL, TRUE);
 	$lookfor = "SDC number of ";

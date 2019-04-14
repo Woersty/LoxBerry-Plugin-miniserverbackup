@@ -104,6 +104,17 @@ if (php_sapi_name() === 'cli')
 			$plugin_cfg[strtoupper($cli_config[0])] = $cli_config[1];
 			$output .= "console.log(".strtoupper($cli_config[0]). "=" . $cli_config[1] . ");\n";
 		}
+		if ( substr($argv[1],0,11) == "LAST_REBOOT" )
+		{
+			$cli_config = preg_split("/[=]+/",$argv[1]);
+			$cli_config_sub = preg_split("/[;]+/",$cli_config[1]);
+			$date = strtotime($cli_config_sub[0]);
+			$format = str_ireplace('%','',$L["GENERAL.DATE_TIME_FORMAT_PHP"]);
+			$date_str = date($format ,$date);
+			$cli_config_sub[1] = str_ireplace('PRG Reboot',' (Version',$cli_config_sub[1]);
+			$plugin_cfg[strtoupper($cli_config[0])] = '"'.$date_str." ".trim($cli_config_sub[1]).')"';
+			$output .= "console.log('".strtoupper($cli_config[0]). "=" .$date_str." ".$cli_config_sub[1]."');\n";
+		}
 	}
 } 
 
