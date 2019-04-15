@@ -774,13 +774,13 @@ foreach ($ms as $msno => $miniserver )
 
 			if ( filesize($workdir_tmp."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)] && filesize($workdir_tmp."/".$bkpfolder.$file_to_save) != 122 )
 			{
-				if ( preg_match("//b\/sys\/rem\/\b/i", $file_to_save) )
+				if ( preg_match("/\/sys\/rem\//i", $file_to_save) )
 				{
 					debug(__line__,"MS#".$msno." ".str_ireplace("<file>",$bkpfolder.$file_to_save,str_ireplace("<dwl_size>",filesize($workdir_tmp."/".$bkpfolder.$file_to_save),str_ireplace("<ms_size>",$filetree["size"][array_search($file_to_save,$filetree["name"],true)],$L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]))),6);
 				}
 				else
 				{
-					debug(__line__,"MS#".$msno." ".str_ireplace("<file>",$bkpfolder.$file_to_save,str_ireplace("<dwl_size>",filesize($workdir_tmp."/".$bkpfolder.$file_to_save),str_ireplace("<ms_size>",$filetree["size"][array_search($file_to_save,$filetree["name"],true)],$L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]))),4);
+					debug(__line__,"MS#".$msno." ".str_ireplace("<file>",$bkpfolder.$file_to_save,str_ireplace("<dwl_size>",filesize($workdir_tmp."/".$bkpfolder.$file_to_save),str_ireplace("<ms_size>",$filetree["size"][array_search($file_to_save,$filetree["name"],true)],$L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]))),6);
 				}
 				sleep(1); 
 				$LoxURL  = "http://".$miniserver['IPAddress'].":".$miniserver['Port']."/dev/fslist".dirname($filetree["name"][array_search($file_to_save,$filetree["name"],true)]);
@@ -808,7 +808,7 @@ foreach ($ms as $msno => $miniserver )
 				$data = curl_exec($curl_save);
 				
 			}
-			
+
 			if ( $data === FALSE)
 			{
 				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0096_DOWNLOAD_FAILED_RETRY"]." ".$url ." => ".$workdir_tmp."/".$bkpfolder.$file_to_save,6); 
@@ -818,7 +818,12 @@ foreach ($ms as $msno => $miniserver )
 			}
 
 			fclose ($fp); 
-			if ( $data === FALSE)
+			
+			if ( filesize($workdir_tmp."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)] && filesize($workdir_tmp."/".$bkpfolder.$file_to_save) != 122 )
+			{
+				debug(__line__,"MS#".$msno." ".str_ireplace("<file>",$bkpfolder.$file_to_save,str_ireplace("<dwl_size>",filesize($workdir_tmp."/".$bkpfolder.$file_to_save),str_ireplace("<ms_size>",$filetree["size"][array_search($file_to_save,$filetree["name"],true)],$L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]))),4);
+			}
+			if ( $data === FALSE )
 			{
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0009_CURL_SAVE_FAILED"]." ".$workdir_tmp."/".$bkpfolder.$file_to_save." ".curl_error($curl_save),4);
 			}
@@ -870,7 +875,7 @@ foreach ($ms as $msno => $miniserver )
 				
 				if ( filesize($workdir_tmp."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)])
 				{
-				if ( preg_match("/\b/sys/rem/\b/i", $file_to_save) )
+				if ( preg_match("/\/sys\/rem\//i", $file_to_save) )
 				{
 					debug(__line__,"MS#".$msno." ".str_ireplace("<file>",$bkpfolder.$file_to_save,str_ireplace("<dwl_size>",filesize($workdir_tmp."/".$bkpfolder.$file_to_save),str_ireplace("<ms_size>",$filetree["size"][array_search($file_to_save,$filetree["name"],true)],$L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]))),6);
 				}
