@@ -35,9 +35,10 @@ ini_set("display_errors", false);
 ini_set("log_errors", 1);
 ini_set("error_log" , $lbplogdir."/".$logfilename); 
 $summary			= array();
+$at_least_one_error= 0;
 function debug($line,$message = "", $loglevel = 7)
 {
-	global $L, $plugindata, $summary, $miniserver,$msno,$plugin_cfg;
+	global $L, $plugindata, $summary, $miniserver,$msno,$plugin_cfg,$at_least_one_error;
 	if ( $plugindata['PLUGINDB_LOGLEVEL'] >= intval($loglevel) )  
 	{
 		$message = preg_replace('/["]/','',$message); // Remove quotes => https://github.com/mschlenstedt/Loxberry/issues/655
@@ -95,6 +96,7 @@ function debug($line,$message = "", $loglevel = 7)
 			}
 			if ( $loglevel <= 3 ) 
 			{
+				$at_least_one_error = 1;
 				$search  = array('<ALERT> PHP', '<CRITICAL> PHP', '<ERROR> PHP');
 				$replace = array($L["LOGGING.NOTIFY_LOGLEVEL1"],$L["LOGGING.NOTIFY_LOGLEVEL2"],$L["LOGGING.NOTIFY_LOGLEVEL3"]);
 				if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$msi, str_replace($search, $replace, $raw_message),1);
@@ -102,6 +104,7 @@ function debug($line,$message = "", $loglevel = 7)
 			}
 			if ( $loglevel <= 4 ) 
 			{
+				$at_least_one_error = 1;
 				$search  = array('<WARNING> PHP');
 				$replace = array($L["LOGGING.NOTIFY_LOGLEVEL4"]);
 				if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$msi, str_replace($search, $replace, $raw_message));
@@ -1758,12 +1761,18 @@ if ($plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" && $at_least_one_save == 1)
 			      $mailFromName   = "\"LoxBerry\"";  // Sender name
 			  }
 			}
-			
 			debug(__line__,$L["MINISERVERBACKUP.INF_0120_SEND_EMAIL_INFO"]." From: ".$mailFromName.htmlentities(" <".$mailFrom."> ")." To: ".$mailTo,6);
-			
+			if ( $at_least_one_error == 1 )
+			{
+				$emoji = "=E2=9D=8C"; # Fail X
+			}
+			else
+			{
+				$emoji = "=E2=9C=85"; # OK V
+			}
 			$html = "From: ".$mailFromName." <".$mailFrom.">
 To: ".$mailTo."
-Subject: ".$L["EMAIL.EMAIL_SUBJECT"]." 
+Subject: =?utf-8?Q? ".$emoji." ".$L["EMAIL.EMAIL_SUBJECT"]." ?=   
 MIME-Version: 1.0
 Content-Type: multipart/alternative;
  boundary=\"------------".$outer_boundary."\"
