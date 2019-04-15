@@ -1750,7 +1750,7 @@ if ($plugin_cfg['MSBACKUP_USE_EMAILS'] == "on")
 			
 			$html = "From: ".$mailFromName." <".$mailFrom.">
 To: ".$mailTo."
-Subject: ".utf8_encode($L["EMAIL.EMAIL_SUBJECT"])." 
+Subject: ".$L["EMAIL.EMAIL_SUBJECT"]." 
 MIME-Version: 1.0
 Content-Type: multipart/alternative;
  boundary=\"------------".$outer_boundary."\"
