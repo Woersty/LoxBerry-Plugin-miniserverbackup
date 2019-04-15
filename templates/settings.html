@@ -123,6 +123,11 @@ span#alert_form_close:hover {
 		$("#msbackup_use_notify").css('display','').selectmenu( "menuWidget" ); 
 		$("#msbackup_use_notify").addClass( "ui-mini ui-btn ui-corner-all ui-shadow" );
 		$("#msbackup_use_notify").val("<TMPL_VAR MSBACKUP_USE_NOTIFY>"); 
+
+		$("#msbackup_use_emails-button").remove(); 
+		$("#msbackup_use_emails").css('display','').selectmenu( "menuWidget" ); 
+		$("#msbackup_use_emails").addClass( "ui-mini ui-btn ui-corner-all ui-shadow" );
+		$("#msbackup_use_emails").val("<TMPL_VAR MSBACKUP_USE_EMAILS>"); 
 	});
 </script>
 <!-- Filebrowser //-->
@@ -168,21 +173,50 @@ span#alert_form_close:hover {
 				</DIV>
 				<DIV style="display:table-row;">
 					<DIV style="display:table-cell; text-align:right; padding-right:5px;">
-						<label id="label_workdir_path_subdir"><TMPL_VAR GENERAL.WORKDIR_FREE_SPACE_TXT></label>
+						<br><TMPL_VAR GENERAL.WORKDIR_FREE_SPACE_TXT>
 					</DIV>
-					<DIV style="display:table-cell; ">
+					<DIV style="display:table-cell;"><br>
 						<DIV id="workdir_free_space">?</DIV>
 					</DIV>
 				</DIV>
 			</DIV>
+			<br>
+			<DIV style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(0,222,228,.1);">
+				<TMPL_VAR GENERAL.EMAIL_PARAMETERS>
+			</DIV>
+			<DIV style="display:table;">
+				<DIV style="display:table-row;">
+					<DIV style="display:table-cell; text-align:right;">
+						<TMPL_VAR GENERAL.SEND_SUMMARY_EMAILS_TXT>
+					</DIV>
+					<DIV style="display:table-cell; ">
+						<select name="msbackup_use_emails" id="msbackup_use_emails" class="to_save">
+							<option value="off"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_OFF></option>
+							<option value="on"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_ON></option>
+						</select>
+					</DIV>
+				</DIV>
+				<DIV id="email_recipient_div" style="display:table-row;">
+					<DIV style="display:table-cell; text-align:right; padding-right:5px;">
+						<TMPL_VAR GENERAL.SUMMARY_EMAILS_RECIPIENT_TXT>
+					</DIV>
+					<DIV style="display:table-cell;">
+						<input onblur="$('#email_recipient').trigger('change')" autocomplete="nope" data-validation-error-msg="<TMPL_VAR GENERAL.EMAIL_RECIPIENTS_VALIDATE_ERROR>" data-validation-rule="special:emails"  id="email_recipient" name="email_recipient" type="text" class="textfield to_save" placeholder="<TMPL_VAR GENERAL.EMAIL_RECIPIENTS_SUGGESTION>" value="<TMPL_VAR EMAIL_RECIPIENT>">
+					</DIV>
+				</DIV>
+			</DIV>
+
 			<script>
 				$("#workdir_path").val('<TMPL_VAR WORKDIR_PATH>');
 				$( document ).ready(function() 
 				{
 					$("#workdir_path-button").remove(); $("#workdir_path").css('display','').selectmenu( "menuWidget" ); $("#workdir_path").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
 					$("#workdir_path_subdir").val('<TMPL_VAR WORKDIR_PATH_SUBDIR>');
+					$("#email_recipient").val('<TMPL_VAR EMAIL_RECIPIENT>');
 					validate_enable('#workdir_path_subdir');
+					validate_enable('#email_recipient');
 					$('#workdir_path_subdir').trigger('keyup');
+					$('#email_recipient').trigger('keyup');
 				});
 			</script>
 		</DIV>
@@ -471,6 +505,18 @@ span#alert_form_close:hover {
 			$("#msbackup_use_notify").css('background-color','rgba(255,128,128,.2)');
 		}
 
+		if ( $("#msbackup_use_emails").val() == "on" )
+		{
+			$("#msbackup_use_emails").css('background-color','rgba(128,255,128,.2)');
+			$('#email_recipient_div').fadeIn('slow');
+		}
+		else
+		{
+			$("#msbackup_use_emails").css('background-color','rgba(255,128,128,.2)');
+			$('#email_recipient_div').fadeOut('slow');
+			$('#email_recipient_div').val('');
+		}
+
 		if ( $("#msbackup_use").val() == "on" )
 		{
 			$("#msbackup_use").css('background-color','rgba(128,255,128,.2)');
@@ -541,6 +587,25 @@ span#alert_form_close:hover {
 			// Add notify on/off switch
 			postData['msbackup_use_notify'] = $('#msbackup_use_notify').val();
 	
+			// Add emails on/off switch
+			postData['msbackup_use_emails'] = $('#msbackup_use_emails').val();
+
+			if ( $('#msbackup_use_emails').val() == "on" )
+			{
+				// Retrigger check of correct email_recipient
+				if ( validate_chk_value('#email_recipient') )
+				{
+					// Add email_recipient
+					postData['email_recipient'] = $("#email_recipient").val();
+				}
+				else
+				{
+					$('#email_recipient').css('background-color','#FFC0C0');
+					show_error('<TMPL_VAR GENERAL.EMAIL_RECIPIENTS_VALIDATE_ERROR>');
+					return;
+				}
+			}
+
 			// Add workdir_path
 			postData['workdir_path'] = $('#workdir_path').val();
 	

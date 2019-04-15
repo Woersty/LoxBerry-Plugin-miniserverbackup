@@ -160,21 +160,26 @@ if (flock($plugin_cfg_handle, LOCK_EX))
 			}
 			
 	
-		
 		debug($L["MINISERVERBACKUP.INF_0071_CONFIG_PARAM_WRITTEN"]. " ". $config_key. "=" . $config_value );
 		$written = fwrite($plugin_cfg_handle, $config_key . '="' . $config_value .'"'."\n");
-		if ( !$written )
+
+		if ( substr($config_key,0,11) == "LAST_REBOOT" || substr($config_key,0,9) == "LAST_SAVE" )
 		{
-			$output .= "show_error('".$L["ERRORS.ERR_0035_ERROR_WRITE_CONFIG"]." => ".$config_key."');\n";
-			$output .= "$('#".strtolower($config_key)."').css('background-color','#FFC0C0');\n";
+					$output .= "";
 		}
 		else
 		{
-			$output .= "$('#".strtolower($config_key)."').css('background-color','#C0FFC0');\n";
-			$output .= "setTimeout( function() { $('#".strtolower($config_key)."').css('background-color',''); }, 3000);\n";
-		}
-		
-			
+			if ( !$written )
+				{
+					$output .= "show_error('".$L["ERRORS.ERR_0035_ERROR_WRITE_CONFIG"]." => ".$config_key."');\n";
+					$output .= "$('#".strtolower($config_key)."').css('background-color','#FFC0C0');\n";
+				}
+				else
+				{
+					$output .= "$('#".strtolower($config_key)."').css('background-color','#C0FFC0');\n";
+					$output .= "setTimeout( function() { $('#".strtolower($config_key)."').css('background-color',''); }, 3000);\n";
+				}
+			}
 		}
 	}
     fflush($plugin_cfg_handle); // leere Ausgabepuffer bevor die Sperre frei gegeben wird

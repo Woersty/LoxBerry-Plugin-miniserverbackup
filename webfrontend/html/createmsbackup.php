@@ -384,6 +384,7 @@ debug(__line__,$L["MINISERVERBACKUP.INF_0046_BACKUP_BASE_FOLDER_OK"]." (".$saved
 
 foreach ($ms as $msno => $miniserver ) 
 {
+	array_push($summary," ");
 	file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
     debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0004_PROCESSING_MINISERVER"]." ".$msno."/".count($ms)." => ".$miniserver['Name'],5);
 
@@ -430,6 +431,8 @@ foreach ($ms as $msno => $miniserver )
 	{
 	    debug(__line__,"MS#".$msno." ".str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-intval($last_save))/60,1),str_ireplace("<datetime>",date ("d-M-Y H:i:s", $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
 		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0089_INTERVAL_NOT_ELAPSED"],5);
+		array_push($summary,"MS#".$msno." "."<OK> ".str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-intval($last_save))/60,1),str_ireplace("<datetime>",date ("d-M-Y H:i:s", $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))));
+		array_push($summary,"MS#".$msno." "."<OK> ".$L["MINISERVERBACKUP.INF_0089_INTERVAL_NOT_ELAPSED"]);
 		continue;
 	}
 	else
@@ -1678,6 +1681,8 @@ function get_free_space ( $path )
 }
 
 $runtime = microtime(true) - $start;
+
+
 if ($summary)
 {
 	error_log($L["MINISERVERBACKUP.INF_9999_SUMMARIZE_ERRORS"]);
@@ -1686,6 +1691,145 @@ foreach ($summary as &$errors)
 {
 	error_log($errors);
 }
+
+debug(__line__,$L["MINISERVERBACKUP.INF_0116_MAIL_ENABLED"],6);
+if ($plugin_cfg['MSBACKUP_USE_EMAILS'] == "on") 
+{
+	debug(__line__,$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"],6);
+	$mail_config_file   = LBSCONFIGDIR."/mail.json";
+	if (is_readable($mail_config_file)) 
+	{
+		debug(__line__,$L["MINISERVERBACKUP.INF_0115_READ_MAIL_CONFIG"]." => ".$mail_config_file,6);
+		$mail_cfg  = json_decode(file_get_contents($mail_config_file), true);
+	}
+	else
+	{
+		debug(__line__,$L["ERRORS.ERR_0055_ERR_READ_EMAIL_CONFIG"]." => ".$mail_config_file,6);
+		$mail_config_file   = LBSCONFIGDIR."/mail.cfg";
+		debug(__line__,$L["MINISERVERBACKUP.INF_0117_TRY_OLD_EMAIL_CFG"]." => ".$mail_config_file,6);
+
+		if (is_readable($mail_config_file)) 
+		{
+			debug(__line__,$L["MINISERVERBACKUP.INF_0115_READ_MAIL_CONFIG"]." => ".$mail_config_file,6);
+			$mail_cfg    = parse_ini_file($mail_config_file,true);
+		}
+	}
+
+	if ( !isset($mail_cfg) )
+	{
+		debug(__line__,$L["ERRORS.ERR_0055_ERR_READ_EMAIL_CONFIG"],4);
+	}
+	else
+	{
+		debug(__line__,$L["MINISERVERBACKUP.INF_0118_EMAIL_CFG_OK"]." [".$mail_cfg['SMTP']['SMTPSERVER'].":".$mail_cfg['SMTP']['PORT']."]",5);
+		if ( $mail_cfg['SMTP']['ISCONFIGURED'] == "0" )
+		{
+			debug(__line__,$L["MINISERVERBACKUP.INF_0119_EMAIL_NOT_CONFIGURED"],6);
+		}
+		else
+		{
+			$datetime    = new DateTime;
+			$datetime->getTimestamp();
+			$outer_boundary= md5("o".time());
+			$inner_boundary= md5("i".time());
+			$htmlpic="";
+			$mailTo = $plugin_cfg['EMAIL_RECIPIENT'];
+			#$mailTo = substr($mailTo,0,-1);
+			
+			$mailFromName   = $L["EMAIL.EMAIL_FROM_NAME"];  // Sender name fix from Language file
+			if ( isset($mail_cfg['SMTP']['EMAIL']) )
+			{
+			  $mailFrom =	trim(str_ireplace('"',"",$mail_cfg['SMTP']['EMAIL']));
+			  if ( !isset($mailFromName) )
+			  {
+			      $mailFromName   = "\"LoxBerry\"";  // Sender name
+			  }
+			}
+			
+			debug(__line__,$L["MINISERVERBACKUP.INF_0120_SEND_EMAIL_INFO"]." From: ".$mailFromName.htmlentities(" <".$mailFrom."> ")." To: ".$mailTo,5);
+			
+			$html = "From: ".$mailFromName." <".$mailFrom.">
+To: ".$mailTo."
+Subject: ".utf8_encode($L["EMAIL.EMAIL_SUBJECT"])." 
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary=\"------------".$outer_boundary."\"
+
+This is a multi-part message in MIME format.
+--------------".$outer_boundary."
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+
+
+
+
+
+".strip_tags( $L["EMAIL.EMAIL_BODY"] )."\n\n".strip_tags(implode("\n",$summary))."
+
+
+\n--\n".strip_tags($L["EMAIL.EMAIL_SINATURE"])."
+
+--------------".$outer_boundary."
+Content-Type: multipart/related;
+ boundary=\"------------".$inner_boundary."\"
+
+
+--------------".$inner_boundary."
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+<html>
+  <head>
+    <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">
+  </head>
+  <body style=\"margin:0px;\" text=\"#000000\" bgcolor=\"#FFFFFF\">
+  
+";
+			$htmlpicdata="";
+			$inline  =  'inline';
+			$email_image_part =  "\n<img src=\"cid:logo_".$datetime->format("Y-m-d_i\hh\mH\s")."_".$msno."\" alt=\"[Logo]\" />\n<br>";
+			$htmlpic 	 .= $email_image_part;
+			$htmlpicdata .= "--------------".$inner_boundary."
+Content-Type: image/jpeg; name=\"logo_".$datetime->format("Y-m-d_i\hh\mH\s")."_".$msno.".png\"
+Content-Transfer-Encoding: base64
+Content-ID: <logo_".$datetime->format("Y-m-d_i\hh\mH\s")."_".$msno.">
+Content-Disposition: ".$inline."; filename=\"logo_".$datetime->format("Y-m-d_i\hh\mH\s")."_".$msno.".png\"
+
+".chunk_split(base64_encode(file_get_contents('logo.png')))."\n";
+			$html .= $htmlpic;
+			$html .= "<div style=\"padding:10px;\"><font face=\"Verdana\">".$L["EMAIL.EMAIL_BODY"]."<br>";
+			
+			foreach ($summary as &$errors) 
+			{
+			$html .= "<br>".nl2br($errors);
+			}
+			$html .="<br><br> \n\n--<br>".$L["EMAIL.EMAIL_SINATURE"]." </font></div></body></html>\n\n";
+			$html .= $htmlpicdata;
+			$html .= "--------------".$inner_boundary."--\n\n";
+			$html .= "--------------".$outer_boundary."--\n\n";
+			$tmpfname = tempnam("/tmp", "msbackup_mail_");
+			$handle = fopen($tmpfname, "w") or debug(__line__,$L["ERRORS.ERR_0056_ERR_OPEN_TEMPFILE_EMAIL"]." ".$tmpfname,4);
+			fwrite($handle, $html) or debug(__line__,$L["ERRORS.ERR_0057_ERR_WRITE_TEMPFILE_EMAIL"]." ".$tmpfname,4);
+			fclose($handle);
+			exec("/usr/sbin/sendmail -t 2>&1 < $tmpfname ",$last_line,$retval);
+			unlink($tmpfname) or debug(__line__,$L["ERRORS.ERR_0058_ERR_DELETE_TEMPFILE_EMAIL"]." ".$tmpfname,4);
+			debug(__line__,"Sendmail Return: ".join("\n",$last_line),7);
+			if($retval)
+			{
+				debug(__line__,$L["ERRORS.ERR_0059_ERR_SEND_EMAIL"]."Code: ".$retval,3);
+			}
+			else
+			{
+				debug(__line__,$L["MINISERVERBACKUP.INF_0121_EMAIL_SEND_OK"],5);
+			}
+		}		
+	}
+}
+else
+{
+	debug(__line__,$L["MINISERVERBACKUP.INF_0037_DEBUG_NO"],6);
+}
+
 sleep(3); // To prevent misdetection in createmsbackup.pl
 file_put_contents($backupstate_file, "-");
 debug(__line__,$L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
