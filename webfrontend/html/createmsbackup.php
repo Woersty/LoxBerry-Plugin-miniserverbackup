@@ -432,8 +432,6 @@ foreach ($ms as $msno => $miniserver )
 		}
 		if ( $argv[1] == "symlink" && $backupinterval != "-1" )
 		{
-			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0123_SYMLINKS_AFTER_UPGRADE"]." -> ".$bkp_dest_dir."/".$bkpfolder." => ".$finalstorage);
-
 			#If it's a file, delete it
 			if ( is_file($bkp_dest_dir."/".$bkpfolder) )
 			{
@@ -456,6 +454,7 @@ foreach ($ms as $msno => $miniserver )
 				unlink($bkp_dest_dir."/".$bkpfolder);
 			}
 			#Create a fresh local link from html file browser to final storage location
+			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0123_SYMLINKS_AFTER_UPGRADE"]." -> ".$bkp_dest_dir."/".$bkpfolder." => ".$finalstorage,5);
 			symlink($finalstorage,$bkp_dest_dir."/".$bkpfolder);
 			continue;
 		}
@@ -1458,8 +1457,8 @@ class MSbackupZIP
 			curl_setopt($curl_save, CURLOPT_RETURNTRANSFER, true); 
 			$output_sd_test = curl_exec($curl_save);
 			curl_close($curl_save); 
-			$search  = array('<?xml version="1.0" encoding="utf-8"?>',"\n","\r",'<LL control="dev/sys/sdtest" value="', '/>');
-			$replace = array('','','','','');
+			$search  = array('<?xml version="1.0" encoding="utf-8"?>',"\n","\r",'<LL control="dev/sys/sdtest" value="', '/>','" Code="200"');
+			$replace = array('','','','','','');
 			$test_result = str_replace($search, $replace, $output_sd_test);
 			$pos = strpos($test_result, ",");
 			array_push($summary,"MS#".$msno." "."<INFO> ".$L["MINISERVERBACKUP.INF_0106_RESULT_SD_TEST"]." ".substr($test_result,0,$pos));
