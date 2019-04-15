@@ -382,6 +382,7 @@ if (!is_dir($savedir_path))
 }
 debug(__line__,$L["MINISERVERBACKUP.INF_0046_BACKUP_BASE_FOLDER_OK"]." (".$savedir_path.")",6); 
 
+$at_least_one_save = 0;
 foreach ($ms as $msno => $miniserver ) 
 {
 	array_push($summary," ");
@@ -1254,6 +1255,7 @@ foreach ($ms as $msno => $miniserver )
 	create_clean_workdir_tmp($workdir_tmp);
 	file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
 	system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_SAVE'.$msno.'='.time());
+	$at_least_one_save = 1;
 }
 debug(__line__,$L["MINISERVERBACKUP.INF_0019_BACKUPS_COMPLETE"],5);
 curl_close($curl); 
@@ -1693,7 +1695,7 @@ foreach ($summary as &$errors)
 }
 
 debug(__line__,$L["MINISERVERBACKUP.INF_0116_MAIL_ENABLED"],6);
-if ($plugin_cfg['MSBACKUP_USE_EMAILS'] == "on") 
+if ($plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" && $at_least_one_save == 1)  
 {
 	debug(__line__,$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"],6);
 	$mail_config_file   = LBSCONFIGDIR."/mail.json";
@@ -1764,7 +1766,7 @@ Content-Transfer-Encoding: 8bit
 
 
 
-".strip_tags( $L["EMAIL.EMAIL_BODY"] )."\n\n".strip_tags(implode("\n",$summary))."
+".strip_tags( $L["EMAIL.EMAIL_BODY"] )."\n".strip_tags(implode("\n",$summary))."
 
 
 \n--\n".strip_tags($L["EMAIL.EMAIL_SINATURE"])."
@@ -1797,7 +1799,7 @@ Content-Disposition: ".$inline."; filename=\"logo_".$datetime->format("Y-m-d_i\h
 
 ".chunk_split(base64_encode(file_get_contents('logo.png')))."\n";
 			$html .= $htmlpic;
-			$html .= "<div style=\"padding:10px;\"><font face=\"Verdana\">".$L["EMAIL.EMAIL_BODY"]."<br>";
+			$html .= "<div style=\"padding:10px;\"><font face=\"Verdana\">".$L["EMAIL.EMAIL_BODY"];
 			
 			foreach ($summary as &$errors) 
 			{
