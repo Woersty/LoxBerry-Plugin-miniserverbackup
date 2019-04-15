@@ -1490,6 +1490,7 @@ function read_ms_tree ($folder)
 	}
 	foreach(explode("\n",$read_data) as $k=>$read_data_line)
 	{
+		$read_data_line = trim(preg_replace("/[\n\r]/","",$read_data_line));
 		if(preg_match("/^d.*/i", $read_data_line))
 		{
 			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0010_DIRECTORY_FOUND"]." ".$read_data_line);
@@ -1519,6 +1520,11 @@ function read_ms_tree ($folder)
 				4=Time
 				5=Filename
 				*/
+				if (preg_match("/^sys_.*\.zip/i", $filename[5]) && $folder == "/sys/" )
+				{
+					debug(__line__,$L["MINISERVERBACKUP.INF_0122_IGNORING_SYS_ZIP"]." ".$filename[5],6);
+					continue;
+				}
 				$dtime = DateTime::createFromFormat("M d H:i", $filename[2]." ".$filename[3]." ".$filename[4]);
 				$timestamp = $dtime->getTimestamp();
 				if ($timestamp > time() )
@@ -1528,17 +1534,17 @@ function read_ms_tree ($folder)
 					// subtract one year from the previously guessed filetime.
 					$dtime = DateTime::createFromFormat("Y M d H:i", (date("Y") - 1)." ".$filename[2]." ".$filename[3]." ".$filename[4]);
 					$timestamp = $dtime->getTimestamp();
-					debug(__line__,preg_replace("/[\n\r]/","","MS#".$msno." ".$L["MINISERVERBACKUP.INF_0023_FUTURE_TIMESTAMP"]." ".$folder.$filename[5]),6);
+					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0023_FUTURE_TIMESTAMP"]." ".$folder.$filename[5],6);
 				}
-				debug(__line__,preg_replace("/[\n\r]/","","MS#".$msno." ".$L["MINISERVERBACKUP.INF_0024_FILE_TIMESTAMP"]." ".date("d.m. H:i",$timestamp)." (".$timestamp.") ".$folder.$filename[5]),6);
-				$filename[5] = trim($filename[5]);
+				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0024_FILE_TIMESTAMP"]." ".date("d.m. H:i",$timestamp)." (".$timestamp.") ".$folder.$filename[5],6);
+				
 				if ($filename[1] == 0)
 				{
-					debug(__line__,preg_replace("/[\n\r]/","","MS#".$msno." ".$L["ERRORS.ERR_0014_ZERO_FILESIZE"]." ".$folder.$filename[5]." (".$filename[1]." Bytes)"),5);
+					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0014_ZERO_FILESIZE"]." ".$folder.$filename[5]." (".$filename[1]." Bytes)",5);
 				}
 				else
 				{
-					debug(__line__,preg_replace("/[\n\r]/","","MS#".$msno." ".$L["MINISERVERBACKUP.INF_0014_EXTRACTED_NAME_FILE"]." ".$folder.$filename[5]." (".$filename[1]." Bytes)"),6);
+					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0014_EXTRACTED_NAME_FILE"]." ".$folder.$filename[5]." (".$filename[1]." Bytes)",6);
 					array_push($filetree["name"], $folder.$filename[5]);
 					array_push($filetree["size"], $filename[1]);
 					array_push($filetree["time"], $timestamp);
@@ -1546,7 +1552,7 @@ function read_ms_tree ($folder)
 			}
 			else
 			{
-				debug(__line__,preg_replace("/[\n\r]/","","MS#".$msno." ".$L["ERRORS.ERR_0006_UNABLE_TO_EXTRACT_NAME"]." ".$read_data_line),4);
+				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0006_UNABLE_TO_EXTRACT_NAME"]." ".$read_data_line,4);
 			}
 		}
   	}
@@ -1835,3 +1841,4 @@ else
 sleep(3); // To prevent misdetection in createmsbackup.pl
 file_put_contents($backupstate_file, "-");
 debug(__line__,$L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+                                                                                                                                                        
