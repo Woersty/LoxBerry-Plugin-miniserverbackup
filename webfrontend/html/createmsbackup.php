@@ -82,7 +82,7 @@ function debug($line,$message = "", $loglevel = 7)
 			        break;
 			    case 7:
 			    default:
-			    	$message = $message." @".$line;
+			    	$message = $message;
 			        error_log(          $message );
 			        break;
 			}
