@@ -1734,7 +1734,7 @@ if ($plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" && $at_least_one_save == 1)
 	}
 	else
 	{
-		debug(__line__,$L["MINISERVERBACKUP.INF_0118_EMAIL_CFG_OK"]." [".$mail_cfg['SMTP']['SMTPSERVER'].":".$mail_cfg['SMTP']['PORT']."]",5);
+		debug(__line__,$L["MINISERVERBACKUP.INF_0118_EMAIL_CFG_OK"]." [".$mail_cfg['SMTP']['SMTPSERVER'].":".$mail_cfg['SMTP']['PORT']."]",6);
 		if ( $mail_cfg['SMTP']['ISCONFIGURED'] == "0" )
 		{
 			debug(__line__,$L["MINISERVERBACKUP.INF_0119_EMAIL_NOT_CONFIGURED"],6);
@@ -1759,7 +1759,7 @@ if ($plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" && $at_least_one_save == 1)
 			  }
 			}
 			
-			debug(__line__,$L["MINISERVERBACKUP.INF_0120_SEND_EMAIL_INFO"]." From: ".$mailFromName.htmlentities(" <".$mailFrom."> ")." To: ".$mailTo,5);
+			debug(__line__,$L["MINISERVERBACKUP.INF_0120_SEND_EMAIL_INFO"]." From: ".$mailFromName.htmlentities(" <".$mailFrom."> ")." To: ".$mailTo,6);
 			
 			$html = "From: ".$mailFromName." <".$mailFrom.">
 To: ".$mailTo."
