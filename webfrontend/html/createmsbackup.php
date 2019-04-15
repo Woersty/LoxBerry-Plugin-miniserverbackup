@@ -453,6 +453,12 @@ foreach ($ms as $msno => $miniserver )
 				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0045_DEBUG_DELETE_FILE"]." -> ".$bkp_dest_dir."/".$bkpfolder);
 				unlink($bkp_dest_dir."/".$bkpfolder);
 			}
+
+			if (substr($finalstorage, -1) == "+")
+			{
+				$finalstorage = substr($finalstorage,0, -1)."/".$bkpfolder;
+			}
+
 			#Create a fresh local link from html file browser to final storage location
 			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0123_SYMLINKS_AFTER_UPGRADE"]." -> ".$bkp_dest_dir."/".$bkpfolder." => ".$finalstorage,5);
 			symlink($finalstorage,$bkp_dest_dir."/".$bkpfolder);
