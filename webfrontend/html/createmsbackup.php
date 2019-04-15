@@ -406,6 +406,7 @@ foreach ($ms as $msno => $miniserver )
 	$backupinterval			= $plugin_cfg["BACKUP_INTERVAL".$msno];
 	$backups_to_keep		= 7;
 	$backups_to_keep		= $plugin_cfg["BACKUPS_TO_KEEP".$msno];
+	$bkpfolder 				= str_pad($msno,3,0,STR_PAD_LEFT)."_".$miniserver['Name'];
 	
 	$last_save 				= "";
 	if ( $backupinterval != "-1" )
@@ -428,6 +429,35 @@ foreach ($ms as $msno => $miniserver )
 		if ( $argv[1] == "manual" )
 		{
 			$manual_backup = 1;
+		}
+		if ( $argv[1] == "symlink" && $backupinterval != "-1" )
+		{
+			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0123_SYMLINKS_AFTER_UPGRADE"]." -> ".$bkp_dest_dir."/".$bkpfolder." => ".$finalstorage);
+
+			#If it's a file, delete it
+			if ( is_file($bkp_dest_dir."/".$bkpfolder) )
+			{
+				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0045_DEBUG_DELETE_FILE"]." -> ".$bkp_dest_dir."/".$bkpfolder);
+				@unlink($bkp_dest_dir."/".$bkpfolder);
+			}
+			#If it's no link, delete it
+			if ( !is_link($bkp_dest_dir."/".$bkpfolder) )
+			{
+				#If it's a local dir, delete it
+				if (is_dir($bkp_dest_dir."/".$bkpfolder)) 
+				{
+					rrmdir($bkp_dest_dir."/".$bkpfolder);
+				}
+			}
+			else
+			{
+				#If it's link, delete it
+				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0045_DEBUG_DELETE_FILE"]." -> ".$bkp_dest_dir."/".$bkpfolder);
+				unlink($bkp_dest_dir."/".$bkpfolder);
+			}
+			#Create a fresh local link from html file browser to final storage location
+			symlink($finalstorage,$bkp_dest_dir."/".$bkpfolder);
+			continue;
 		}
 	}
 
@@ -587,7 +617,6 @@ foreach ($ms as $msno => $miniserver )
 		}
 	}
 
-	$bkpfolder 	= str_pad($msno,3,0,STR_PAD_LEFT)."_".$miniserver['Name'];
 	$bkpdir 	= $backup_file_prefix.trim($local_ip[1])."_".date("YmdHis",time())."_".$ms_version_dir;
 	debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0027_CREATE_BACKUPFOLDER"]." ".$bkpdir." + ".$bkpfolder,6);
 
