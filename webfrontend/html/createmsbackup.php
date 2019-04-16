@@ -386,6 +386,7 @@ if (!is_dir($savedir_path))
 debug(__line__,$L["MINISERVERBACKUP.INF_0046_BACKUP_BASE_FOLDER_OK"]." (".$savedir_path.")",6); 
 
 $at_least_one_save = 0;
+array_push($summary,"<HR> ");
 foreach ($ms as $msno => $miniserver ) 
 {
 	array_push($summary," ");
@@ -1299,6 +1300,7 @@ foreach ($ms as $msno => $miniserver )
 	file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
 	system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_SAVE'.$msno.'='.time());
 	$at_least_one_save = 1;
+	array_push($summary,"<HR> ");
 }
 debug(__line__,$L["MINISERVERBACKUP.INF_0019_BACKUPS_COMPLETE"],5);
 curl_close($curl); 
@@ -1740,7 +1742,10 @@ if ($summary)
 }
 foreach ($summary as &$errors) 
 {
-	error_log($errors);
+	if ( ! preg_match("/<HR>/i", $errors) )
+	{
+		error_log($errors);
+	}
 }
 
 debug(__line__,$L["MINISERVERBACKUP.INF_0116_MAIL_ENABLED"],6);
@@ -1854,7 +1859,7 @@ Content-Disposition: ".$inline."; filename=\"logo_".$datetime->format("Y-m-d_i\h
 
 ".chunk_split(base64_encode(file_get_contents('logo.png')))."\n";
 			$html .= $htmlpic;
-			$html .= "<div style=\"padding:10px;\"><font face=\"Verdana\">".$L["EMAIL.EMAIL_BODY"]."<br><br>";
+			$html .= "<div style=\"padding:10px;\"><font face=\"Verdana\">".$L["EMAIL.EMAIL_BODY"]."<br>";
 			$err_html = "";
 
 			foreach ($summary as &$errors) 
@@ -1894,7 +1899,7 @@ Content-Disposition: ".$inline."; filename=\"logo_".$datetime->format("Y-m-d_i\h
 			$err_html 	 = preg_replace('/<O>/i',' ',$err_html);
 			
 			$html 		.= preg_replace('/<br>\\s<br>+/i','',$err_html);
-			$html .="<br><br> \n\n--<br>".$L["EMAIL.EMAIL_SINATURE"]." </font></div></body></html>\n\n";
+			$html .="<br>\n\n--<br>".$L["EMAIL.EMAIL_SINATURE"]." </font></div></body></html>\n\n";
 			$html .= $htmlpicdata;
 			$html .= "--------------".$inner_boundary."--\n\n";
 			$html .= "--------------".$outer_boundary."--\n\n";
