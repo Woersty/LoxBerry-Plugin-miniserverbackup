@@ -1302,6 +1302,7 @@ foreach ($ms as $msno => $miniserver )
 	$at_least_one_save = 1;
 	array_push($summary,"<HR> ");
 }
+array_push($summary," ");
 debug(__line__,$L["MINISERVERBACKUP.INF_0019_BACKUPS_COMPLETE"],5);
 curl_close($curl); 
 debug(__line__,$L["MINISERVERBACKUP.INF_0034_DEBUG_DIRECTORY_DELETE"]." -> ".$workdir_tmp);
