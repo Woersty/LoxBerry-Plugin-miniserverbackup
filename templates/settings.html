@@ -523,6 +523,8 @@ span#alert_form_close:hover {
 		}
 		else
 		{
+			$('#btnbackup').addClass('ui-disabled');
+			$("#btnbackup").text("<TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_OFF>");
 			$("#msbackup_use").css('background-color','rgba(255,128,128,.2)');
 			return;
 		}
