@@ -43,7 +43,7 @@ function debug($line,$message = "", $loglevel = 7)
 	{
 		$message = preg_replace('/["]/','',$message); // Remove quotes => https://github.com/mschlenstedt/Loxberry/issues/655
 		$raw_message = $message;
-		if ( $plugindata['PLUGINDB_LOGLEVEL'] >= 6 ) $message .= " ".$L["ERRORS.LINE"]." ".$line;
+		if ( $plugindata['PLUGINDB_LOGLEVEL'] >= 6 && $L["ERRORS.LINE"] != "" ) $message .= " ".$L["ERRORS.LINE"]." ".$line;
 		if ( isset($message) && $message != "" ) 
 		{
 
