@@ -387,8 +387,11 @@ debug(__line__,$L["MINISERVERBACKUP.INF_0046_BACKUP_BASE_FOLDER_OK"]." (".$saved
 
 $at_least_one_save = 0;
 array_push($summary,"<HR> ");
-foreach ($ms as $msno => $miniserver ) 
+
+ksort($ms);
+for ( $msno = 1; $msno <= count($ms); $msno++ ) 
 {
+	$miniserver = $ms[$msno];
 	array_push($summary," ");
 	file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
     debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0004_PROCESSING_MINISERVER"]." ".$msno."/".count($ms)." => ".$miniserver['Name'],5);
@@ -549,6 +552,7 @@ foreach ($ms as $msno => $miniserver )
 			case "418":
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0053_CLOUDDNS_ERROR_418"]." => ".$miniserver['Name'],4);
 				sleep(3660);
+				$msno--;
 				$cloudcancel=1;
 			break;
 
