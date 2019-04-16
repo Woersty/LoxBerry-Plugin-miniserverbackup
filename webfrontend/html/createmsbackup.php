@@ -1433,12 +1433,12 @@ class MSbackupZIP
 			if ( array_sum($error_count) > 20 )
 			{
 				array_push($summary,"MS#".$msno." "."<WARNING> ".$L["ERRORS.ERR_0025_SD_CARD_ERRORS_DETECTED"]." => ".array_sum($error_count)." => ".$L["ERRORS.ERR_0027_LAST_SD_CARD_ERROR_DETECTED"]." ".$match);
-				array_push($summary,"MS#".$msno." "."<INFO> ".$L["MINISERVERBACKUP.INF_0104_SUMMARY_SD_ERRORS"]."\n"."MS#".$msno." "."<INFO> ".join("\n"."MS#".$msno." "."<INFO>",str_ireplace('\n','',$SDC_matches)));
+				array_push($summary,"MS#".$msno." "."<INFO> ".$L["MINISERVERBACKUP.INF_0104_SUMMARY_SD_ERRORS"]."\n"."MS#".$msno." "."<INFO> ".join("\n"."MS#".$msno." "."<INFO>",str_ireplace('\n','',$founds)));
 			}
 			else
 			{
-				array_push($summary,"MS#".$msno." "."<INFO> ".$L["ERRORS.ERR_0025_SD_CARD_ERRORS_DETECTED"]." => ".array_sum($error_count)." => ".$L["ERRORS.ERR_0027_LAST_SD_CARD_ERROR_DETECTED"]." ".$match);
-				array_push($summary,"MS#".$msno." "."<INFO> ".$L["MINISERVERBACKUP.INF_0104_SUMMARY_SD_ERRORS"]."\n"."MS#".$msno." "."<INFO> ".join("\n"."MS#".$msno." "."<INFO>",str_ireplace('\n','',$SDC_matches)));
+				array_push($summary,"MS#".$msno." "."<INFO> ".$L["ERRORS.ERR_0025_SD_CARD_ERRORS_DETECTED"]." => ".array_sum($error_count)." => ".$L["ERRORS.ERR_0027_LAST_SD_CARD_ERROR_DETECTED"]." ".$match_severe);
+				array_push($summary,"MS#".$msno." "."<INFO> ".$L["MINISERVERBACKUP.INF_0104_SUMMARY_SD_ERRORS"]."\n"."MS#".$msno." "."<INFO> ".join("\n"."MS#".$msno." "."<INFO>",str_ireplace('\n','',$founds_severe)));
 			}
 			
 		}
@@ -1854,12 +1854,46 @@ Content-Disposition: ".$inline."; filename=\"logo_".$datetime->format("Y-m-d_i\h
 
 ".chunk_split(base64_encode(file_get_contents('logo.png')))."\n";
 			$html .= $htmlpic;
-			$html .= "<div style=\"padding:10px;\"><font face=\"Verdana\">".$L["EMAIL.EMAIL_BODY"];
-			
+			$html .= "<div style=\"padding:10px;\"><font face=\"Verdana\">".$L["EMAIL.EMAIL_BODY"]."<br><br>";
+			$err_html = "";
+
 			foreach ($summary as &$errors) 
 			{
-			$html .= "<br>".nl2br($errors);
+				if ( preg_match("/<INFO>/i", $errors) )
+				{
+					$err_html .= "<br><span style='color:#000000; background-color:#DDEFFF'>".nl2br($errors)."</span>";
+				}
+				else if ( preg_match("/<OK>/i", $errors) )
+				{
+					$err_html .= "<br><span style='color:#000000; background-color:#D8FADC'>".nl2br($errors)."</span>";
+				}
+				else if ( preg_match("/<WARNING>/i", $errors)  )
+				{
+					$err_html .= "<br><span style='color:#000000; background-color:#FFFFC0'>".nl2br($errors)."</span>";
+				}
+				else if ( preg_match("/<ERROR>/i", $errors)  )
+				{
+					$err_html .= "<br><span style='color:#000000; background-color:#FFE0E0'>".nl2br($errors)."</span>";
+				}
+				else if ( preg_match("/<CRITICAL>/i", $errors)  )
+				{
+					$err_html .= "<br><span style='color:#000000; background-color:#FFc0c0'>".nl2br($errors)."</span>";
+				}
+				else if ( preg_match("/<ALERT>/i", $errors)  )
+				{
+					$err_html .= "<br><span style='color:#ffffff; background-color:#0000a0'>".nl2br($errors)."</span>";
+				}
+				else
+				{
+					$err_html .= "<br>".nl2br($errors);
+				}
 			}
+			$err_html 	 = preg_replace('/\\n+/i','',$err_html);
+			$err_html 	 = preg_replace('/\\r+/i','',$err_html);
+			$err_html 	 = preg_replace('/\s\s+/i',' ',$err_html);
+			$err_html 	 = preg_replace('/<O>/i',' ',$err_html);
+			
+			$html 		.= preg_replace('/<br>\\s<br>+/i','',$err_html);
 			$html .="<br><br> \n\n--<br>".$L["EMAIL.EMAIL_SINATURE"]." </font></div></body></html>\n\n";
 			$html .= $htmlpicdata;
 			$html .= "--------------".$inner_boundary."--\n\n";
