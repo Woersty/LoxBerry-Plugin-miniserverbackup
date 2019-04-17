@@ -476,6 +476,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0089_INTERVAL_NOT_ELAPSED"],5);
 		array_push($summary,"MS#".$msno." "."<OK> ".str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-intval($last_save))/60,1),str_ireplace("<datetime>",date ("d-M-Y H:i:s", $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))));
 		array_push($summary,"MS#".$msno." "."<OK> ".$L["MINISERVERBACKUP.INF_0089_INTERVAL_NOT_ELAPSED"]);
+		array_push($summary," ");
 		continue;
 	}
 	else
@@ -590,6 +591,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	if(curl_exec($curl) === false)
 	{
 		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0018_ERROR_READ_LOCAL_MS_IP"]." ".$miniserver['Name']." ".curl_error($curl),3);
+		array_push($summary," ");
 		continue;
 	}	
 	else
@@ -602,6 +604,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		else
 		{
 			debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0018_ERROR_READ_LOCAL_MS_IP"]." ".$url." => ".nl2br(htmlentities($read_line)),3);
+			array_push($summary," ");
 			continue;
 		}
 	}
@@ -949,6 +952,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		}
 		if ( $crit_issue == 1 )
 		{
+			array_push($summary," ");
 			continue;
 		}
 		
@@ -996,6 +1000,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0049_ERR_INVALID_MOUNTPOINT"]." ".$finalstorage,3);
 				create_clean_workdir_tmp($workdir_tmp);
 				file_put_contents($backupstate_file,"-");
+				array_push($summary," ");
 				continue;
 			}
 			$finalstorage .= "/".$bkpfolder;
@@ -1013,6 +1018,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0049_ERR_INVALID_MOUNTPOINT"]." ".$finalstorage,3);
 				create_clean_workdir_tmp($workdir_tmp);
 				file_put_contents($backupstate_file,"-");
+				array_push($summary," ");
 				continue;
 			}
 		} 
@@ -1031,6 +1037,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0012_PROBLEM_CREATING_SAVE_DIR"]." ".$finalstorage,3);
 		create_clean_workdir_tmp($workdir_tmp);
 		file_put_contents($backupstate_file,"-");
+		array_push($summary," ");
 		continue;
 	}
 
@@ -1040,6 +1047,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0039_FINAL_STORAGE_NOT_WRITABLE"],3);
 		create_clean_workdir_tmp($workdir_tmp);
 		file_put_contents($backupstate_file,"-");
+		array_push($summary," ");
 		continue;
 	}
 
@@ -1076,6 +1084,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			debug (__line__,$L["ERRORS.ERR_0054_NOT_ENOUGH_FREE_SPACE"]." ".formatBytes($full_backup_size)." => ".formatBytes(get_free_space($finalstorage)),2);
 			create_clean_workdir_tmp($workdir_tmp);
 			file_put_contents($backupstate_file, "-");
+			array_push($summary," ");
 			continue;
 		}
 		else
@@ -1296,6 +1305,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0039_FINAL_STORAGE_NOT_WRITABLE"]." ".$finalstorage,3);
 		create_clean_workdir_tmp($workdir_tmp);
 		file_put_contents($backupstate_file,"-");
+		array_push($summary," ");
 		continue;
 
 	}
