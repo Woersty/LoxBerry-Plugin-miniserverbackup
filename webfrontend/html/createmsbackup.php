@@ -552,7 +552,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			break;
 			case "418":
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0053_CLOUDDNS_ERROR_418"]." => ".$miniserver['Name'],4);
-				sleep(3660);
+				sleep(7320);
 				$msno--;
 				$cloudcancel=1;
 			break;
@@ -1911,8 +1911,7 @@ Content-Disposition: ".$inline."; filename=\"logo_".$datetime->format("Y-m-d_i\h
 			$err_html 	 = preg_replace('/\\n+/i','',$err_html);
 			$err_html 	 = preg_replace('/\\r+/i','',$err_html);
 			$err_html 	 = preg_replace('/\s\s+/i',' ',$err_html);
-			$err_html 	 = preg_replace('/<O>/i',' ',$err_html);
-			
+			$err_html 	 = preg_replace('/<HR>\s<br>+/i','<HR>',$err_html);
 			$html 		.= preg_replace('/<br>\\s<br>+/i','',$err_html);
 			$html .="<br>\n\n--<br>".$L["EMAIL.EMAIL_SINATURE"]." </font></div></body></html>\n\n";
 			$html .= $htmlpicdata;
