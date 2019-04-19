@@ -72,6 +72,7 @@ my @ms;
 my %row_gen;
 my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup', filename => $lbplogdir ."/". $logfile, append => 1 );
 my $do="form";
+my $which="0";
 my $msDisabled;
 our $tag_id;
 our $ms_id;
@@ -105,6 +106,7 @@ if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 # Prevent errors in Apache error log
 $R::delete_log if (0);
 $do = $R::do if ($R::do);
+$which = $R::which if ($R::which);
 
 my $lang = lblanguage();
 LOGDEB   "Language is: " . $lang;
@@ -320,7 +322,6 @@ my %SUC = LoxBerry::System::readlanguage($successtemplate, $languagefile);
 ##########################################################################
 # Main program
 ##########################################################################
-
 
 LOGDEB "Is it a start backup call?";
 if ( $do eq "backup") { &backup; };
@@ -549,8 +550,8 @@ sub error
 			 open STDIN, "</dev/null";
 			 open STDOUT, ">/dev/null";
 			 open STDERR, ">/dev/null";
-			 LOGDEB "call $lbcgidir/bin/createmsbackup.pl manual";
-			 system("$lbcgidir/bin/createmsbackup.pl manual &");
+			 LOGDEB "call $lbcgidir/bin/createmsbackup.pl manual $which ";
+			 system("$lbcgidir/bin/createmsbackup.pl manual $which &");
 		}
 		print ($L{"GENERAL.MY_NAME"}." OK");
 		exit;

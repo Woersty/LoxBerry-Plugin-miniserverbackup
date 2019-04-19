@@ -130,7 +130,7 @@ $plugindata = LBSystem::plugindata();
 debug(__line__,"Loglevel: ".$plugindata['PLUGINDB_LOGLEVEL'],6);
 
 // Plugin version
-debug(__line__,"Version: ".LBSystem::pluginversion(),5);
+debug(__line__,"Version: ".LBSystem::pluginversion(),6);
 
 // Read language
 $L = LBSystem::readlanguage("language.ini");
@@ -392,6 +392,17 @@ ksort($ms);
 for ( $msno = 1; $msno <= count($ms); $msno++ ) 
 {
 	$miniserver = $ms[$msno];
+	if (isset($argv[2])) 
+	{
+		if ( intval($argv[2]) == $msno )
+		{
+			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0124_MANUAL_SAVE_SINGLE_MS"]." ".$msno."/".count($ms)." => ".$miniserver['Name'],5);
+		}
+		else
+		{
+			continue;
+		}
+	}
 	array_push($summary," ");
 	file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
     debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0004_PROCESSING_MINISERVER"]." ".$msno."/".count($ms)." => ".$miniserver['Name'],5);
@@ -469,7 +480,6 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			continue;
 		}
 	}
-
 	if ( ( $backupinterval > ((time()-intval($last_save))/60) || $backupinterval == "0" ) && $manual_backup != "1")
 	{
 	    debug(__line__,"MS#".$msno." ".str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-intval($last_save))/60,1),str_ireplace("<datetime>",date ("d-M-Y H:i:s", $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
@@ -1316,6 +1326,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	$at_least_one_save = 1;
 	array_push($summary,"<HR> ");
 }
+if ( $msno > count($ms) ) { $msno = ""; };
 array_push($summary," ");
 debug(__line__,$L["MINISERVERBACKUP.INF_0019_BACKUPS_COMPLETE"],5);
 curl_close($curl); 
@@ -1697,13 +1708,22 @@ function rrmdir($dir)
 	global $L,$start,$backupstate_file,$msno;
 	if (is_dir($dir)) 
 	{
+		if ( $msno != "" ) 
+		{
+				$msinfo = "MS#".$msno." ";
+		}
+		else
+		{
+				$msinfo	= "";
+		}
+
 		if (!is_writable($dir) ) 
 		{
-			debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0023_PERMISSON_PROBLEM"]." -> ".$dir,3);
+			debug(__line__,$msinfo.$L["ERRORS.ERR_0023_PERMISSON_PROBLEM"]." -> ".$dir,3);
 			$runtime = microtime(true) - $start;
 			sleep(3); // To prevent misdetection in createmsbackup.pl
 			file_put_contents($backupstate_file, "-");
-			debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+			debug(__line__,$msinfo.$L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
 			exit(1);
 		}
 		$objects = scandir($dir);
@@ -1717,13 +1737,13 @@ function rrmdir($dir)
 				}
 			 	else 
 			 	{
-			 		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0045_DEBUG_DELETE_FILE"]." -> ".$dir."/".$object);
+			 		debug(__line__,$msinfo.$L["MINISERVERBACKUP.INF_0045_DEBUG_DELETE_FILE"]." -> ".$dir."/".$object);
 			 		unlink($dir."/".$object);
 			 	}
 			}
 		}
 		reset($objects);
-		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0034_DEBUG_DIRECTORY_DELETE"]." -> ".$dir);
+		debug(__line__,$msinfo.$L["MINISERVERBACKUP.INF_0034_DEBUG_DIRECTORY_DELETE"]." -> ".$dir);
 		rmdir($dir);
 	}
 }
@@ -1864,13 +1884,13 @@ Content-Transfer-Encoding: 8bit
 ";
 			$htmlpicdata="";
 			$inline  =  'inline';
-			$email_image_part =  "\n<img src=\"cid:logo_".$datetime->format("Y-m-d_i\hh\mH\s")."_".$msno."\" alt=\"[Logo]\" />\n<br>";
+			$email_image_part =  "\n<img src=\"cid:logo_".$datetime->format("Y-m-d_i\hh\mH\s")."\" alt=\"[Logo]\" />\n<br>";
 			$htmlpic 	 .= $email_image_part;
 			$htmlpicdata .= "--------------".$inner_boundary."
-Content-Type: image/jpeg; name=\"logo_".$datetime->format("Y-m-d_i\hh\mH\s")."_".$msno.".png\"
+Content-Type: image/jpeg; name=\"logo_".$datetime->format("Y-m-d_i\hh\mH\s").".png\"
 Content-Transfer-Encoding: base64
-Content-ID: <logo_".$datetime->format("Y-m-d_i\hh\mH\s")."_".$msno.">
-Content-Disposition: ".$inline."; filename=\"logo_".$datetime->format("Y-m-d_i\hh\mH\s")."_".$msno.".png\"
+Content-ID: <logo_".$datetime->format("Y-m-d_i\hh\mH\s").">
+Content-Disposition: ".$inline."; filename=\"logo_".$datetime->format("Y-m-d_i\hh\mH\s").".png\"
 
 ".chunk_split(base64_encode(file_get_contents('logo.png')))."\n";
 			$html .= $htmlpic;

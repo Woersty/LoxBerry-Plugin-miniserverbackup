@@ -228,6 +228,7 @@ span#alert_form_close:hover {
 					<TMPL_LOOP NAME="MSROW">
 						#<TMPL_VAR MSID> - <TMPL_VAR Name> <small>[<TMPL_VAR IPAddress>]</small><BR>
 					</TMPL_LOOP>
+					<a id="btnbackup_single<TMPL_VAR MSID>" class="btnbackup_single to_disable_on_save" data-role="button" data-icon="clock" data-mini="true" onclick="$('#Logfiletextbox').append('<hr\><DIV style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'><TMPL_VAR GENERAL.LOG_EXECUTING></DIV><hr\>'); $.get('./index.cgi?do=backup&which=<TMPL_VAR MSID>');"><TMPL_VAR GENERAL.LABEL_START_ONE_BACKUP_NOW></a>
 				</DIV>
 				<DIV style="display:table;">
 					<DIV style="display:table-row;">
@@ -524,6 +525,8 @@ span#alert_form_close:hover {
 		else
 		{
 			$('#btnbackup').addClass('ui-disabled');
+			$('.btnbackup_single').addClass('ui-disabled');
+			$('.btnbackup_single').text("<TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_OFF>");
 			$("#btnbackup").text("<TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_OFF>");
 			$("#msbackup_use").css('background-color','rgba(255,128,128,.2)');
 			return;
@@ -536,12 +539,15 @@ span#alert_form_close:hover {
 			if (data.length > 1)
 			{
 				$('#btnbackup').addClass('ui-disabled');
+				$('.btnbackup_single').addClass('ui-disabled');
 				$("#btnbackup").prop('innerHTML',"<font color='#FF0000'>"+data+"</font>");
 			}
 			else if (data == "-") 
 			{
 				$('#btnbackup').removeClass('ui-disabled');
 				$("#btnbackup").text("<TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW>");
+				$('.btnbackup_single').removeClass('ui-disabled');
+				$(".btnbackup_single").text("<TMPL_VAR GENERAL.LABEL_START_ONE_BACKUP_NOW>");
 			}
 		});
 	}

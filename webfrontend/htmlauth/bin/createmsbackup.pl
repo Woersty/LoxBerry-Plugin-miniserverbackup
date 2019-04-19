@@ -44,7 +44,9 @@ if ( -f $backupstate_tmp_file && int $output_string eq 0 )
 		close $fh;
 	}
 }
-system ("/usr/bin/php -f $lbphtmldir/createmsbackup.php ".@ARGV[0]." >/dev/null 2>&1 &" );
+my $which = 0;
+$which = @ARGV[1] if (@ARGV[1]);
+system ("/usr/bin/php -f $lbphtmldir/createmsbackup.php ".@ARGV[0]." $which >/dev/null 2>&1 &" );
 # Wait a second and check if PHP process is there
 sleep 1;
 my $output_string = `ps -ef | grep "$lbphtmldir/createmsbackup.php"|grep -v grep |wc -l 2>/dev/null`;
