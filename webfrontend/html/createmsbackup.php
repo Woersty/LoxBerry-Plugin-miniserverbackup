@@ -398,9 +398,14 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		{
 			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0124_MANUAL_SAVE_SINGLE_MS"]." ".$msno."/".count($ms)." => ".$miniserver['Name'],5);
 		}
+		else if ( intval($argv[2]) == 0)
+		{
+			// No single manual save
+		}
 		else
 		{
-			continue;
+			// Single manual save but not the MS we want
+			continue;	
 		}
 	}
 	array_push($summary," ");
