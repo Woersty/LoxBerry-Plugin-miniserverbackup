@@ -1596,6 +1596,11 @@ function read_ms_tree ($folder)
 					debug(__line__,$L["MINISERVERBACKUP.INF_0122_IGNORING_SYS_ZIP"]." ".$filename[5],6);
 					continue;
 				}
+				if (preg_match("/^.*\.upd/i", $filename[5]) && $folder == "/update/" )
+				{
+					debug(__line__,$L["MINISERVERBACKUP.INF_0122_IGNORING_SYS_ZIP"]." ".$filename[5],6);
+					continue;
+				}
 				$dtime = DateTime::createFromFormat("M d H:i", $filename[2]." ".$filename[3]." ".$filename[4]);
 				$timestamp = $dtime->getTimestamp();
 				if ($timestamp > time() )
