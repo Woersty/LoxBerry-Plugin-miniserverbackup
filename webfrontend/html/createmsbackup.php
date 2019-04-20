@@ -1834,7 +1834,9 @@ if ($plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" && $at_least_one_save == 1)
 			$outer_boundary= md5("o".time());
 			$inner_boundary= md5("i".time());
 			$htmlpic="";
-			$mailTo = implode(",",explode(";",$plugin_cfg['EMAIL_RECIPIENT']));
+			$mailTo = $plugin_cfg['EMAIL_RECIPIENT'];
+			#$mailTo = substr($mailTo,0,-1);
+			
 			$mailFromName   = $L["EMAIL.EMAIL_FROM_NAME"];  // Sender name fix from Language file
 			if ( isset($mail_cfg['SMTP']['EMAIL']) )
 			{
@@ -1854,7 +1856,7 @@ if ($plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" && $at_least_one_save == 1)
 				$emoji = "=E2=9C=85"; # OK V
 			}
 			$html = "From: ".$mailFromName." <".$mailFrom.">
-To: ".$mailTo." 
+To: ".$mailTo."
 Subject: =?utf-8?Q? ".$emoji." ".$L["EMAIL.EMAIL_SUBJECT"]." ?=   
 MIME-Version: 1.0
 Content-Type: multipart/alternative;
