@@ -21,7 +21,7 @@
 ##########################################################################
 use LoxBerry::System;
 use LoxBerry::Log;
-my $logfile 					= "backuplog.log";
+my $logfile 					= "backuplog.txt";
 my $backupstate_name 			= "backupstate.txt";
 my $backupstate_tmp_file 		= "/tmp/".$backupstate_name;
 my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup', filename => $lbplogdir ."/". $logfile, append => 1 );

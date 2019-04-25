@@ -3,7 +3,7 @@
 # Get notifications in html format 
 require_once "loxberry_system.php";
 $plugin_config_file = $lbpconfigdir."/miniserverbackup.cfg";
-$logfilename		= "backuplog.log";
+$logfilename		= "backuplog.txt";
 // Error Reporting 
 error_reporting(E_ALL);     
 ini_set("display_errors", false);        

@@ -38,7 +38,7 @@ require Time::Piece;
 # Variables
 ##########################################################################
 my %Config;
-my $logfile 					= "backuplog.log";
+my $logfile 					= "backuplog.txt";
 my $pluginconfigfile 			= "miniserverbackup.cfg";
 my $languagefile				= "language.ini";
 my $maintemplatefilename 		= "settings.html";
@@ -379,14 +379,20 @@ exit;
 		my $nsc=0;
 		my @netshares_converted;
 		my @netshares_plus_subfolder;
+		my @netshares_subdir_subfolder;
 		my @netshares_workdir;
 		my @netshares_for_workdir;
 		foreach my $netshare (@netshares) 
 		{
   			$netshares_plus_subfolder[$nsc]{NETSHARE_SHARENAME} = $netshare->{NETSHARE_SHARENAME};
-  			$netshares_plus_subfolder[$nsc]{NETSHARE_SUBFOLDER} = " ".$L{"GENERAL.BACKUP_SUBFOLDER_DROPDOWN_TEXT"};
+  			$netshares_plus_subfolder[$nsc]{NETSHARE_SUBFOLDER} = "/".sprintf("%03d", $ms_id)."_".$ms{Name};
   			$netshares_plus_subfolder[$nsc]{NETSHARE_SERVER} 	= $netshare->{NETSHARE_SERVER};
   			$netshares_plus_subfolder[$nsc]{NETSHARE_SHAREPATH} = $netshare->{NETSHARE_SHAREPATH}."+";
+
+  			$netshares_subdir_subfolder[$nsc]{NETSHARE_SHARENAME} = $netshare->{NETSHARE_SHARENAME};
+  			$netshares_subdir_subfolder[$nsc]{NETSHARE_SUBFOLDER} = "/".$L{"GENERAL.SUGGEST_MS_SUBDIR"}."/".sprintf("%03d", $ms_id)."_".$ms{Name};
+  			$netshares_subdir_subfolder[$nsc]{NETSHARE_SERVER} 	= $netshare->{NETSHARE_SERVER};
+  			$netshares_subdir_subfolder[$nsc]{NETSHARE_SHAREPATH} = $netshare->{NETSHARE_SHAREPATH}."~";
 
   			$netshares_for_workdir[$nsc]{NETSHARE_SHARENAME} = $netshare->{NETSHARE_SHARENAME};
   			$netshares_for_workdir[$nsc]{NETSHARE_SERVER} 	= $netshare->{NETSHARE_SERVER};
@@ -395,19 +401,26 @@ exit;
 		}
 		push(@netshares_converted, @netshares);
 		push(@netshares_converted, @netshares_plus_subfolder);
+		push(@netshares_converted, @netshares_subdir_subfolder);
 		push(@netshares_workdir, @netshares_for_workdir);
 
 		my $udc=0;
 		my @usbdevices_converted;
 		my @usbdevices_plus_subfolder;
+		my @usbdevices_subdir_subfolder;
 		my @usbdevices_workdir;
 		my @usbdevices_for_workdir;
 		foreach my $usbdevice (@usbdevices) 
 		{
   			$usbdevices_plus_subfolder[$udc]{USBSTORAGE_DEVICE} 	= $usbdevice->{USBSTORAGE_DEVICE};
-  			$usbdevices_plus_subfolder[$udc]{USBSTORAGE_SUBFOLDER} 	= " ".$L{"GENERAL.BACKUP_SUBFOLDER_DROPDOWN_TEXT"};
+  			$usbdevices_plus_subfolder[$udc]{USBSTORAGE_SUBFOLDER} 	= sprintf("%03d", $ms_id)."_".$ms{Name};
   			$usbdevices_plus_subfolder[$udc]{USBSTORAGE_NO} 	 	= $usbdevice->{USBSTORAGE_NO};
   			$usbdevices_plus_subfolder[$udc]{USBSTORAGE_DEVICEPATH} = $usbdevice->{USBSTORAGE_DEVICEPATH}."+";
+
+  			$usbdevices_subdir_subfolder[$udc]{USBSTORAGE_DEVICE} 	= $usbdevice->{USBSTORAGE_DEVICE};
+  			$usbdevices_subdir_subfolder[$udc]{USBSTORAGE_SUBFOLDER}= $L{"GENERAL.SUGGEST_MS_SUBDIR"}."/".sprintf("%03d", $ms_id)."_".$ms{Name};
+  			$usbdevices_subdir_subfolder[$udc]{USBSTORAGE_NO} 	 	= $usbdevice->{USBSTORAGE_NO};
+  			$usbdevices_subdir_subfolder[$udc]{USBSTORAGE_DEVICEPATH} = $usbdevice->{USBSTORAGE_DEVICEPATH}."~";
 
   			$usbdevices_for_workdir[$udc]{USBSTORAGE_DEVICE} 	= $usbdevice->{USBSTORAGE_DEVICE};
   			$usbdevices_for_workdir[$udc]{USBSTORAGE_NO} 	 	= $usbdevice->{USBSTORAGE_NO};
@@ -416,6 +429,7 @@ exit;
 		}
 		push(@usbdevices_converted, @usbdevices);
 		push(@usbdevices_converted, @usbdevices_plus_subfolder);
+		push(@usbdevices_converted, @usbdevices_subdir_subfolder);
 		push(@usbdevices_workdir, @usbdevices_for_workdir);
 		if ( $ms_id == 1 ) #Just fill for first MS
 		{
@@ -439,11 +453,13 @@ exit;
 			        $row_gen{'USBDEVICES_WORKDIR'} 				= \@usbdevices_workdir;
 					$row_gen{'AUTOSAVE_WORKDIR'}				= 1 if ( $Config{"MINISERVERBACKUP.WORKDIR_PATH"} eq "" );
 		}
+		
 		push @{ $row{'MSROW'} }					, \%ms;
 		        $row{'MSID'} 					= $ms_id;
 				$row{'NETSHARES'} 				= \@netshares_converted;
 				$row{'USBDEVICES'} 				= \@usbdevices_converted;
 				$row{'LOCALSTORAGE'} 			= $localstorage;
+				$row{'LOCALSTORAGENAME'} 		= $localstorage."/".sprintf("%03d", $ms_id)."_".$ms{Name};
 				$row{'CURRENT_STORAGE'}			= $localstorage;
 				$row{'CURRENT_INTERVAL'}		= 0;
 				$row{'CURRENT_FILE_FORMAT'}		= "zip";
@@ -452,8 +468,9 @@ exit;
 				$row{'CURRENT_INTERVAL'}		= $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} if ( $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} ne "" );
 				$row{'CURRENT_FILE_FORMAT'}		= $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} if ( $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} ne "" );
 				$row{'CURRENT_BACKUPS_TO_KEEP'}	= $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} if ( $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} ne "" );
-				$row{'AUTOSAVE_CONFIG'}	    	= 1 if ( $Config{"MINISERVERBACKUP.FINALSTORAGE".$ms_id} eq "" || $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} eq "" || $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} eq "" || $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} eq "" );
 				$row{'MS_DISABLED'}	    		= $msDisabled;
+				$row{'CURRENT_MS_SUBDIR'}		= $L{"GENERAL.SUGGEST_MS_SUBDIR"};
+				$row{'CURRENT_MS_SUBDIR'}		= $Config{"MINISERVERBACKUP.MS_SUBDIR".$ms_id} if ( $Config{"MINISERVERBACKUP.MS_SUBDIR".$ms_id} ne "" );
 
 				my $systemdatetime;
 				$systemdatetime         		= $L{"GENERAL.NO_LAST_SAVE"};

@@ -15,15 +15,15 @@ if (isset($_GET['new_session']))
 if (isset($_GET['ajax'])) 
 {
   session_start();
-  touch('../../../../log/plugins/miniserverbackup/backuplog.log');
-  $handle = fopen('../../../../log/plugins/miniserverbackup/backuplog.log', 'r');
+  touch('../../../../log/plugins/miniserverbackup/backuplog.txt');
+  $handle = fopen('../../../../log/plugins/miniserverbackup/backuplog.txt', 'r');
   if (isset($_SESSION['offset'])) 
   {
- 	if ( $_SESSION['offset'] > filesize('../../../../log/plugins/miniserverbackup/backuplog.log') ) 
+ 	if ( $_SESSION['offset'] > filesize('../../../../log/plugins/miniserverbackup/backuplog.txt') ) 
  	{
  		unset ($_SESSION['offset']);
     	fclose($handle);
-    	$handle = fopen('../../../../log/plugins/miniserverbackup/backuplog.log', 'r');
+    	$handle = fopen('../../../../log/plugins/miniserverbackup/backuplog.txt', 'r');
     	fseek($handle, 0, SEEK_END);
     	$_SESSION['offset'] = ftell($handle);
  	}

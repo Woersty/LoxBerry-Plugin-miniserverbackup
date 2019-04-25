@@ -100,7 +100,6 @@ span#alert_form_close:hover {
 <script src="<TMPL_VAR HTMLPATH>js/i18n/elfinder.<TMPL_VAR ELFINDER_LANG>.js"></script>
 <script type="text/javascript" charset="utf-8">
 	var miniservers=[];
-	var auto_save = 0;
 	// Documentation for client options:
 	// https://github.com/Studio-42/elFinder/wiki/Client-configuration-options
 	$(document).ready(function() 
@@ -129,6 +128,16 @@ span#alert_form_close:hover {
 		$("#msbackup_use_emails").addClass( "ui-mini ui-btn ui-corner-all ui-shadow" );
 		$("#msbackup_use_emails").val("<TMPL_VAR MSBACKUP_USE_EMAILS>"); 
 	});
+
+	function change_path(to_replace,msid)
+	{
+		$('#finalstorage'+msid+' option').each(function() 
+		{
+    	var text = $(this).attr('orgval');
+    	$(this).text(text.replace(to_replace, $('#ms_subdir'+msid).val())); 
+		});
+	}
+
 </script>
 <!-- Filebrowser //-->
 <DIV id="elfinder"></DIV>
@@ -193,6 +202,7 @@ span#alert_form_close:hover {
 						<select name="msbackup_use_emails" id="msbackup_use_emails" class="to_save">
 							<option value="off"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_OFF></option>
 							<option value="on"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_ON></option>
+							<option value="fail"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_ERROR></option>
 						</select>
 					</DIV>
 				</DIV>
@@ -238,19 +248,26 @@ span#alert_form_close:hover {
 						<DIV style="display:table-cell; ">
 						    <select name="finalstorage<TMPL_VAR MSID>" id="finalstorage<TMPL_VAR MSID>" class="to_save">
 						      <optgroup label="<TMPL_VAR GENERAL.STORAGE_LOCAL>">
-						      	<option value="<TMPL_VAR LOCALSTORAGE>"><TMPL_VAR LOCALSTORAGE></option>
+						      	<option orgval="<TMPL_VAR LOCALSTORAGENAME>" value="<TMPL_VAR LOCALSTORAGE>"><TMPL_VAR LOCALSTORAGENAME></option>
 						      </optgroup>
 						      <optgroup label="<TMPL_VAR GENERAL.STORAGE_SHARE>">
 								<TMPL_LOOP NETSHARES>
-								<option value="<TMPL_VAR NETSHARE_SHAREPATH>">\\<TMPL_VAR NETSHARE_SERVER>\<TMPL_VAR NETSHARE_SHARENAME> <TMPL_VAR NETSHARE_SUBFOLDER></option>
+								<option orgval="[<TMPL_VAR NETSHARE_SERVER>] /<TMPL_VAR NETSHARE_SHARENAME><TMPL_VAR NETSHARE_SUBFOLDER>" value="<TMPL_VAR NETSHARE_SHAREPATH>">[<TMPL_VAR NETSHARE_SERVER>] /<TMPL_VAR NETSHARE_SHARENAME><TMPL_VAR NETSHARE_SUBFOLDER></option>
 								</TMPL_LOOP>
 						      </optgroup>
 						      <optgroup label="<TMPL_VAR GENERAL.STORAGE_USB>">
 								<TMPL_LOOP USBDEVICES>
-								<option value="<TMPL_VAR USBSTORAGE_DEVICEPATH>">#<TMPL_VAR USBSTORAGE_NO> <TMPL_VAR USBSTORAGE_DEVICE> <TMPL_VAR GENERAL.USB_STORAGE_ROOT_DROPDOWN_TEXT> <TMPL_VAR USBSTORAGE_SUBFOLDER></option>
+								<option orgval="[#<TMPL_VAR USBSTORAGE_NO> <TMPL_VAR USBSTORAGE_DEVICE>] <TMPL_VAR GENERAL.USB_STORAGE_ROOT_DROPDOWN_TEXT><TMPL_VAR USBSTORAGE_SUBFOLDER>" value="<TMPL_VAR USBSTORAGE_DEVICEPATH>">[#<TMPL_VAR USBSTORAGE_NO> <TMPL_VAR USBSTORAGE_DEVICE>] <TMPL_VAR GENERAL.USB_STORAGE_ROOT_DROPDOWN_TEXT><TMPL_VAR USBSTORAGE_SUBFOLDER></option>
 								</TMPL_LOOP>	
 						      </optgroup>
 						    </select>
+						</DIV>
+					</DIV>
+					<DIV id="ms_subdir_div<TMPL_VAR MSID>" style="display:table-row;">
+						<DIV style="display:table-cell; ">
+						</DIV>
+						<DIV style="display:table-cell; ">
+							<input onchange="change_path('<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>','<TMPL_VAR MSID>');" onblur="$('#ms_subdir<TMPL_VAR MSID>').trigger('change')" autocomplete="nope" data-validation-error-msg="<TMPL_VAR GENERAL.MS_SUBDIR_VALIDATE_ERR_TXT>" data-validation-rule="^[0-9a-zA-Z\_\-\.]{1}[0-9a-zA-Z\$\/\ \_\-\.]{0,198}[0-9a-zA-Z\_\-\.]{1}$" id="ms_subdir<TMPL_VAR MSID>" name="ms_subdir<TMPL_VAR MSID>" type="text" class="textfield to_save" placeholder="<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>" value="<TMPL_VAR CURRENT_MS_SUBDIR>">
 						</DIV>
 					</DIV>
 					<DIV style="display:table-row;">
@@ -316,15 +333,17 @@ span#alert_form_close:hover {
 						if ( "<TMPL_VAR MS_DISABLED>" == "1" )
 						{
 							$("#MS_LOOP_ROW<TMPL_VAR MSID>").css("background-color", "#ffc0c0"); //.addClass('ui-disabled');
+							validate_clean_objects(['#ms_subdir<TMPL_VAR MSID>']);
+						}
+						else
+						{							
+							validate_enable('#ms_subdir<TMPL_VAR MSID>');
 						}
 					});
+					$('#ms_subdir<TMPL_VAR MSID>').trigger('change')
 					var nbr_miniservers = miniservers.push('<TMPL_VAR MSID>');
-					// Autosave
-					if ( "<TMPL_VAR AUTOSAVE_CONFIG>" == "1" || "<TMPL_VAR AUTOSAVE_WORKDIR>" == "1" )
-					{
-						auto_save = 1;
-					}
 				</script>
+
 			</DIV>
 		</DIV>
 		<BR>
@@ -333,7 +352,7 @@ span#alert_form_close:hover {
 <DIV>
 	<table width="100%" border="0">
 		<tr>
-			<td width="50%"><a style="color:green;" scrollme="true" onclick="logscroll_change();" id="LogScroll" data-role="button" data-mini="true" href="" target="_blank"><TMPL_VAR GENERAL.LABEL_JUMP_TO_END_AUTOMATICALLY>&nbsp;<IMG height="16px" src="<TMPL_VAR HTMLPATH>img/scroll_go.gif"></a></td>
+			<td width="50%"><a style="color:green;" scrollme="true" onclick="logscroll_change();" id="LogScroll" data-role="button" data-mini="true" target="_self"><TMPL_VAR GENERAL.LABEL_JUMP_TO_END_AUTOMATICALLY>&nbsp;<IMG height="16px" src="<TMPL_VAR HTMLPATH>img/scroll_go.gif"></a></td>
 			<td width="50%"><a onclick="$('#Logfiletextbox').prop('innerHTML','<hr\><DIV style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'><TMPL_VAR GENERAL.LOG_NEWSESSION></DIV><hr\>'); $.get('<TMPL_VAR HTMLPATH>logfile.php?ajax&new_session=1');" id="reset_session" data-role="button" data-mini="true" href="" target="_blank"><TMPL_VAR GENERAL.LABEL_RESTART_DEBUG_SESSION>&nbsp;<IMG height="16px" src="<TMPL_VAR HTMLPATH>img/trans.gif"></a></td>
 		</tr>
 	</table>
@@ -503,17 +522,17 @@ span#alert_form_close:hover {
 		}
 		else
 		{
-			$("#msbackup_use_notify").css('background-color','rgba(255,128,128,.2)');
+			$("#msbackup_use_notify").css('background-color','rgba(255,255,128,.2)');
 		}
 
-		if ( $("#msbackup_use_emails").val() == "on" )
+		if ( $("#msbackup_use_emails").val() == "on" || $("#msbackup_use_emails").val() == "fail" )
 		{
 			$("#msbackup_use_emails").css('background-color','rgba(128,255,128,.2)');
 			$('#email_recipient_div').fadeIn('slow');
 		}
 		else
 		{
-			$("#msbackup_use_emails").css('background-color','rgba(255,128,128,.2)');
+			$("#msbackup_use_emails").css('background-color','rgba(255,255,128,.2)');
 			$('#email_recipient_div').fadeOut('slow');
 			$('#email_recipient_div').val('');
 		}
@@ -528,7 +547,7 @@ span#alert_form_close:hover {
 			$('.btnbackup_single').addClass('ui-disabled');
 			$('.btnbackup_single').text("<TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_OFF>");
 			$("#btnbackup").text("<TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_OFF>");
-			$("#msbackup_use").css('background-color','rgba(255,128,128,.2)');
+			$("#msbackup_use").css('background-color','rgba(255,255,128,.2)');
 			return;
 		}
 
@@ -598,7 +617,7 @@ span#alert_form_close:hover {
 			// Add emails on/off switch
 			postData['msbackup_use_emails'] = $('#msbackup_use_emails').val();
 
-			if ( $('#msbackup_use_emails').val() == "on" )
+			if ( $('#msbackup_use_emails').val() == "on" || $('#msbackup_use_emails').val() == "fail" )
 			{
 				// Retrigger check of correct email_recipient
 				if ( validate_chk_value('#email_recipient') )
@@ -662,14 +681,62 @@ span#alert_form_close:hover {
 			}
 	
 			// Go through all miniservers
+			var early_error=0;
 			miniservers.forEach(function(miniserver_id) 
 			{
 				// Add values per Miniserver
-				postData['finalstorage'+miniserver_id] = $('#finalstorage'+miniserver_id).val();
 				postData['backup_interval'+miniserver_id] = $('#backup_interval'+miniserver_id).val();
 				postData['file_format'+miniserver_id] = $('#file_format'+miniserver_id).val();
 				postData['backups_to_keep'+miniserver_id] = $('#backups_to_keep'+miniserver_id).val();
+				// Check of customized subdir
+
+				if ( $('#finalstorage'+miniserver_id+' option:selected').val().substr(-1) == "~" )
+				{
+					$('#ms_subdir_div'+miniserver_id).fadeIn('fast');
+					if ( $('#ms_subdir'+miniserver_id).val() == '<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>' )
+					{
+						$('#ms_subdir'+miniserver_id).css('background-color','#FFC0C0');
+						early_error=1;
+					}
+					else
+					{
+						if ( $('#ms_subdir'+miniserver_id).val() == '' )
+						{
+							// Yes, subdir is empty or / => generate a random name
+							$('#ms_subdir'+miniserver_id).val(make_random_name_for_workdir(10));
+							change_path('<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>',miniserver_id);
+							early_error=1;
+						}
+						else
+						{
+							if ( validate_chk_value('#ms_subdir'+miniserver_id) && $('#ms_subdir'+miniserver_id).val() != '<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>' )
+							{
+								// Add workdir_path_subdir
+								postData['ms_subdir'+miniserver_id] = $('#ms_subdir'+miniserver_id).val();
+								postData['finalstorage'+miniserver_id] = $('#finalstorage'+miniserver_id).val();
+							}
+							else
+							{
+								$('#ms_subdir'+miniserver_id).css('background-color','#FFC0C0');
+								early_error=1;
+							}
+						}
+					}
+				}
+				else
+				{
+					$('#ms_subdir_div'+miniserver_id).fadeOut('fast');
+					postData['ms_subdir'+miniserver_id] = "";
+					$('#ms_subdir'+miniserver_id).val('<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>');
+					postData['finalstorage'+miniserver_id] = $('#finalstorage'+miniserver_id).val();
+				}
+
 			});		
+	
+			if ( early_error == 1 )
+			{
+				return;
+			}
 	
 			// Disable input fields and buttons			
 			$('.to_disable_on_save').addClass('ui-disabled');
@@ -685,7 +752,7 @@ span#alert_form_close:hover {
 	            },
 	            error: function (errorThrown) 
 	            {
-		            alert('save_failed');
+		            show_error('<TMPL_VAR ERRORS.ERR_SAVE_CONFIG_FILE>');
 	                console.log('<TMPL_VAR GENERAL.MY_NAME> function save_config failed: Error => ' + errorThrown.status + ' => ' + errorThrown.statusText);
 	            }	
 	        });
@@ -722,7 +789,7 @@ span#alert_form_close:hover {
 		checkNotifications();
 		// Event handler for save
 		$('.to_save').on("change", function(){ save_config(); });
-		if ( auto_save == 1 ) save_config();
+		save_config();
 	});
 </script>
 <small><small><TMPL_VAR VERSION></small></small>
