@@ -1846,7 +1846,7 @@ if ( count($summary) > 2 )
 }
 
 debug(__line__,$L["MINISERVERBACKUP.INF_0116_MAIL_ENABLED"],6);
-if ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" || ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" && $at_least_one_save == 1 ) )  
+if ( $at_least_one_save == 1 && ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" || ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" && $at_least_one_error == 1 ) ) )  
 {
 	debug(__line__,$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"],6);
 	$mail_config_file   = LBSCONFIGDIR."/mail.json";
