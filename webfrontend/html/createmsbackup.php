@@ -1845,6 +1845,50 @@ if ( count($summary) > 2 )
 	}
 }
 
+
+$err_html = "";
+
+foreach ($summary as &$errors) 
+{
+	$errors = nl2br($errors);
+	if ( preg_match("/<INFO>/i", $errors) )
+	{
+		$err_html .= "<br><span style='color:#000000; background-color:#DDEFFF'>".$errors."</span>";
+	}
+	else if ( preg_match("/<OK>/i", $errors) )
+	{
+		$err_html .= "<br><span style='color:#000000; background-color:#D8FADC'>".$errors."</span>";
+	}
+	else if ( preg_match("/<WARNING>/i", $errors)  )
+	{
+		$err_html .= "<br><span style='color:#000000; background-color:#FFFFC0'>".$errors."</span>";
+	}
+	else if ( preg_match("/<ERROR>/i", $errors)  )
+	{
+		$err_html .= "<br><span style='color:#000000; background-color:#FFE0E0'>".$errors."</span>";
+	}
+	else if ( preg_match("/<CRITICAL>/i", $errors)  )
+	{
+		$err_html .= "<br><span style='color:#000000; background-color:#FFc0c0'>".$errors."</span>";
+	}
+	else if ( preg_match("/<ALERT>/i", $errors)  )
+	{
+		$err_html .= "<br><span style='color:#ffffff; background-color:#0000a0'>".$errors."</span>";
+	}
+	else
+	{
+		$err_html .= "<br>".$errors;
+	}
+}
+#$err_html 	 = preg_replace('/\\n+/i','',$err_html);
+#$err_html 	 = preg_replace('/\\r+/i','',$err_html);
+$err_html 	 = preg_replace('/\s\s+/i',' ',$err_html);
+$err_html 	 = preg_replace('/<HR>\s<br>+/i','<HR>',$err_html);
+if (str_replace(array('<ALERT>', '<CRITICAL>','<ERROR>', '<WARNING>'),'', $err_html) != $err_html)
+{
+	$at_least_one_error = 1;
+}
+
 debug(__line__,$L["MINISERVERBACKUP.INF_0116_MAIL_ENABLED"],6);
 if ( $at_least_one_save == 1 && ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" || ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" && $at_least_one_error == 1 ) ) )  
 {
@@ -1881,49 +1925,6 @@ if ( $at_least_one_save == 1 && ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" || 
 		}
 		else
 		{
-
-			$err_html = "";
-
-			foreach ($summary as &$errors) 
-			{
-				$errors = nl2br($errors);
-				if ( preg_match("/<INFO>/i", $errors) )
-				{
-					$err_html .= "<br><span style='color:#000000; background-color:#DDEFFF'>".$errors."</span>";
-				}
-				else if ( preg_match("/<OK>/i", $errors) )
-				{
-					$err_html .= "<br><span style='color:#000000; background-color:#D8FADC'>".$errors."</span>";
-				}
-				else if ( preg_match("/<WARNING>/i", $errors)  )
-				{
-					$err_html .= "<br><span style='color:#000000; background-color:#FFFFC0'>".$errors."</span>";
-				}
-				else if ( preg_match("/<ERROR>/i", $errors)  )
-				{
-					$err_html .= "<br><span style='color:#000000; background-color:#FFE0E0'>".$errors."</span>";
-				}
-				else if ( preg_match("/<CRITICAL>/i", $errors)  )
-				{
-					$err_html .= "<br><span style='color:#000000; background-color:#FFc0c0'>".$errors."</span>";
-				}
-				else if ( preg_match("/<ALERT>/i", $errors)  )
-				{
-					$err_html .= "<br><span style='color:#ffffff; background-color:#0000a0'>".$errors."</span>";
-				}
-				else
-				{
-					$err_html .= "<br>".$errors;
-				}
-			}
-			#$err_html 	 = preg_replace('/\\n+/i','',$err_html);
-			#$err_html 	 = preg_replace('/\\r+/i','',$err_html);
-			$err_html 	 = preg_replace('/\s\s+/i',' ',$err_html);
-			$err_html 	 = preg_replace('/<HR>\s<br>+/i','<HR>',$err_html);
-			if (str_replace(array('<ALERT>', '<CRITICAL>','<ERROR>', '<WARNING>'),'', $err_html) != $err_html)
-			{
-				$at_least_one_error = 1;
-			}
 			$datetime    = new DateTime;
 			$datetime->getTimestamp();
 			$outer_boundary= md5("o".time());
