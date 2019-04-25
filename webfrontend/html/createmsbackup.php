@@ -286,7 +286,7 @@ if ( $plugin_cfg["WORKDIR_PATH_SUBDIR"] != "" )
 	
 debug(__line__,$L["MINISERVERBACKUP.INF_0032_CLEAN_WORKDIR_TMP"]." ".$workdir_tmp);
 create_clean_workdir_tmp($workdir_tmp);
-system("echo '".$workdir_tmp."' > /tmp/msb_free_space");
+@system("echo '".$workdir_tmp."' > /tmp/msb_free_space");
 if (!realpath($workdir_tmp)) 
 {
 	debug(__line__,$L["ERRORS.ERR_0022_PROBLEM_WITH_WORKDIR"],3);
@@ -1833,15 +1833,15 @@ function get_free_space ( $path )
 $runtime = microtime(true) - $start;
 
 
-if ($summary)
+if ( count($summary) > 2 )
 {
 	error_log($L["MINISERVERBACKUP.INF_9999_SUMMARIZE_ERRORS"]);
-}
-foreach ($summary as &$errors) 
-{
-	if ( ! preg_match("/<HR>/i", $errors) )
+	foreach ($summary as &$errors) 
 	{
-		error_log($errors);
+		if ( ! preg_match("/<HR>/i", $errors) && $errors != " " )
+		{
+			error_log($errors);
+		}
 	}
 }
 

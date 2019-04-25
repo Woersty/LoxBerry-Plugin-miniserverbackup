@@ -212,7 +212,7 @@ if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 	
 	my %miniservers;
 	my $mscfg = new Config::Simple("$lbhomedir/config/system/general.cfg") or return undef;
-	my $miniservercount = $mscfg->param("BASE.MINISERVERS") or Carp::carp ("BASE.MINISERVERS is 0 or not defined in general.cfg\n");
+	$miniservercount = $mscfg->param("BASE.MINISERVERS") or Carp::carp ("BASE.MINISERVERS is 0 or not defined in general.cfg\n");
 	my $clouddnsaddress = $mscfg->param("BASE.CLOUDDNS"); # or Carp::carp ("BASE.CLOUDDNS not defined in general.cfg\n");
 	my $awkbin         	= $mscfg->param("BINARIES.AWK");
 
