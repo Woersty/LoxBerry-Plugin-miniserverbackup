@@ -70,7 +70,8 @@ my @tag_cfg_data;
 my @msrow;
 my @ms;
 my %row_gen;
-my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup', filename => $lbplogdir ."/". $logfile, append => 1 );
+#my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup', filename => $lbplogdir ."/". $logfile, append => 1 );
+my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup', filename => $lbplogdir ."/". $logfile); #Workaround Issue #70
 my $do="form";
 my $which="0";
 my $msDisabled;

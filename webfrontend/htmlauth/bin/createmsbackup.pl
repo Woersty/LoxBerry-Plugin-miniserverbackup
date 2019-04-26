@@ -24,7 +24,8 @@ use LoxBerry::Log;
 my $logfile 					= "backuplog.txt";
 my $backupstate_name 			= "backupstate.txt";
 my $backupstate_tmp_file 		= "/tmp/".$backupstate_name;
-my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup', filename => $lbplogdir ."/". $logfile, append => 1 );
+#my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup', filename => $lbplogdir ."/". $logfile, append => 1 );
+my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup', filename => $lbplogdir ."/". $logfile); #Workaround Issue #70
 my %ERR 						= LoxBerry::System::readlanguage();
 
 # Complete rededign - from now it's PHP and not Perl anymore
