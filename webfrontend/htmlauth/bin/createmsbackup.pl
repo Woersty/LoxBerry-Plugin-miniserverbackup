@@ -21,13 +21,11 @@
 ##########################################################################
 use LoxBerry::System;
 use LoxBerry::Log;
-my $logfile 					= "backuplog.txt";
 my $backupstate_name 			= "backupstate.txt";
 my $backupstate_tmp_file 		= "/tmp/".$backupstate_name;
-#my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup', filename => $lbplogdir ."/". $logfile, append => 1 );
-my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup', filename => $lbplogdir ."/". $logfile); #Workaround Issue #70
+my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup CronJob' ); 
 my %ERR 						= LoxBerry::System::readlanguage();
-
+LOGSTART $ERR{'MINISERVERBACKUP.INF_0128_CRON_CALLED'};
 # Complete rededign - from now it's PHP and not Perl anymore
 my $output_string = `ps -ef | grep "$lbphtmldir/createmsbackup.php"|grep -v grep |wc -l 2>/dev/null`;
 if ( -f $backupstate_tmp_file && int $output_string eq 0 )
@@ -56,3 +54,4 @@ if ( int $output_string == 0 )
 	notify( $lbpplugindir, $ERR{'GENERAL.MY_NAME'}, $ERR{'ERRORS.ERR_0037_UNABLE_TO_INITIATE_BACKUP'},1);
 	LOGERR $ERR{'ERRORS.ERR_0037_UNABLE_TO_INITIATE_BACKUP'}; 
 }
+LOGEND ""; 

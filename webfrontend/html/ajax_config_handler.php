@@ -2,21 +2,27 @@
 
 # Get notifications in html format 
 require_once "loxberry_system.php";
+require_once "loxberry_log.php";
+// Read language
+$L = LBSystem::readlanguage("language.ini");
 $plugin_config_file = $lbpconfigdir."/miniserverbackup.cfg";
-$logfilename		= "backuplog.txt";
+$params = [
+    "name" => $L["MINISERVERBACKUP.INF_0132_CFG_HANDLER_NAME"]." "
+];
+$log = LBLog::newLog ($params);
+LOGSTART ($L["MINISERVERBACKUP.INF_0133_CFG_HANDLER_CALLED"]);
+
 // Error Reporting 
 error_reporting(E_ALL);     
 ini_set("display_errors", false);        
 ini_set("log_errors", 1);
-ini_set("error_log" , $lbplogdir."/".$logfilename); 
 
-$callid 			= "Config-Handler";
 $summary			= array();
 $output 			= "";
 
 function debug($message = "", $loglevel = 7)
 {
-	global $L, $callid, $plugindata, $summary;
+	global $L, $plugindata, $summary;
 	if ( $plugindata['PLUGINDB_LOGLEVEL'] >= intval($loglevel) )  
 	{
 		$message = str_ireplace('"','',$message); // Remove quotes => https://github.com/mschlenstedt/Loxberry/issues/655
@@ -26,38 +32,36 @@ function debug($message = "", $loglevel = 7)
 		        // OFF
 		        break;
 		    case 1:
-		        error_log(          "[$callid] <ALERT> PHP: ".$message );
-				array_push($summary,"[$callid] <ALERT> PHP: ".$message);
+		        error_log(          "<ALERT> PHP: ".$message );
+				array_push($summary,"<ALERT> PHP: ".$message);
 		        break;
 		    case 2:
-		        error_log(          "[$callid] <CRITICAL> PHP: ".$message );
-				array_push($summary,"[$callid] <CRITICAL> PHP: ".$message);
+		        error_log(          "<CRITICAL> PHP: ".$message );
+				array_push($summary,"<CRITICAL> PHP: ".$message);
 		        break;
 		    case 3:
-		        error_log(          "[$callid] <ERROR> PHP: ".$message );
-				array_push($summary,"[$callid] <ERROR> PHP: ".$message);
+		        error_log(          "<ERROR> PHP: ".$message );
+				array_push($summary,"<ERROR> PHP: ".$message);
 		        break;
 		    case 4:
-		        error_log(          "[$callid] <WARNING> PHP: ".$message );
-				array_push($summary,"[$callid] <WARNING> PHP: ".$message);
+		        error_log(          "<WARNING> PHP: ".$message );
+				array_push($summary,"<WARNING> PHP: ".$message);
 		        break;
 		    case 5:
-		        error_log( "[$callid] <OK> PHP: ".$message );
+		        error_log( "<OK> PHP: ".$message );
 		        break;
 		    case 6:
-		        error_log( "[$callid] <INFO> PHP: ".$message );
+		        error_log( "<INFO> PHP: ".$message );
 		        break;
 		    case 7:
 		    default:
-		        error_log( "[$callid] PHP: ".$message );
+		        error_log( "PHP: ".$message );
 		        break;
 		}
 	}
 	return;
 }
 
-// Read language
-$L = LBSystem::readlanguage("language.ini");
 // Plugindata
 $plugindata = LBSystem::plugindata();
 $plugin_cfg_handle = @fopen($plugin_config_file, "r");
@@ -76,7 +80,7 @@ if ($plugin_cfg_handle)
         if ( $config_line[1] != "" )
         {
 	        $plugin_cfg[$config_line[0]]=preg_replace('/\r?\n|\r/','', str_ireplace('"','',$config_line[1]));
-    	    debug($L["MINISERVERBACKUP.INF_0064_CONFIG_PARAM"]." ".$config_line[0]."=".$plugin_cfg[$config_line[0]]);
+    	    LOGINF($L["MINISERVERBACKUP.INF_0064_CONFIG_PARAM"]." ".$config_line[0]."=".$plugin_cfg[$config_line[0]]);
     	}
       }
     }
@@ -129,7 +133,8 @@ $ms = $miniservers;
 
 if (!is_array($ms)) 
 {
-	debug($L["ERRORS.ERR_0001_NO_MINISERVERS_CONFIGURED"],3);
+	LOGERR($L["ERRORS.ERR_0001_NO_MINISERVERS_CONFIGURED"]);
+	LOGEND("");
 	die($L["ERRORS.ERR_0001_NO_MINISERVERS_CONFIGURED"]);
 }
 $max_ms = count($ms);
@@ -142,7 +147,7 @@ if (flock($plugin_cfg_handle, LOCK_EX))
 		if ( filter_var($config_key, FILTER_SANITIZE_NUMBER_INT) > $max_ms )
 		{
 			# This MS doesn't exists anymore, do not write into config file.
-			debug($L["ERRORS.ERR_0038_REMOVE_PARAMETER_FROM_CONFIG"]." ".$config_key . '="' . $config_value,4);
+			LOGWARN($L["ERRORS.ERR_0038_REMOVE_PARAMETER_FROM_CONFIG"]." ".$config_key . '="' . $config_value);
 		}
 		else
 		{
@@ -160,7 +165,7 @@ if (flock($plugin_cfg_handle, LOCK_EX))
 			}
 			
 	
-		debug($L["MINISERVERBACKUP.INF_0071_CONFIG_PARAM_WRITTEN"]. " ". $config_key. "=" . $config_value );
+		LOGINF($L["MINISERVERBACKUP.INF_0071_CONFIG_PARAM_WRITTEN"]. " ". $config_key. "=" . $config_value );
 		$written = fwrite($plugin_cfg_handle, $config_key . '="' . $config_value .'"'."\n");
 
 		if ( substr($config_key,0,11) == "LAST_REBOOT" || substr($config_key,0,9) == "LAST_SAVE" )
@@ -188,7 +193,7 @@ if (flock($plugin_cfg_handle, LOCK_EX))
 else 
 {
 	$output .= "show_error('".$L["ERRORS.ERR_0035_ERROR_WRITE_CONFIG"]."');\n";
-	debug($L["ERRORS.ERR_0035_ERROR_WRITE_CONFIG"],3);
+	LOGERR($L["ERRORS.ERR_0035_ERROR_WRITE_CONFIG"]);
 }
 fclose($plugin_cfg_handle);
 $all_interval_used = 0;
@@ -210,19 +215,20 @@ if ( $all_interval_used > 0 )
 		
 	if ( ! is_link(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR) )
 	{
-		debug($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"],3);	
+		LOGERR($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"]);	
 	}
 	else
 	{
-		debug($L["MINISERVERBACKUP.INF_0084_INFO_CRON_JOB_ACTIVE"],6);	
+		LOGINF($L["MINISERVERBACKUP.INF_0084_INFO_CRON_JOB_ACTIVE"]);	
 	}
 }
 else
 {
 	if ( is_link(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR) )
 	{
-		unlink(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR) or debug($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"],3);
+		unlink(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR) or LOGERR($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"]);
 	}
-	debug($L["MINISERVERBACKUP.INF_0085_INFO_CRON_JOB_STOPPED"],6);	
+	LOGINF($L["MINISERVERBACKUP.INF_0085_INFO_CRON_JOB_STOPPED"]);	
 }
 echo $output;
+LOGEND("");

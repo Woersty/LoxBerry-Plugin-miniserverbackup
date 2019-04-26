@@ -28,12 +28,20 @@ $bkp_dest_dir 			= $lbphtmldir."/backups";                # Where the browser on
 $default_finalstorage	= $lbpdatadir."/backups_storage";        # Default localstorage
 $backupstate_file		= $lbphtmldir."/"."backupstate.txt";     # State file, do not change! Linked to $backupstate_tmp
 $backupstate_tmp    	= "/tmp"."/"."backupstate.txt";          # State file on RAMdisk, do not change!
-$logfilename			= "backuplog.txt";      				 # Default logfile
+
+$L = LBSystem::readlanguage("language.ini");
+$plugin_config_file = $lbpconfigdir."/miniserverbackup.cfg";
+$params = [
+    "name" => $L["MINISERVERBACKUP.INF_0131_BACKUP_NAME"]
+];
+$log = LBLog::newLog ($params);
+LOGSTART ($L["MINISERVERBACKUP.INF_0130_BACKUP_CALLED"]);
+
 // Error Reporting 
 error_reporting(E_ALL);     
 ini_set("display_errors", false);        
 ini_set("log_errors", 1);
-ini_set("error_log" , $lbplogdir."/".$logfilename); 
+
 $summary			= array();
 $at_least_one_error= 0;
 function debug($line,$message = "", $loglevel = 7)
@@ -54,36 +62,36 @@ function debug($line,$message = "", $loglevel = 7)
 			        break;
 			    case 1:
 			    	$message = "<ALERT> ".$message;
-			        error_log(          $message );
+			        LOGALERT  (         $message);
 					array_push($summary,$message);
 			        break;
 			    case 2:
 			    	$message = "<CRITICAL> ".$message;
-			        error_log(          $message );
+			        LOGCRIT   (         $message);
 					array_push($summary,$message);
 			        break;
 			    case 3:
 			    	$message = "<ERROR> ".$message;
-			        error_log(          $message );
+			        LOGERR    (         $message);
 					array_push($summary,$message);
 			        break;
 			    case 4:
 			    	$message = "<WARNING> ".$message;
-			        error_log(          $message );
+			        LOGWARN   (         $message);
 					array_push($summary,$message);
 			        break;
 			    case 5:
 			    	$message = "<OK> ".$message;
-			        error_log(          $message );
+			        LOGOK     (         $message);
 			        break;
 			    case 6:
 			    	$message = "<INFO> ".$message;
-			        error_log(          $message );
+			        LOGINF   (         $message);
 			        break;
 			    case 7:
 			    default:
 			    	$message = $message;
-			        error_log(          $message );
+			        LOGDEB   (         $message);
 			        break;
 			}
 			if ( isset($msno) )
@@ -139,34 +147,13 @@ debug(__line__,count($L)." ".$L["MINISERVERBACKUP.INF_0001_NB_LANGUAGE_STRINGS_R
 // Warning if Loglevel > 5 (OK)
 if ($plugindata['PLUGINDB_LOGLEVEL'] > 6 && $plugindata['PLUGINDB_LOGLEVEL'] <= 7) debug(__line__,$L["MINISERVERBACKUP.INF_0026_LOGLEVEL_WARNING"]." ".$L["LOGGING.LOGLEVEL".$plugindata['PLUGINDB_LOGLEVEL']]." (".$plugindata['PLUGINDB_LOGLEVEL'].")",6);
 
-touch(LBPLOGDIR."/".$logfilename); 
-debug(__line__,"Check Logfile size: ".LBPLOGDIR."/".$logfilename);
-$logsize = filesize(LBPLOGDIR."/".$logfilename);
-if ( $logsize > 8388608 )
-{
-    debug(__line__,$L["ERRORS.ERROR_LOGFILE_TOO_BIG"]." (".$logsize." Bytes)",4);
-    debug(__line__,"Set Logfile notification: ".LBPPLUGINDIR." ".$L['GENERAL.MY_NAME']." => ".$L['ERRORS.ERROR_LOGFILE_TOO_BIG'],7);
-	$lines_array = file(LBPLOGDIR."/".$logfilename);
-	$lines = count($lines_array); 
-	$new_output = "----------------------- ".$L["ERRORS.LOGFILE_OLDER_REMOVED"]." -----------------------\n";
-	for ($i=$lines-1500; $i<$lines; $i++)
-	{
-	$new_output .= $lines_array[$i];
-		}
-	file_put_contents(LBPLOGDIR."/".$logfilename,$new_output);
-}
-else
-{
-	debug(__line__,"Logfile size is ok: ".$logsize);
-}
-
-
 if ( is_file($backupstate_file) )
 {
 	if ( file_get_contents($backupstate_file) != "-" && file_get_contents($backupstate_file) != "" )
 	{
 		debug(__line__,$L["ERRORS.ERR_0042_ERR_BACKUP_RUNNING"]." ".$backupstate_file,6);
 		sleep(3);
+		LOGEND ("");
 		exit(1);
 	}
 }
@@ -183,6 +170,7 @@ if (!is_array($ms))
 	sleep(3); // To prevent misdetection in createmsbackup.pl
 	file_put_contents($backupstate_file, "-");
 	debug(__line__,$L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+	LOGEND ("");
 	exit(1);
 }
 else
@@ -229,6 +217,7 @@ else
 	$runtime = microtime(true) - $start;
 	sleep(3); // To prevent misdetection in createmsbackup.pl
 	debug(__line__,$L["MINISERVERBACKUP.INF_0113_PLUGIN_DISABLED"],5);
+	LOGEND ("");
 	exit(1);
 }
 
@@ -276,6 +265,7 @@ if ( $plugin_cfg["WORKDIR_PATH_SUBDIR"] != "" )
 		sleep(3); // To prevent misdetection in createmsbackup.pl
 		file_put_contents($backupstate_file, "-");
 		debug(__line__,$L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+		LOGEND ("");
 		exit(1);
 	}	
 	else
@@ -294,6 +284,7 @@ if (!realpath($workdir_tmp))
 	sleep(3); // To prevent misdetection in createmsbackup.pl
 	file_put_contents($backupstate_file, "-");
 	debug(__line__,$L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+	LOGEND ("");
 	exit(1);
 }
 
@@ -360,6 +351,7 @@ else
 	sleep(3); // To prevent misdetection in createmsbackup.pl
 	file_put_contents($backupstate_file, "-");
 	debug(__line__,$L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+	LOGEND ("");
 	exit(1);
 }
 
@@ -381,6 +373,7 @@ if (!is_dir($savedir_path))
 	sleep(3); // To prevent misdetection in createmsbackup.pl
 	file_put_contents($backupstate_file, "-");
 	debug(__line__,$L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+	LOGEND ("");
 	exit(1);
 }
 debug(__line__,$L["MINISERVERBACKUP.INF_0046_BACKUP_BASE_FOLDER_OK"]." (".$savedir_path.")",6); 
@@ -1786,6 +1779,7 @@ function rrmdir($dir)
 			sleep(3); // To prevent misdetection in createmsbackup.pl
 			file_put_contents($backupstate_file, "-");
 			debug(__line__,$msinfo.$L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+			LOGEND ("");
 			exit(1);
 		}
 		$objects = scandir($dir);
@@ -2048,4 +2042,5 @@ else
 sleep(3); // To prevent misdetection in createmsbackup.pl
 file_put_contents($backupstate_file, "-");
 debug(__line__,$L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+LOGEND ("");
                                                                                                                                                         

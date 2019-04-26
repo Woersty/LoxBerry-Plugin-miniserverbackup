@@ -38,7 +38,6 @@ require Time::Piece;
 # Variables
 ##########################################################################
 my %Config;
-my $logfile 					= "backuplog.txt";
 my $pluginconfigfile 			= "miniserverbackup.cfg";
 my $languagefile				= "language.ini";
 my $maintemplatefilename 		= "settings.html";
@@ -70,8 +69,7 @@ my @tag_cfg_data;
 my @msrow;
 my @ms;
 my %row_gen;
-#my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup', filename => $lbplogdir ."/". $logfile, append => 1 );
-my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup', filename => $lbplogdir ."/". $logfile); #Workaround Issue #70
+my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup Admin-UI' ); 
 my $do="form";
 my $which="0";
 my $msDisabled;
@@ -89,8 +87,10 @@ my $plugin = LoxBerry::System::plugindata();
 $LoxBerry::System::DEBUG 	= 1 if $plugin->{PLUGINDB_LOGLEVEL} eq 7;
 $LoxBerry::Web::DEBUG 		= 1 if $plugin->{PLUGINDB_LOGLEVEL} eq 7;
 $log->loglevel($plugin->{PLUGINDB_LOGLEVEL});
-LOGSTART "Version: ".$version   if $plugin->{PLUGINDB_LOGLEVEL} eq 7;
-LOGDEB   "Init CGI and import names in namespace R::";
+my %ERR 						= LoxBerry::System::readlanguage();
+LOGSTART $ERR{'MINISERVERBACKUP.INF_0129_WEBUI_CALLED'} if $plugin->{PLUGINDB_LOGLEVEL} ge 5;
+LOGOK "Version: ".$version   if $plugin->{PLUGINDB_LOGLEVEL} ge 5;
+LOGDEB "Init CGI and import names in namespace R::";
 my $cgi 	= CGI->new;
 $cgi->import_names('R');
 
@@ -105,7 +105,6 @@ if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 }
 
 # Prevent errors in Apache error log
-$R::delete_log if (0);
 $do = $R::do if ($R::do);
 $which = $R::which if ($R::which);
 
@@ -120,7 +119,7 @@ if ( !-r _ )
 	print $error_message;
 	LOGCRIT $error_message;
 	LoxBerry::Web::lbfooter();
-	LOGDEB "Leaving Plugin due to an unrecoverable error";
+	LOGEND "";
 	exit;
 }
 
@@ -133,7 +132,7 @@ my $errortemplate = HTML::Template->new(
 		%htmltemplate_options,
 		debug => 1,
 		);
-my %ERR = LoxBerry::System::readlanguage($errortemplate, $languagefile);
+%ERR = LoxBerry::System::readlanguage($errortemplate, $languagefile);
 
 #Prevent blocking / Recreate state file if missing or older than 120 * 60 sec = 2 hrs)
 $error_message = $ERR{'ERRORS.ERR_0029_PROBLEM_WITH_STATE_FILE'};
@@ -178,20 +177,6 @@ if (!-r _ || -z _ )
 	close $configfileHandle;
 	$error_message = $ERR{'MINISERVERBACKUP.INF_0070_CREATE_CONFIG_OK'};
 	&error; 
-}
-
-if ( $R::delete_log )
-{
-	$log->close;
-	$error_message = $ERR{'ERRORS.ERR_0032_ERROR_DELETE_LOGFILE'};
-	open(my $fh, '>', $lbplogdir ."/". $logfile) or &error;
-	print $fh "";
-	close $fh;
-	$log->open;
-	LOGOK $ERR{'MINISERVERBACKUP.INF_0069_DELETE_LOGFILE'}. " " .$lbplogdir ."/". $logfile;
-	LOGSTART "Version: ".$version;
-	print "Content-Type: text/plain\n\nOK";
-	exit;
 }
 
 # Get plugin config
@@ -297,8 +282,6 @@ LOGDEB "Notifications are:\n".encode_entities($notifications) if $notifications;
 LOGDEB "No notifications pending." if !$notifications;
 $maintemplate->param( "NOTIFICATIONS" , $notifications);
 
-$maintemplate->param( "LOGFILE" 	, $lbplogdir ."/". $logfile);
-	
 LOGDEB "Check, if filename for the successtemplate is readable";
 stat($lbptemplatedir . "/" . $successtemplatefilename);
 if ( !-r _ )
@@ -329,6 +312,8 @@ if ( $do eq "backup") { &backup; };
 
 LOGDEB "Call default page";
 &form;
+
+LOGEND "";
 exit;
 
 #####################################################
@@ -526,7 +511,6 @@ exit;
 	
     	print $maintemplate->output();
 		LoxBerry::Web::lbfooter();
-		exit;
 	}
 
 #####################################################
@@ -544,7 +528,7 @@ sub error
 	$errortemplate->param('ERR_BUTTON_BACK' , $ERR{'ERRORS.ERR_BUTTON_BACK'});
 	print $errortemplate->output();
 	LoxBerry::Web::lbfooter();
-	LOGDEB "Leaving Miniserverbackup Plugin with an error";
+	LOGEND "";
 	exit;
 }
 
@@ -572,5 +556,6 @@ sub error
 			 system("$lbcgidir/bin/createmsbackup.pl manual $which &");
 		}
 		print ($L{"GENERAL.MY_NAME"}." OK");
+		LOGEND "";
 		exit;
 	}

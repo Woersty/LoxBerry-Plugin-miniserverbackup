@@ -88,7 +88,7 @@ span#alert_form_close:hover {
 </div>
 <CENTER>
 	<CENTER>
-		<a id="btnbackup" class="to_disable_on_save" data-role="button" data-mini="true" onclick="$('#Logfiletextbox').append('<hr\><DIV style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'><TMPL_VAR GENERAL.LOG_EXECUTING></DIV><hr\>'); $.get('./index.cgi?do=backup');"><TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW></a>
+		<a id="btnbackup" class="to_disable_on_save" data-role="button" data-mini="true" onclick="$.get('./index.cgi?do=backup');"><TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW></a>
 	</CENTER>
 	<BR><a id="btncancel" class="to_disable_on_save" data-role="button" data-inline="true" data-mini="true" data-icon="arrow-l" href="/admin/system/index.cgi"><TMPL_VAR GENERAL.LABEL_BUTTON_BACK></a>
 </CENTER>
@@ -189,7 +189,7 @@ span#alert_form_close:hover {
 					</DIV>
 				</DIV>
 			</DIV>
-			<br>
+			<hr>
 			<DIV style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(0,222,228,.1);">
 				<TMPL_VAR GENERAL.EMAIL_PARAMETERS>
 			</DIV>
@@ -229,16 +229,77 @@ span#alert_form_close:hover {
 					$('#email_recipient').trigger('keyup');
 				});
 			</script>
+			<hr>
+
+			<DIV style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(19,172,132,.2);">
+				<TMPL_VAR LOGGING.LOG_AREA>
+			</DIV>
+			<DIV style="display:table;">
+				<DIV style="display:table-row;">
+					<DIV style="display:table-cell; text-align:right;">
+						<TMPL_VAR LOGGING.LOG_LEVEL>
+					</DIV>
+					<DIV style="display:table-cell; border-radius: 5px;">
+						<select name="loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>" id="loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>" data-mini="true">
+							<option value="0"><TMPL_VAR LOGGING.LOGLEVEL0></option>
+					      <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_NOTIFY>">
+							<option value="1"><TMPL_VAR LOGGING.LOGLEVEL1></option>
+							<option value="2"><TMPL_VAR LOGGING.LOGLEVEL2></option> 
+							<option value="3"><TMPL_VAR LOGGING.LOGLEVEL3></option>
+						  </optgroup>
+						  <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_NORMAL>">
+							<option value="4"><TMPL_VAR LOGGING.LOGLEVEL4></option>
+							<option value="5"><TMPL_VAR LOGGING.LOGLEVEL5></option>
+					      </optgroup>
+						  <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_FREAKS>">
+							<option value="6"><TMPL_VAR LOGGING.LOGLEVEL6></option>
+					      </optgroup>
+						  <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_DEVELOPMENT>">
+							<option value="7"><TMPL_VAR LOGGING.LOGLEVEL7></option>
+						  </optgroup>
+						</select>
+						<script>
+							function post_value (action, pluginmd5, value)
+							{
+								console.log("Action:", action, "Plugin-MD5:", pluginmd5, "Value:", value);
+								$.post ( '/admin/system/tools/ajax-config-handler.cgi', 
+									{ 	action: action,
+										value: value,
+										pluginmd5: pluginmd5
+									});
+							}
+							$( document ).ready(function() 
+							{
+								$("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>-button").remove();
+								$("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").css('display','').selectmenu( "menuWidget" );
+								$("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
+								$("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").val("<TMPL_VAR LOGLEVEL>");
+								$("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").change(function()
+								{
+									var val = $(this).val();
+									console.log("Loglevel", val);
+									post_value('plugin-loglevel', '<TMPL_VAR PLUGINDB_MD5_CHECKSUM>', val); 
+								});
+							});
+						</script>
+		 			</DIV>
+				</DIV>
+				<DIV style="display:table-row;">
+						<DIV style="display:table-cell; text-align:right;"><TMPL_VAR LOGGING.LOG_MGR></DIV>
+						<DIV style="display:table-cell; border-radius: 5px;"><button onclick="window.open('/admin/system/logmanager.cgi?package=miniserverbackup', 'log'); return false;" id="logview" data-role="button" data-inline="true" data-mini="true"><TMPL_VAR LOGGING.LOG_BUTTON_VIEW></button></DIV>
+				</DIV>
+			</DIV>
 		</DIV>
 	</TMPL_LOOP>
+	<br><br>
 	<TMPL_LOOP TEMPLATE_ROW>
-		<DIV style="display:inline-block;" class="to_disable_on_save">
+		<DIV style="display:inline-block; width:100%;" class="to_disable_on_save">
 			<DIV id="MS_LOOP_ROW<TMPL_VAR MSID>" style="text-align:left; display:inline-block; margin-bottom:5px; width:99%; padding:10px; border: 1px solid black; border-radius: 5px; background-color: rgba(228,228,228,.1);"> 
 				<DIV style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(0,228,228,.1);">
 					<TMPL_LOOP NAME="MSROW">
 						#<TMPL_VAR MSID> - <TMPL_VAR Name> <small>[<TMPL_VAR IPAddress>]</small><BR>
 					</TMPL_LOOP>
-					<a id="btnbackup_single<TMPL_VAR MSID>" class="btnbackup_single to_disable_on_save" data-role="button" data-icon="clock" data-mini="true" onclick="$('#Logfiletextbox').append('<hr\><DIV style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'><TMPL_VAR GENERAL.LOG_EXECUTING></DIV><hr\>'); $.get('./index.cgi?do=backup&which=<TMPL_VAR MSID>');"><TMPL_VAR GENERAL.LABEL_START_ONE_BACKUP_NOW></a>
+					<a id="btnbackup_single<TMPL_VAR MSID>" class="btnbackup_single to_disable_on_save" data-role="button" data-icon="clock" data-mini="true" onclick="$.get('./index.cgi?do=backup&which=<TMPL_VAR MSID>');"><TMPL_VAR GENERAL.LABEL_START_ONE_BACKUP_NOW></a>
 				</DIV>
 				<DIV style="display:table;">
 					<DIV style="display:table-row;">
@@ -349,131 +410,7 @@ span#alert_form_close:hover {
 		<BR>
 	</TMPL_LOOP>
 </CENTER>
-<DIV>
-	<table width="100%" border="0">
-		<tr>
-			<td width="50%"><a style="color:green;" scrollme="true" onclick="logscroll_change();" id="LogScroll" data-role="button" data-mini="true" target="_self"><TMPL_VAR GENERAL.LABEL_JUMP_TO_END_AUTOMATICALLY>&nbsp;<IMG height="16px" src="<TMPL_VAR HTMLPATH>img/scroll_go.gif"></a></td>
-			<td width="50%"><a onclick="$('#Logfiletextbox').prop('innerHTML','<hr\><DIV style=\'text-align:center; width:100%; color:#000000; background-color:lightgreen;\'><TMPL_VAR GENERAL.LOG_NEWSESSION></DIV><hr\>'); $.get('<TMPL_VAR HTMLPATH>logfile.php?ajax&new_session=1');" id="reset_session" data-role="button" data-mini="true" href="" target="_blank"><TMPL_VAR GENERAL.LABEL_RESTART_DEBUG_SESSION>&nbsp;<IMG height="16px" src="<TMPL_VAR HTMLPATH>img/trans.gif"></a></td>
-		</tr>
-	</table>
-	<DIV style="resize:vertical; width:100%; border: 1px solid #888;  background-color: transparent; font-family:monospace; color:#8080FF; overflow-y: scroll;" id="Logfiletextbox" contenteditable="true"> </DIV>
-</DIV>
-<CENTER>
-	<BR>
-	<DIV style="display:table;">
-		<DIV style="display:table-row;">
-			<DIV style="display:table-cell; ">
-				<DIV style="display:table; padding:10px; border: 1px solid black; border-radius: 5px; background-color: rgba(19,172,132,.2);">
-			 		<DIV style="display:table-row;">
-						<DIV style="display:table-cell; ">
-							<TMPL_VAR LOGGING.LOG_AREA>
-			 			</DIV>
-		 			</DIV>
-			 		<DIV style="display:table-row;">
-						<DIV style="display:table-cell; border-radius: 5px;" id="delete_log_div">
-				 			<button id="delete_log_btn" onclick="$('#reset_session').trigger('click'); $('#delete_log_div').css('background-color','yellow'); $('#delete_log_btn').html('<TMPL_VAR LOGGING.LOG_BUTTON_DELETE_WORKING>'); $.ajax({url: '', type: 'GET', data: { 'delete_log':1},
-					            success: function (data) {
-					            	$.ajax({url: '<TMPL_VAR HTMLPATH>logfile.php', type: 'GET', data: { 'new_session':1}});
-					                $('#delete_log_div').css('background-color','green');
-					                $('#delete_log_btn').html('<TMPL_VAR LOGGING.LOG_BUTTON_DELETE_OK>');
-					                setTimeout( function() { $('#delete_log_div').css('background-color',''); $('#delete_log_btn').html('<TMPL_VAR LOGGING.LOG_BUTTON_DELETE>'); }, 2000);
-					            },
-					            error: function (textStatus, errorThrown) {
-					                $('#delete_log_div').css('background-color','red');
-					                $('#delete_log_btn').html('<TMPL_VAR LOGGING.LOG_BUTTON_DELETE_FAIL>');
-					                setTimeout( function() { $('#delete_log_div').css('background-color',''); $('#delete_log_btn').html('<TMPL_VAR LOGGING.LOG_BUTTON_DELETE>');}, 2000);
-					
-					            }	}); return false;" data-role="button" data-inline="true" data-mini="true"><TMPL_VAR LOGGING.LOG_BUTTON_DELETE></button>
-				 		</DIV>
-		 			</DIV>
-			 		<DIV style="display:table-row;">
-						<DIV style="display:table-cell; border-radius: 5px;" id="level_log_div">
-							<fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
-							<select name="loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>" id="loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>" data-mini="true">
-								<option value="0"><TMPL_VAR LOGGING.LOGLEVEL0></option>
-						      <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_NOTIFY>">
-								<option value="1"><TMPL_VAR LOGGING.LOGLEVEL1></option>
-								<option value="2"><TMPL_VAR LOGGING.LOGLEVEL2></option> 
-								<option value="3"><TMPL_VAR LOGGING.LOGLEVEL3></option>
-							  </optgroup>
-							  <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_NORMAL>">
-								<option value="4"><TMPL_VAR LOGGING.LOGLEVEL4></option>
-								<option value="5"><TMPL_VAR LOGGING.LOGLEVEL5></option>
-						      </optgroup>
-							  <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_FREAKS>">
-								<option value="6"><TMPL_VAR LOGGING.LOGLEVEL6></option>
-						      </optgroup>
-							  <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_DEVELOPMENT>">
-								<option value="7"><TMPL_VAR LOGGING.LOGLEVEL7></option>
-							  </optgroup>
-							</select>
-							</fieldset>
-							<script>
-								function post_value (action, pluginmd5, value)
-								{
-									console.log("Action:", action, "Plugin-MD5:", pluginmd5, "Value:", value);
-									$.post ( '/admin/system/tools/ajax-config-handler.cgi', 
-										{ 	action: action,
-											value: value,
-											pluginmd5: pluginmd5
-										});
-								}
-								$( document ).ready(function() 
-								{
-									$("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>-button").remove();
-									$("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").css('display','').selectmenu( "menuWidget" );
-									$("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
-									$("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").val("<TMPL_VAR LOGLEVEL>");
-									$("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").change(function()
-									{
-										var val = $(this).val();
-										console.log("Loglevel", val);
-										post_value('plugin-loglevel', '<TMPL_VAR PLUGINDB_MD5_CHECKSUM>', val); 
-									});
-								});
-							</script>
-				 		</DIV>
-		 			</DIV>
-			 		<DIV style="display:table-row;">
-						<DIV style="display:table-cell; border-radius: 5px;" id="level_log_div">
-				 			<button onclick="window.open('/admin/system/tools/logfile.cgi?logfile=<TMPL_VAR LOGFILE>&amp;header=html&amp;format=template', 'log'); return false;" id="logview" data-role="button" data-inline="true" data-mini="true"><TMPL_VAR LOGGING.LOG_BUTTON_VIEW></button>
-				 			<SCRIPT> 
-				 	 			$("label").css("text-align","left").css("margin-top","8px").css("margin-bottom","-8px").css("margin-left","0px");
-							</SCRIPT>
-						</DIV>
-			 		</DIV>
-		 		</DIV>
-	 		</DIV>
- 		</DIV>
-	</DIV>
-</CENTER>
 <script>
-	$.ajax({url: '<TMPL_VAR HTMLPATH>logfile.php', type: 'GET', data: { 'new_session':1}});
-	$('#Logfiletextbox').css("height","300px");
-	setInterval(function() 
-	{
-		$.get('<TMPL_VAR HTMLPATH>logfile.php?ajax', function(data) 
-		{
-			$('#Logfiletextbox').append(data);
-			if($("#LogScroll").attr('scrollme') == 'true' )
-			{
-				$('#Logfiletextbox').scrollTop($('#Logfiletextbox')[0].scrollHeight);
-			}
-	 	});
-	}, 1500);
-	
-	function logscroll_change()
-	{
-		if($("#LogScroll").attr('scrollme') == "true" )
-		{
-			$('#LogScroll').attr('scrollme','false').css('color','red').html('<TMPL_VAR GENERAL.LABEL_JUMP_TO_END_AUTOMATICALLY_PAUSED>&nbsp;<IMG src=\'<TMPL_VAR HTMLPATH>img/scroll_stop.gif\'>');
-		}
-		else
-		{
-			$('#LogScroll').attr('scrollme','true').css('color','green').html('<TMPL_VAR GENERAL.LABEL_JUMP_TO_END_AUTOMATICALLY>&nbsp;<IMG src=\'<TMPL_VAR HTMLPATH>img/scroll_go.gif\'>');
-		}
-	}
-
 	function checkSpace()
 	{
 		if ( "<TMPL_VAR WORKDIR_FREE>" != "" )
@@ -762,17 +699,6 @@ span#alert_form_close:hover {
 		}, 500);
 	}
 	
-//	// Scroll function for notify
-//	// Use like:   if ( data.length > 10 ) { $('#notifblock').scrollToMe(); }
-//	jQuery.fn.extend(
-//	{
-//	 scrollToMe: function () 
-//	 {
-//		 var x = jQuery(this).offset().top - 50;
-//		 jQuery('html,body').animate({scrollTop: x}, 400);
-//	 }
-//	});
-//	
 	$( document ).ready(function() 
 	{
 		if(  $('#workdir_path optgroup[id=localwdp]').children("option:selected").val() != null)
