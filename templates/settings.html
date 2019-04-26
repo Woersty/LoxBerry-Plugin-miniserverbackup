@@ -236,28 +236,37 @@ span#alert_form_close:hover {
 			</DIV>
 			<DIV style="display:table;">
 				<DIV style="display:table-row;">
-					<DIV style="display:table-cell; text-align:right;">
-						<TMPL_VAR LOGGING.LOG_LEVEL>
-					</DIV>
 					<DIV style="display:table-cell; border-radius: 5px;">
-						<select name="loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>" id="loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>" data-mini="true">
-							<option value="0"><TMPL_VAR LOGGING.LOGLEVEL0></option>
-					      <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_NOTIFY>">
-							<option value="1"><TMPL_VAR LOGGING.LOGLEVEL1></option>
-							<option value="2"><TMPL_VAR LOGGING.LOGLEVEL2></option> 
-							<option value="3"><TMPL_VAR LOGGING.LOGLEVEL3></option>
-						  </optgroup>
-						  <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_NORMAL>">
-							<option value="4"><TMPL_VAR LOGGING.LOGLEVEL4></option>
-							<option value="5"><TMPL_VAR LOGGING.LOGLEVEL5></option>
-					      </optgroup>
-						  <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_FREAKS>">
-							<option value="6"><TMPL_VAR LOGGING.LOGLEVEL6></option>
-					      </optgroup>
-						  <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_DEVELOPMENT>">
-							<option value="7"><TMPL_VAR LOGGING.LOGLEVEL7></option>
-						  </optgroup>
-						</select>
+						<table>
+							<tr>
+								<td>
+									<TMPL_VAR LOGGING.LOG_LEVEL>
+								</td>
+								<td>
+									<select name="loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>" id="loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>" data-mini="true">
+											<option value="0"><TMPL_VAR LOGGING.LOGLEVEL0></option>
+										<optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_NOTIFY>">
+											<option value="1"><TMPL_VAR LOGGING.LOGLEVEL1></option>
+											<option value="2"><TMPL_VAR LOGGING.LOGLEVEL2></option> 
+											<option value="3"><TMPL_VAR LOGGING.LOGLEVEL3></option>
+										</optgroup>
+										<optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_NORMAL>">
+											<option value="4"><TMPL_VAR LOGGING.LOGLEVEL4></option>
+											<option value="5"><TMPL_VAR LOGGING.LOGLEVEL5></option>
+										</optgroup>
+										<optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_FREAKS>">
+											<option value="6"><TMPL_VAR LOGGING.LOGLEVEL6></option>
+										</optgroup>
+										<optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_DEVELOPMENT>">
+											<option value="7"><TMPL_VAR LOGGING.LOGLEVEL7></option>
+										</optgroup>
+									</select>
+								</td>
+								<td>
+									<button onclick="window.open('/admin/system/logmanager.cgi?package=miniserverbackup', 'log'); return false;" id="logview" data-role="button" data-inline="true" data-mini="true"><TMPL_VAR LOGGING.LOG_MGR></button>
+								</td>
+							</tr>
+						</table>
 						<script>
 							function post_value (action, pluginmd5, value)
 							{
@@ -283,10 +292,6 @@ span#alert_form_close:hover {
 							});
 						</script>
 		 			</DIV>
-				</DIV>
-				<DIV style="display:table-row;">
-						<DIV style="display:table-cell; text-align:right;"><TMPL_VAR LOGGING.LOG_MGR></DIV>
-						<DIV style="display:table-cell; border-radius: 5px;"><button onclick="window.open('/admin/system/logmanager.cgi?package=miniserverbackup', 'log'); return false;" id="logview" data-role="button" data-inline="true" data-mini="true"><TMPL_VAR LOGGING.LOG_BUTTON_VIEW></button></DIV>
 				</DIV>
 			</DIV>
 		</DIV>
