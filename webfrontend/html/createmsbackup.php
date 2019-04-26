@@ -568,7 +568,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			break;
 
 			default;
-				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.ERR_0052_CLOUDDNS_UNEXPECTED_ERROR"]." => ".$miniserver['Name']." => ".str_replace("&", "", http_build_query($response)),3);
+				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0052_CLOUDDNS_UNEXPECTED_ERROR"]." => ".$miniserver['Name']." => ".str_replace("&", "", http_build_query($response)),3);
 				$cloudcancel=1;
 		}
 		if ( $cloudcancel == 1 )
