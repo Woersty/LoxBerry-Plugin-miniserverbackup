@@ -28,12 +28,13 @@ $bkp_dest_dir 			= $lbphtmldir."/backups";                # Where the browser on
 $default_finalstorage	= $lbpdatadir."/backups_storage";        # Default localstorage
 $backupstate_file		= $lbphtmldir."/"."backupstate.txt";     # State file, do not change! Linked to $backupstate_tmp
 $backupstate_tmp    	= "/tmp"."/"."backupstate.txt";          # State file on RAMdisk, do not change!
-
+$logfilename			= LBPLOGDIR."/miniserver_backup_".date("d-M-Y_H\hi\ms\s",time()).".log";
 $L = LBSystem::readlanguage("language.ini");
 $plugin_config_file = $lbpconfigdir."/miniserverbackup.cfg";
 $params = [
-    "name" => $L["MINISERVERBACKUP.INF_0131_BACKUP_NAME"]
-];
+    "name" => $L["MINISERVERBACKUP.INF_0131_BACKUP_NAME"],
+    "filename" => $logfilename];
+    
 $log = LBLog::newLog ($params);
 LOGSTART ($L["MINISERVERBACKUP.INF_0130_BACKUP_CALLED"]);
 
@@ -46,7 +47,7 @@ $summary			= array();
 $at_least_one_error= 0;
 function debug($line,$message = "", $loglevel = 7)
 {
-	global $L, $plugindata, $summary, $miniserver,$msno,$plugin_cfg,$at_least_one_error;
+	global $L, $plugindata, $summary, $miniserver,$msno,$plugin_cfg,$at_least_one_error,$logfilename;
 	if ( $plugindata['PLUGINDB_LOGLEVEL'] >= intval($loglevel) )  
 	{
 		$message = preg_replace('/["]/','',$message); // Remove quotes => https://github.com/mschlenstedt/Loxberry/issues/655
@@ -107,7 +108,13 @@ function debug($line,$message = "", $loglevel = 7)
 				$at_least_one_error = 1;
 				$search  = array('<ALERT> PHP', '<CRITICAL> PHP', '<ERROR> PHP');
 				$replace = array($L["LOGGING.NOTIFY_LOGLEVEL1"],$L["LOGGING.NOTIFY_LOGLEVEL2"],$L["LOGGING.NOTIFY_LOGLEVEL3"]);
-				if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$msi, str_replace($search, $replace, $raw_message),1);
+				$notification = array (
+				"PACKAGE" => LBPPLUGINDIR,
+				"NAME" => $L['GENERAL.MY_NAME']." ".$msi,
+				"MESSAGE" => str_replace($search, $replace, $raw_message),
+				"SEVERITY" => 3,
+				"LOGFILE"	=> $logfilename);
+				if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) notify_ext ($notification);
 				return;
 			}
 			if ( $loglevel <= 4 ) 
@@ -115,12 +122,20 @@ function debug($line,$message = "", $loglevel = 7)
 				$at_least_one_error = 1;
 				$search  = array('<WARNING> PHP');
 				$replace = array($L["LOGGING.NOTIFY_LOGLEVEL4"]);
-				if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$msi, str_replace($search, $replace, $raw_message));
+				$notification = array (
+				"PACKAGE" => LBPPLUGINDIR,
+				"NAME" => $L['GENERAL.MY_NAME']." ".$msi,
+				"MESSAGE" => str_replace($search, $replace, $raw_message),
+				"SEVERITY" => 3,
+				"LOGFILE"	=> LBPLOGDIR . "/" . $logfilename);
+				if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) notify_ext ($notification);
+				return;
 			}
 		}
 	}
 	return;
 }
+
 
 function getHttpCode($http_response_header)
 {
@@ -153,11 +168,11 @@ if ( is_file($backupstate_file) )
 	{
 		debug(__line__,$L["ERRORS.ERR_0042_ERR_BACKUP_RUNNING"]." ".$backupstate_file,6);
 		sleep(3);
+		$log->LOGTITLE($L["MINISERVERBACKUP.INF_0139_BACKUP_ALREADY_RUNNING"]);
 		LOGEND ("");
 		exit(1);
 	}
 }
-
 
 // Read Miniservers
 debug(__line__,$L["MINISERVERBACKUP.INF_0002_READ_MINISERVERS"]);
@@ -170,6 +185,7 @@ if (!is_array($ms))
 	sleep(3); // To prevent misdetection in createmsbackup.pl
 	file_put_contents($backupstate_file, "-");
 	debug(__line__,$L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0138_BACKUP_ABORTED_WITH_ERROR"]);
 	LOGEND ("");
 	exit(1);
 }
@@ -217,6 +233,7 @@ else
 	$runtime = microtime(true) - $start;
 	sleep(3); // To prevent misdetection in createmsbackup.pl
 	debug(__line__,$L["MINISERVERBACKUP.INF_0113_PLUGIN_DISABLED"],5);
+	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0113_PLUGIN_DISABLED"]);
 	LOGEND ("");
 	exit(1);
 }
@@ -265,6 +282,7 @@ if ( $plugin_cfg["WORKDIR_PATH_SUBDIR"] != "" )
 		sleep(3); // To prevent misdetection in createmsbackup.pl
 		file_put_contents($backupstate_file, "-");
 		debug(__line__,$L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+		$log->LOGTITLE($L["MINISERVERBACKUP.INF_0138_BACKUP_ABORTED_WITH_ERROR"]);
 		LOGEND ("");
 		exit(1);
 	}	
@@ -284,6 +302,7 @@ if (!realpath($workdir_tmp))
 	sleep(3); // To prevent misdetection in createmsbackup.pl
 	file_put_contents($backupstate_file, "-");
 	debug(__line__,$L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0138_BACKUP_ABORTED_WITH_ERROR"]);
 	LOGEND ("");
 	exit(1);
 }
@@ -351,6 +370,7 @@ else
 	sleep(3); // To prevent misdetection in createmsbackup.pl
 	file_put_contents($backupstate_file, "-");
 	debug(__line__,$L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0138_BACKUP_ABORTED_WITH_ERROR"]);
 	LOGEND ("");
 	exit(1);
 }
@@ -373,18 +393,20 @@ if (!is_dir($savedir_path))
 	sleep(3); // To prevent misdetection in createmsbackup.pl
 	file_put_contents($backupstate_file, "-");
 	debug(__line__,$L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0138_BACKUP_ABORTED_WITH_ERROR"]);
 	LOGEND ("");
 	exit(1);
 }
 debug(__line__,$L["MINISERVERBACKUP.INF_0046_BACKUP_BASE_FOLDER_OK"]." (".$savedir_path.")",6); 
 
 $at_least_one_save = 0;
+$saved_ms=array();
 array_push($summary,"<HR> ");
-
 ksort($ms);
 for ( $msno = 1; $msno <= count($ms); $msno++ ) 
 {
 	$miniserver = $ms[$msno];
+	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0135_BACKUP_STARTED_MS"]." #".$msno." (".$miniserver['Name'].")");
 	if (isset($argv[2])) 
 	{
 		if ( intval($argv[2]) == $msno )
@@ -1344,7 +1366,17 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			}
 			$message = str_ireplace("<NAME>",$miniserver['Name'],str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0098_BACKUP_OF_MINISERVER_COMPLETED"]))." ".$fileinf;
 			debug(__line__,"MS#".$msno." ".$message,5);
-			if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." ".$miniserver['Name'], $message);
+			$notification = array (
+			"PACKAGE" => LBPPLUGINDIR,
+			"NAME" => $L['GENERAL.MY_NAME']." ".$miniserver['Name'],
+			"MESSAGE" => $message,
+			"SEVERITY" => 6,
+			"LOGFILE"	=> $logfilename);
+			if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) 
+			{
+				var_dump($notification);
+				notify_ext ($notification);
+			}
 			array_push($summary,"MS#".$msno." "."<OK> ".$message);
 	}
 	else
@@ -1362,10 +1394,21 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_SAVE'.$msno.'='.time());
 	$at_least_one_save = 1;
 	array_push($summary,"<HR> ");
+	array_push($saved_ms," #".$msno." (".$miniserver['Name'].")");
+	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0136_BACKUP_COMPLETED_MS"]." #".$msno." (".$miniserver['Name'].")");
 }
 if ( $msno > count($ms) ) { $msno = ""; };
 array_push($summary," ");
 debug(__line__,$L["MINISERVERBACKUP.INF_0019_BACKUPS_COMPLETE"],5);
+if (count($saved_ms) > 0 )
+{
+	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0134_BACKUP_FINISHED"]." ".$L["MINISERVERBACKUP.INF_0136_BACKUP_COMPLETED_MS"]." ".join(", ",$saved_ms));
+}
+else
+{
+	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0134_BACKUP_FINISHED"]." ".$L["MINISERVERBACKUP.INF_0137_BACKUP_COMPLETED_NO_MS"]);
+}
+
 curl_close($curl); 
 debug(__line__,$L["MINISERVERBACKUP.INF_0034_DEBUG_DIRECTORY_DELETE"]." -> ".$workdir_tmp);
 rrmdir($workdir_tmp);
@@ -1778,6 +1821,7 @@ function rrmdir($dir)
 			sleep(3); // To prevent misdetection in createmsbackup.pl
 			file_put_contents($backupstate_file, "-");
 			debug(__line__,$msinfo.$L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s",5);
+			$log->LOGTITLE($L["MINISERVERBACKUP.INF_0138_BACKUP_ABORTED_WITH_ERROR"]);
 			LOGEND ("");
 			exit(1);
 		}
