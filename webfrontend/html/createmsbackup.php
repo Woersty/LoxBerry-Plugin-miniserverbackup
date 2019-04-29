@@ -15,9 +15,10 @@ chdir(dirname($_SERVER['PHP_SELF']));
 require_once "loxberry_system.php";
 require_once "loxberry_log.php";
 
+$inc_backups_to_keep	= 0;  									 # Keep this number of incremental backups when 7z format is used
 $plugin_config_file 	= $lbpconfigdir."/miniserverbackup.cfg"; # Plugin config
 $workdir_data			= $lbpdatadir."/workdir";                # Working directory, on RAM-Disk by default due to $workdir_tmp
-$savedir_path 			= $lbpdatadir."/.currentbackup";          # Directory to hold latest backup to compare with
+$savedir_path 			= $lbpdatadir."/.currentbackup";         # Directory to hold latest backup to compare with
 $backup_file_prefix		= "Backup_";                             # Backup name prefix
 $workdir_tmp			= "/tmp/miniserverbackup";               # The $workdir_data folder will be linked to this target
 $minimum_free_workdir	= 134217728;                             # In Bytes. Let minumum 128 MB free on workdir (RAMdisk in $workdir_tmp by default)
@@ -1319,13 +1320,13 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 					}
 					unset($deletions);
 				}
-				debug(__line__,"MS#".$msno." ".str_ireplace("<cleaninfo>",$finalstorage."/Incremental_".$backup_file_prefix.trim($local_ip[1])."_*".$fileformat_extension,str_ireplace("<number>",$backups_to_keep,$L["MINISERVERBACKUP.INF_0092_CLEAN_UP_BACKUP"])),6);
+				debug(__line__,"MS#".$msno." ".str_ireplace("<cleaninfo>",$finalstorage."/Incremental_".$backup_file_prefix.trim($local_ip[1])."_*".$fileformat_extension,str_ireplace("<number>",$inc_backups_to_keep,$L["MINISERVERBACKUP.INF_0092_CLEAN_UP_BACKUP"])),6);
 				$files = glob($finalstorage."/Incremental_".$backup_file_prefix.trim($local_ip[1])."_*".$fileformat_extension, GLOB_NOSORT);
 				usort($files,"sort_by_mtime");
 				$keeps = $files;
-				if ( count($keeps) > $backups_to_keep )
+				if ( count($keeps) > $inc_backups_to_keep )
 				{
-					$keeps = array_slice($keeps, 0 - $backups_to_keep, $backups_to_keep);			
+					$keeps = array_slice($keeps, 0 - $inc_backups_to_keep, $inc_backups_to_keep);			
 				}
 				foreach($keeps as $keep) 
 				{
@@ -1333,9 +1334,9 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				}
 				unset($keeps);
 	
-				if ( count($files) > $backups_to_keep )
+				if ( count($files) > $inc_backups_to_keep )
 				{
-					$deletions = array_slice($files, 0, count($files) - $backups_to_keep);
+					$deletions = array_slice($files, 0, count($files) - $inc_backups_to_keep);
 		
 					foreach($deletions as $to_delete) 
 					{
