@@ -11,9 +11,6 @@ $start =  microtime(true);
 // Go to the right directory
 chdir(dirname($_SERVER['PHP_SELF']));
 
-// Link to logfile
-// http://loxberrydev/admin/system/tools/logfile.cgi?logfile=plugins/miniserverbackup/backuplog.txt&header=html&format=template
-
 // Include System Lib
 require_once "loxberry_system.php";
 require_once "loxberry_log.php";
@@ -127,7 +124,7 @@ function debug($line,$message = "", $loglevel = 7)
 				"NAME" => $L['GENERAL.MY_NAME']." ".$msi,
 				"MESSAGE" => str_replace($search, $replace, $raw_message),
 				"SEVERITY" => 3,
-				"LOGFILE"	=> LBPLOGDIR . "/" . $logfilename);
+				"LOGFILE"	=> $logfilename);
 				if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) notify_ext ($notification);
 				return;
 			}
