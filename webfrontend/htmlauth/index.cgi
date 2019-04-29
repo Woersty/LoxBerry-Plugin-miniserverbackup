@@ -448,7 +448,7 @@ exit;
 				$row{'LOCALSTORAGENAME'} 		= $localstorage."/".sprintf("%03d", $ms_id)."_".$ms{Name};
 				$row{'CURRENT_STORAGE'}			= $localstorage;
 				$row{'CURRENT_INTERVAL'}		= 0;
-				$row{'CURRENT_FILE_FORMAT'}		= "zip";
+				$row{'CURRENT_FILE_FORMAT'}		= "7z";
 				$row{'CURRENT_BACKUPS_TO_KEEP'}	= "7";
 				$row{'CURRENT_STORAGE'}			= $Config{"MINISERVERBACKUP.FINALSTORAGE".$ms_id} if ( $Config{"MINISERVERBACKUP.FINALSTORAGE".$ms_id} ne "" );
 				$row{'CURRENT_INTERVAL'}		= $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} if ( $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} ne "" );
