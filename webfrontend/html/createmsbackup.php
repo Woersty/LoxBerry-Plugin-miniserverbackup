@@ -1224,15 +1224,31 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0073_ZIP_NO_PREVIOUS_BACKUP_FOUND"],5);
 					exec('7za a '.$bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension.' '.$savedir_path.'/'.$bkpfolder.' -ms=off -mx=9 -t7z 2>&1', $output);
 				}
+				$zipresult=end($output);
+				if ( $zipresult != "Everything is Ok" )
+				{
+					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0060_CREATE_ZIP_ARCHIVE_FAILED"]." [".$zipresult."]",3);
+					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0074_ZIP_COMPRESSION_RESULT"]." ".implode("<br>",$output),6);
+					$crit_issue=1;
+				}
+				else
+				{
+					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0074_ZIP_COMPRESSION_RESULT"]." ".implode("<br>",$output),6);
+					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0061_CREATE_ZIP_ARCHIVE_DONE"]." ".$finalstorage."/".$bkpdir.$fileformat_extension." (". round( intval( filesize($finalstorage."/".$bkpdir.$fileformat_extension) ) / 1024 / 1024 ,2 ) ." MB)",5);
+				}
                 if ( is_file($savedir_path.'/'.$bkpfolder."/log/def.log"))
                 {
                 	MSbackupZIP::check_def_log($savedir_path.'/'.$bkpfolder."/log/def.log");
             	}
-				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0074_ZIP_COMPRESSION_RESULT"]." ".implode("<br>",$output),6);
-				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0061_CREATE_ZIP_ARCHIVE_DONE"]." ".$finalstorage."/".$bkpdir.$fileformat_extension." (". round( intval( filesize($finalstorage."/".$bkpdir.$fileformat_extension) ) / 1024 / 1024 ,2 ) ." MB)",5);
 		        break;
 		}
-		
+		if ( $crit_issue == 1 )
+		{
+			create_clean_workdir_tmp($workdir_tmp);
+			file_put_contents($backupstate_file,"-");
+			array_push($summary,"<HR> ");
+			continue;
+		}
 		switch ($fileformat) 
 		{
 		    case "UNCOMPRESSED":
@@ -1931,7 +1947,7 @@ else
 {
 	debug(__line__,$L["MINISERVERBACKUP.INF_0116_MAIL_ENABLED"],6);
 }
-if ( $at_least_one_save == 1 && ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" || ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" && $at_least_one_error == 1 ) ) )  
+if ( ( $at_least_one_error == 1 || $at_least_one_save == 1 ) && ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" || ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" && $at_least_one_error == 1 ) ) )  
 {
 	debug(__line__,$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"],6);
 	$mail_config_file   = LBSCONFIGDIR."/mail.json";
