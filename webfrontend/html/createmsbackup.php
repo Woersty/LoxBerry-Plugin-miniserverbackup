@@ -1227,6 +1227,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				$zipresult=end($output);
 				if ( $zipresult != "Everything is Ok" )
 				{
+					unlink($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension); # Delete previously copied zip in case of errors
 					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0060_CREATE_ZIP_ARCHIVE_FAILED"]." [".$zipresult."]",3);
 					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0074_ZIP_COMPRESSION_RESULT"]." ".implode("<br>",$output),6);
 					$crit_issue=1;
