@@ -1923,8 +1923,14 @@ if (str_replace(array('<ALERT>', '<CRITICAL>','<ERROR>', '<WARNING>'),'', $err_h
 {
 	$at_least_one_error = 1;
 }
-
-debug(__line__,$L["MINISERVERBACKUP.INF_0116_MAIL_ENABLED"],6);
+if ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" ) 
+{
+	debug(__line__,$L["MINISERVERBACKUP.INF_0116_MAIL_ENABLED"]." ".$L["MINISERVERBACKUP.INF_0140_EMAIL_ERROR_ONLY"],6);
+}
+else
+{
+	debug(__line__,$L["MINISERVERBACKUP.INF_0116_MAIL_ENABLED"],6);
+}
 if ( $at_least_one_save == 1 && ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" || ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" && $at_least_one_error == 1 ) ) )  
 {
 	debug(__line__,$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"],6);
