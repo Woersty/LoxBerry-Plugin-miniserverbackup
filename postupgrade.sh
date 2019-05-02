@@ -17,6 +17,7 @@ rm -rf $ARGV5/data/plugins/$ARGV3"_upgrade"
 
 echo "<INFO> Moving back existing log files"
 mv -v /tmp/$ARGV1\_upgrade/log/* $ARGV5/log/plugins/$ARGV3/
+rm -rf $ARGV5/log/plugins/$ARGV3/backuplog.*
 
 echo "<INFO> Moving back existing backup archives"
 mv -v $ARGV5/data/plugins/$ARGV3"_backups"/* $ARGV5/webfrontend/html/plugins/$ARGV3/backups/
