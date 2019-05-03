@@ -691,16 +691,18 @@ span#alert_form_close:hover {
 	            success: function (data) 
 	            {
 		            eval(data);
+					// Enable input fields and buttons
+					$('.to_disable_on_save').removeClass('ui-disabled');
 	            },
 	            error: function (errorThrown) 
 	            {
 		            show_error('<TMPL_VAR ERRORS.ERR_SAVE_CONFIG_FILE>');
 	                console.log('<TMPL_VAR GENERAL.MY_NAME> function save_config failed: Error => ' + errorThrown.status + ' => ' + errorThrown.statusText);
-	            }	
+					// Enable input fields and buttons
+	    			$('.to_disable_on_save').removeClass('ui-disabled');
+			    }	
 	        });
 	       	setTimeout( function() { checkSpace();  }, 500);
-			// Enable input fields and buttons			
-			$('.to_disable_on_save').removeClass('ui-disabled');
 		}, 500);
 	}
 	
