@@ -26,15 +26,17 @@ $bkp_dest_dir 			= $lbphtmldir."/backups";                # Where the browser on
 $default_finalstorage	= $lbpdatadir."/backups_storage";        # Default localstorage
 $backupstate_file		= $lbphtmldir."/"."backupstate.txt";     # State file, do not change! Linked to $backupstate_tmp
 $backupstate_tmp    	= "/tmp"."/"."backupstate.txt";          # State file on RAMdisk, do not change!
-$logfilename			= LBPLOGDIR."/miniserver_backup_".date("d-M-Y_H\hi\ms\s",time()).".log";
+$logfilename			= LBPLOGDIR."/miniserver_backup_".date("Y-M-d_H\hi\ms\s",time()).".log";
 $L = LBSystem::readlanguage("language.ini");
-$plugin_config_file = $lbpconfigdir."/miniserverbackup.cfg";
+$plugin_config_file 	= $lbpconfigdir."/miniserverbackup.cfg";
 $params = [
     "name" => $L["MINISERVERBACKUP.INF_0131_BACKUP_NAME"],
     "filename" => $logfilename,
     "addtime" => 1];
     
 $log = LBLog::newLog ($params);
+$date_time_format       = "m-d-Y h:i:s a";						 # Default Date/Time format
+if (isset($L["GENERAL.DATE_TIME_FORMAT_PHP"])) $date_time_format = $L["GENERAL.DATE_TIME_FORMAT_PHP"];
 LOGSTART ($L["MINISERVERBACKUP.INF_0130_BACKUP_CALLED"]);
 
 // Error Reporting 
@@ -507,7 +509,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	}
 	if ( ( $backupinterval > ((time()-intval($last_save))/60) || $backupinterval == "0" ) && $manual_backup != "1")
 	{
-	    debug(__line__,"MS#".$msno." ".str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-intval($last_save))/60,1),str_ireplace("<datetime>",date ("d-M-Y H:i:s", $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
+	    debug(__line__,"MS#".$msno." ".str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-intval($last_save))/60,1),str_ireplace("<datetime>",date ($date_time_format, $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
 		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0089_INTERVAL_NOT_ELAPSED"],5);
 		continue;
 	}
@@ -526,7 +528,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			}
 			else
 			{
-			    debug(__line__,"MS#".$msno." ".str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-intval($last_save))/60,1),str_ireplace("<datetime>",date ("d-M-Y H:i:s", $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
+			    debug(__line__,"MS#".$msno." ".str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-intval($last_save))/60,1),str_ireplace("<datetime>",date ($date_time_format, $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
 				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0088_INTERVAL_ELAPSED"],5);
 			}
 		}
@@ -539,11 +541,19 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		{
 			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0108_NO_PREVIOUS_CLOUD_DNS_QUERY_FOUND_PROCEED"]." => ".$miniserver['Name'],5);
 		}
-		
 		if ( isset($checkurl) ) 
 		{
-			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0107_SLEEP_BEFORE_SENDING_NEXT_CLOUD_DNS_QUERY"]." => ".$miniserver['Name'],5);
-			sleep(1860);
+			$sleep_start = time();
+			$sleep_end = $sleep_start + 1860;
+			$sleep_until = date($date_time_format,$sleep_end);
+			debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,$L["MINISERVERBACKUP.INF_0107_SLEEP_BEFORE_SENDING_NEXT_CLOUD_DNS_QUERY"]),5);
+			for ($i = 1; $i <= 31; $i++) 
+			{
+				$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,str_ireplace("<minutes>",($sleep_end - time())/60,$L["MINISERVERBACKUP.INF_0142_TIME_TO_WAIT"]));
+				$log->LOGTITLE($wait_info_string);
+				file_put_contents($backupstate_file,$wait_info_string);
+    			sleep(60);
+			}
 		}
 		$checkurl = "http://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
 		$response = @file_get_contents($checkurl);
@@ -583,8 +593,18 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				$cloudcancel=1;
 			break;
 			case "418":
-				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0053_CLOUDDNS_ERROR_418"]." => ".$miniserver['Name'],4);
-				sleep(7320);
+				$sleep_start = time();
+				$sleep_end = $sleep_start + 7320;
+				$sleep_until = date($date_time_format,$sleep_end);
+				debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,$L["ERRORS.ERR_0053_CLOUDDNS_ERROR_418"]),4);
+				$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,str_ireplace("<minutes>",($sleep_end - time())/60,$L["MINISERVERBACKUP.INF_0142_TIME_TO_WAIT"]));
+				for ($i = 1; $i <= 122; $i++) 
+				{
+					$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,str_ireplace("<seconds>",$sleep_end - time(),$L["MINISERVERBACKUP.INF_0142_TIME_TO_WAIT"]));
+					$log->LOGTITLE($wait_info_string);
+					file_put_contents($backupstate_file,$wait_info_string);
+	    			sleep(60);
+				}
 				$msno--;
 				$cloudcancel=1;
 			break;
