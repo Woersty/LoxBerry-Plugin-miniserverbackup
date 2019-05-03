@@ -549,7 +549,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,$L["MINISERVERBACKUP.INF_0107_SLEEP_BEFORE_SENDING_NEXT_CLOUD_DNS_QUERY"]),5);
 			for ($i = 1; $i <= 31; $i++) 
 			{
-				$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,str_ireplace("<minutes>",($sleep_end - time())/60,$L["MINISERVERBACKUP.INF_0142_TIME_TO_WAIT"]));
+				$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,str_ireplace("<time>",secondsToTime($sleep_end - time()),$L["MINISERVERBACKUP.INF_0142_TIME_TO_WAIT"]));
 				$log->LOGTITLE($wait_info_string);
 				file_put_contents($backupstate_file,$wait_info_string);
     			sleep(60);
@@ -597,10 +597,9 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				$sleep_end = $sleep_start + 7320;
 				$sleep_until = date($date_time_format,$sleep_end);
 				debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,$L["ERRORS.ERR_0053_CLOUDDNS_ERROR_418"]),4);
-				$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,str_ireplace("<minutes>",($sleep_end - time())/60,$L["MINISERVERBACKUP.INF_0142_TIME_TO_WAIT"]));
 				for ($i = 1; $i <= 122; $i++) 
 				{
-					$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,str_ireplace("<seconds>",$sleep_end - time(),$L["MINISERVERBACKUP.INF_0142_TIME_TO_WAIT"]));
+					$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,str_ireplace("<time>",secondsToTime($sleep_end - time()),$L["MINISERVERBACKUP.INF_0142_TIME_TO_WAIT"]));
 					$log->LOGTITLE($wait_info_string);
 					file_put_contents($backupstate_file,$wait_info_string);
 	    			sleep(60);
