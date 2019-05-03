@@ -612,7 +612,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				$cloudcancel=1;
 			break;
 			default;
-				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0052_CLOUDDNS_UNEXPECTED_ERROR"]." => ".$miniserver['Name']."\nURL: ".$checkurl."\n".htmlentities(join("\n",$http_response_header)."\n".join("\n",$response)),3);
+				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0052_CLOUDDNS_UNEXPECTED_ERROR"]." => ".$miniserver['Name']."\nURL: ".$checkurl." => Code ".$code."\n".htmlentities(join("\n",$http_response_header)."\n".join("\n",$response)),3);
 				$cloudcancel=1;
 		}
 		if ( $cloudcancel == 1 )
