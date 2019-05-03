@@ -400,6 +400,7 @@ debug(__line__,$L["MINISERVERBACKUP.INF_0046_BACKUP_BASE_FOLDER_OK"]." (".$saved
 
 $at_least_one_save = 0;
 $saved_ms=array();
+$problematic_ms=array();
 array_push($summary,"<HR> ");
 ksort($ms);
 for ( $msno = 1; $msno <= count($ms); $msno++ ) 
@@ -597,6 +598,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		}
 		if ( $cloudcancel == 1 )
 		{
+			array_push($summary,"<HR> ");
+			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 			continue;
 		}
 	}
@@ -608,11 +611,15 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	if ( $miniserver['IPAddress'] == "0.0.0.0" || $miniserver['IPAddress'] == "" ) 
 	{
 		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"]." => ".$miniserver['Name'],3);
+		array_push($summary,"<HR> ");
+		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 		continue;
 	}
 	if ( $miniserver['IPAddress'] == "" ) 
 	{
 		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0003_MS_CONFIG_NO_IP"],3);
+		array_push($summary,"<HR> ");
+		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 		continue;
 	}
 	else
@@ -626,6 +633,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	{
 		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0018_ERROR_READ_LOCAL_MS_IP"]." ".$miniserver['Name']." ".curl_error($curl),3);
 		array_push($summary,"<HR> ");
+		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 		continue;
 	}	
 	else
@@ -639,6 +647,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		{
 			debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0018_ERROR_READ_LOCAL_MS_IP"]." ".$url." => ".nl2br(htmlentities($read_line)),3);
 			array_push($summary,"<HR> ");
+			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 			continue;
 		}
 	}
@@ -648,6 +657,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	if(curl_exec($curl) === false)
 	{
 		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0019_ERROR_READ_LOCAL_MS_VERSION"]." ".curl_error($curl),3);
+		array_push($summary,"<HR> ");
+		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 		continue;
 	}	
 	else
@@ -661,6 +672,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		else
 		{
 			debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0019_ERROR_READ_LOCAL_MS_VERSION"]." ".curl_error($curl),3);
+			array_push($summary,"<HR> ");
+			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 			continue;
 		}
 	}
@@ -688,6 +701,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0049_ERR_INVALID_MOUNTPOINT"]." ".$temp_finalstorage,3);
 				create_clean_workdir_tmp($workdir_tmp);
 				file_put_contents($backupstate_file,"-");
+				array_push($summary,"<HR> ");
+				array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 				continue;
 			}
 		}
@@ -705,6 +720,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0049_ERR_INVALID_MOUNTPOINT"]." ".$temp_finalstorage,3);
 				create_clean_workdir_tmp($workdir_tmp);
 				file_put_contents($backupstate_file,"-");
+				array_push($summary,"<HR> ");
+				array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 				continue;
 			}
 		}
@@ -721,6 +738,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0049_ERR_INVALID_MOUNTPOINT"]." ".$finalstorage,3);
 				create_clean_workdir_tmp($workdir_tmp);
 				file_put_contents($backupstate_file,"-");
+				array_push($summary,"<HR> ");
+				array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 				continue;
 			}
 		} 
@@ -749,6 +768,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0024_CREATE_BACKUP_SUB_FOLDER"]." ".$savedir_path."/".$bkpfolder,3); 
 		create_clean_workdir_tmp($workdir_tmp);
 		file_put_contents($backupstate_file,"-");
+		array_push($summary,"<HR> ");
+		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 		continue;
 	}
 	debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0047_BACKUP_SUB_FOLDER_OK"]." (".$savedir_path."/".$bkpfolder.")",6); 
@@ -806,6 +827,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0032_CLEAN_WORKDIR_TMP"]." ".$workdir_tmp);
 		create_clean_workdir_tmp($workdir_tmp);
 		file_put_contents($backupstate_file,"-");
+		array_push($summary,"<HR> ");
+		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 		continue;
 	}
 	debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0015_BUILDING_FILELIST_COMPLETED"]." ".count($filetree["name"]),6);
@@ -815,6 +838,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0002_ERROR_INIT_CURL"],3);
 		create_clean_workdir_tmp($workdir_tmp);
 		file_put_contents($backupstate_file,"-");
+		array_push($summary,"<HR> ");
+		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 		continue;
 	}
 	curl_setopt($curl_save, CURLOPT_HTTPAUTH, constant("CURLAUTH_ANY"));
@@ -1004,6 +1029,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		if ( $crit_issue == 1 )
 		{
 			array_push($summary,"<HR> ");
+			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 			continue;
 		}
 		
@@ -1052,6 +1078,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				create_clean_workdir_tmp($workdir_tmp);
 				file_put_contents($backupstate_file,"-");
 				array_push($summary,"<HR> ");
+				array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 				continue;
 			}
 			$finalstorage .= "/".$bkpfolder;
@@ -1073,6 +1100,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				create_clean_workdir_tmp($workdir_tmp);
 				file_put_contents($backupstate_file,"-");
 				array_push($summary,"<HR> ");
+				array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 				continue;
 			}
 			$finalstorage .= "/".$bkpfolder;
@@ -1091,6 +1119,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				create_clean_workdir_tmp($workdir_tmp);
 				file_put_contents($backupstate_file,"-");
 				array_push($summary,"<HR> ");
+				array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 				continue;
 			}
 		} 
@@ -1110,6 +1139,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		create_clean_workdir_tmp($workdir_tmp);
 		file_put_contents($backupstate_file,"-");
 		array_push($summary,"<HR> ");
+		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 		continue;
 	}
 
@@ -1120,6 +1150,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		create_clean_workdir_tmp($workdir_tmp);
 		file_put_contents($backupstate_file,"-");
 		array_push($summary,"<HR> ");
+		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 		continue;
 	}
 
@@ -1157,6 +1188,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			create_clean_workdir_tmp($workdir_tmp);
 			file_put_contents($backupstate_file, "-");
 			array_push($summary,"<HR> ");
+			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 			continue;
 		}
 		else
@@ -1253,6 +1285,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			create_clean_workdir_tmp($workdir_tmp);
 			file_put_contents($backupstate_file,"-");
 			array_push($summary,"<HR> ");
+			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 			continue;
 		}
 		switch ($fileformat) 
@@ -1405,6 +1438,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		create_clean_workdir_tmp($workdir_tmp);
 		file_put_contents($backupstate_file,"-");
 		array_push($summary,"<HR> ");
+		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 		continue;
 
 	}
@@ -1420,13 +1454,32 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 if ( $msno > count($ms) ) { $msno = ""; };
 array_push($summary," ");
 debug(__line__,$L["MINISERVERBACKUP.INF_0019_BACKUPS_COMPLETE"],5);
-if (count($saved_ms) > 0 )
+
+if ( count($saved_ms) > 0 )
 {
-	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0134_BACKUP_FINISHED"]." ".$L["MINISERVERBACKUP.INF_0136_BACKUP_COMPLETED_MS"]." ".join(", ",$saved_ms));
+	$str_part_saved_ms = " <font color=green>".join(", ",$saved_ms)."</font>";
 }
 else
 {
-	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0134_BACKUP_FINISHED"]." ".$L["MINISERVERBACKUP.INF_0137_BACKUP_COMPLETED_NO_MS"]);
+	$str_part_saved_ms = " ";
+}
+if ( count($problematic_ms) > 0 )
+{
+	
+	$str_part_problematic_ms = " ".$L["MINISERVERBACKUP.INF_0141_BACKUP_COMPLETED_MS_FAIL"]." <font color=red>".join(", ",$problematic_ms)."</font>";
+}
+else
+{
+	$str_part_problematic_ms = "";
+}
+
+if ( count($saved_ms) > 0 )
+{
+	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0134_BACKUP_FINISHED"]." ".$L["MINISERVERBACKUP.INF_0136_BACKUP_COMPLETED_MS"].$str_part_saved_ms.$str_part_problematic_ms);
+}
+else
+{
+	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0134_BACKUP_FINISHED"]." ".$L["MINISERVERBACKUP.INF_0137_BACKUP_COMPLETED_NO_MS"].$str_part_problematic_ms);
 }
 
 curl_close($curl); 
