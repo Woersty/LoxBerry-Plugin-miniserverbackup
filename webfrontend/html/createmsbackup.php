@@ -592,6 +592,11 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0051_CLOUDDNS_ERROR_403"]." => ".$miniserver['Name'],4);
 				$cloudcancel=1;
 			break;
+			case "0":
+				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0062_CLOUDDNS_ERROR_0"]." => ".$miniserver['Name'],4);
+				unset($checkurl);
+				$cloudcancel=1;
+			break;
 			case "418":
 				$sleep_start = time();
 				$sleep_end = $sleep_start + 7320;
