@@ -506,9 +506,9 @@ span#alert_form_close:hover {
 			else if (data == "-") 
 			{
 				$('#btnbackup').removeClass('ui-disabled');
-				$("#btnbackup").text("<TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW>");
 				$('.btnbackup_single').removeClass('ui-disabled');
 				$(".btnbackup_single").text("<TMPL_VAR GENERAL.LABEL_START_ONE_BACKUP_NOW>");
+				$("#btnbackup").text("<TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW>");
 			}
 		});
 	}
