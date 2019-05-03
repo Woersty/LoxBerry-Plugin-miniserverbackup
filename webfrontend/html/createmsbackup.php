@@ -31,7 +31,8 @@ $L = LBSystem::readlanguage("language.ini");
 $plugin_config_file = $lbpconfigdir."/miniserverbackup.cfg";
 $params = [
     "name" => $L["MINISERVERBACKUP.INF_0131_BACKUP_NAME"],
-    "filename" => $logfilename];
+    "filename" => $logfilename,
+    "addtime" => 1];
     
 $log = LBLog::newLog ($params);
 LOGSTART ($L["MINISERVERBACKUP.INF_0130_BACKUP_CALLED"]);
