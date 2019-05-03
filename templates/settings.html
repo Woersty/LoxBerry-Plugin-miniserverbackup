@@ -88,7 +88,7 @@ span#alert_form_close:hover {
 </div>
 <CENTER>
 	<CENTER>
-		<a id="btnbackup" class="btnbackup_single to_disable_on_save" data-role="button" data-mini="true" onclick="$('.btnbackup_single').addClass('ui-disabled'); clearInterval(watchDog); $('#btnbackup').text('<TMPL_VAR GENERAL.PLEASE_WAIT>'); watchDog = setInterval(function() { checkState(); },2500); $.get('./index.cgi?do=backup');"><TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW></a>
+		<a id="btnbackup" class="btnbackup_single to_disable_on_save ui-disabled" data-role="button" data-mini="true" onclick="$('.btnbackup_single').addClass('ui-disabled'); clearInterval(watchDog); $('#btnbackup').text('<TMPL_VAR GENERAL.PLEASE_WAIT>'); watchDog = setInterval(function() { checkState(); },2500); $.get('./index.cgi?do=backup');"><TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW></a>
 	</CENTER>
 	<BR><a id="btncancel" class="to_disable_on_save" data-role="button" data-inline="true" data-mini="true" data-icon="arrow-l" href="/admin/system/index.cgi"><TMPL_VAR GENERAL.LABEL_BUTTON_BACK></a>
 </CENTER>
@@ -304,7 +304,7 @@ span#alert_form_close:hover {
 					<TMPL_LOOP NAME="MSROW">
 						#<TMPL_VAR MSID> - <TMPL_VAR Name> <small>[<TMPL_VAR IPAddress>]</small><BR>
 					</TMPL_LOOP>
-					<a id="btnbackup_single<TMPL_VAR MSID>" class="btnbackup_single to_disable_on_save" data-role="button" data-icon="clock" data-mini="true" onclick="$('.btnbackup_single').addClass('ui-disabled'); clearInterval(watchDog); $('#btnbackup').text('<TMPL_VAR GENERAL.PLEASE_WAIT>'); watchDog = setInterval(function() { checkState(); },2500); $.get('./index.cgi?do=backup&which=<TMPL_VAR MSID>'); "><TMPL_VAR GENERAL.LABEL_START_ONE_BACKUP_NOW></a>
+					<a id="btnbackup_single<TMPL_VAR MSID>" class="ui-disabled btnbackup_single to_disable_on_save" data-role="button" data-icon="clock" data-mini="true" onclick="$('.btnbackup_single').addClass('ui-disabled'); clearInterval(watchDog); $('#btnbackup').text('<TMPL_VAR GENERAL.PLEASE_WAIT>'); watchDog = setInterval(function() { checkState(); },2500); $.get('./index.cgi?do=backup&which=<TMPL_VAR MSID>'); "><TMPL_VAR GENERAL.LABEL_START_ONE_BACKUP_NOW></a>
 				</DIV>
 				<DIV style="display:table;">
 					<DIV style="display:table-row;">
