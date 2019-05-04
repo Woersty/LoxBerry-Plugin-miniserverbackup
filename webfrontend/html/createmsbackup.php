@@ -1208,7 +1208,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	{
 		if ( get_free_space($finalstorage) < $full_backup_size + 32000000 )
 		{
-			debug (__line__,$L["ERRORS.ERR_0054_NOT_ENOUGH_FREE_SPACE"]." ".formatBytes($full_backup_size)." => ".formatBytes(get_free_space($finalstorage)),2);
+			debug (__line__,"MS#".$msno." ".$L["ERRORS.ERR_0054_NOT_ENOUGH_FREE_SPACE"]." ".formatBytes($full_backup_size)." => ".formatBytes(get_free_space($finalstorage)),2);
 			create_clean_workdir_tmp($workdir_tmp);
 			file_put_contents($backupstate_file, "-");
 			array_push($summary,"<HR> ");
@@ -1217,7 +1217,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		}
 		else
 		{
-			debug (__line__,$L["MINISERVERBACKUP.INF_0114_ENOUGH_FREE_SPACE"]." ".formatBytes(get_free_space($finalstorage)),5);
+			debug (__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0114_ENOUGH_FREE_SPACE"]." ".formatBytes(get_free_space($finalstorage)),5);
 		}
 		
 		switch (strtoupper($plugin_cfg["FILE_FORMAT".$msno])) 
@@ -1782,12 +1782,12 @@ function read_ms_tree ($folder)
 				*/
 				if (preg_match("/^sys_.*\.zip/i", $filename[5]) && $folder == "/sys/" )
 				{
-					debug(__line__,$L["MINISERVERBACKUP.INF_0122_IGNORING_SYS_ZIP"]." ".$filename[5],6);
+					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0122_IGNORING_SYS_ZIP"]." ".$filename[5],6);
 					continue;
 				}
 				if (preg_match("/^.*\.upd/i", $filename[5]) && $folder == "/update/" )
 				{
-					debug(__line__,$L["MINISERVERBACKUP.INF_0122_IGNORING_SYS_ZIP"]." ".$filename[5],6);
+					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0122_IGNORING_SYS_ZIP"]." ".$filename[5],6);
 					continue;
 				}
 				$dtime = DateTime::createFromFormat("M d H:i", $filename[2]." ".$filename[3]." ".$filename[4]);
