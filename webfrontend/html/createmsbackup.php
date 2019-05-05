@@ -571,6 +571,16 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		{
 		    case "200":
 				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0109_CLOUD_DNS_QUERY_RESULT"]." ".$miniserver['Name']." => IP: ".$response["IP"]." Code: ".$response["Code"]." LastUpdated: ".$response["LastUpdated"]." PortOpen: ".$response["PortOpen"]." DNS-Status: ".$response["DNS-Status"],5);
+				if ( $response["Code"] == "405" )
+				{	
+					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0063_CLOUDDNS_ERROR_405"]." => ".$miniserver['Name']."\nURL: ".$checkurl." => Code ".$code."\n".htmlentities(join("\n",$http_response_header)."\n".join("\n",$response)),4);
+					$cloudcancel=1;
+					break;
+				}
+				if ( $response["Code"] != "200" )
+				{
+					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0064_CLOUDDNS_CODE_MISMATCH"]." => ".$miniserver['Name']."\nURL: ".$checkurl." => Code ".$code."\n".htmlentities(join("\n",$http_response_header)."\n".join("\n",$response)),4);
+				}
 				$ip_info = explode(":",$response["IP"]);
 				$miniserver['IPAddress']=$ip_info[0];
 				if (count($ip_info) == 2) 
@@ -587,7 +597,6 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 					$cloudcancel=1;
 				}
 			break;
-
 			case "403":
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0051_CLOUDDNS_ERROR_403"]." => ".$miniserver['Name'],4);
 				$cloudcancel=1;
