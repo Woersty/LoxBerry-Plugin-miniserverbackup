@@ -405,6 +405,7 @@ $saved_ms=array();
 $problematic_ms=array();
 array_push($summary,"<HR> ");
 ksort($ms);
+$clouderror0 = 0;
 for ( $msno = 1; $msno <= count($ms); $msno++ ) 
 {
 	$miniserver = $ms[$msno];
@@ -555,6 +556,11 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
     			sleep(60);
 			}
 		}
+		if ( date("i",time()) == "00" || date("i",time()) == "15" || date("i",time()) == "30" || date("i",time()) == "45" )
+		{ 
+			debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".$L["MINISERVERBACKUP.INF_0143_WAIT_FOR_RESTART"],6);
+			sleep(5); // Fix for Loxone Cloud restarts at 0, 15, 30 and 45
+		}
 		$checkurl = "http://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
 		$response = @file_get_contents($checkurl);
 		$response = json_decode($response,true);
@@ -602,8 +608,19 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				$cloudcancel=1;
 			break;
 			case "0":
-				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0062_CLOUDDNS_ERROR_0"]." => ".$miniserver['Name'],4);
-				unset($checkurl);
+				if ( $clouderror0 > 2 )
+				{
+					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0065_TOO_MANY_CLOUDDNS_ERROR_0"]." => ".$miniserver['Name'],4);
+					unset($checkurl);
+				}
+				else
+				{
+					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0062_CLOUDDNS_ERROR_0"]." => ".$miniserver['Name'],5);
+					sleep(2);
+					unset($checkurl);
+					$clouderror0++;
+					$msno--;
+				}
 				$cloudcancel=1;
 			break;
 			case "418":
@@ -635,6 +652,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 			continue;
 		}
+		$clouderror0 = 0;
 	}
 	else
 	{
