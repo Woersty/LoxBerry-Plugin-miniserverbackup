@@ -576,7 +576,9 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			$sleep_start = time();
 			$sleep_end = $sleep_start + $randomsleep;
 			$sleep_until = date($date_time_format,$sleep_end);
-			$log->LOGTITLE("MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<time>",$sleep_until." ($randomsleep s)",$L["MINISERVERBACKUP.INF_0144_RANDOM_SLEEP"]));
+			$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<time>",$sleep_until." ($randomsleep s)",$L["MINISERVERBACKUP.INF_0144_RANDOM_SLEEP"]);
+			$log->LOGTITLE($wait_info_string);
+			file_put_contents($backupstate_file,$wait_info_string);
 			sleep($randomsleep);
 		} 
 		$checkurl = "http://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
