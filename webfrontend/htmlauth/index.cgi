@@ -174,6 +174,7 @@ if (!-r _ || -z _ )
 		print $configfileHandle "MSBACKUP_USE=off\n";
 		print $configfileHandle "MSBACKUP_USE_NOTIFY=off\n";
 		print $configfileHandle "MSBACKUP_USE_EMAILS=off\n";
+		print $configfileHandle "RANDOM_SLEEP=" . int(rand(298)) + 2 ."\n";
 	close $configfileHandle;
 	$error_message = $ERR{'MINISERVERBACKUP.INF_0070_CREATE_CONFIG_OK'};
 	&error; 
@@ -263,7 +264,8 @@ $maintemplate->param( "MSBACKUP_USE_EMAILS"		, "off");
 $maintemplate->param( "MSBACKUP_USE_EMAILS"		, $Config{"MINISERVERBACKUP.MSBACKUP_USE_EMAILS"}) if ( $Config{"MINISERVERBACKUP.MSBACKUP_USE_EMAILS"} ne "" );
 $maintemplate->param( "EMAIL_RECIPIENT"			, "");
 $maintemplate->param( "EMAIL_RECIPIENT"			, $Config{"MINISERVERBACKUP.EMAIL_RECIPIENT"}) if ( $Config{"MINISERVERBACKUP.EMAIL_RECIPIENT"} ne "" );
-
+$maintemplate->param( "RANDOM_SLEEP"			, int(rand(298)) + 2 );
+$maintemplate->param( "RANDOM_SLEEP"			, $Config{"MINISERVERBACKUP.RANDOM_SLEEP"}) if ( $Config{"MINISERVERBACKUP.RANDOM_SLEEP"} ne "" );
 
 
 my $index = 0;

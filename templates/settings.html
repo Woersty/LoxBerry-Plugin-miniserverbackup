@@ -144,6 +144,7 @@ span#alert_form_close:hover {
 <CENTER>
 	<BR>
 	<TMPL_LOOP GENERAL_ROW>
+		<INPUT type="hidden" id="random_sleep" name="random_sleep" value="<TMPL_VAR RANDOM_SLEEP>">
 		<DIV id="workdir" class="to_disable_on_save" style="text-align:left; display:inline-block; margin-bottom:5px; width:99%; padding:10px; border: 1px solid black; border-radius: 5px; background-color: rgba(228,228,228,.1);">
 			<DIV style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(0,0,228,.1);">
 				<TMPL_VAR GENERAL.GLOBAL_PARAMETERS>
@@ -550,6 +551,9 @@ span#alert_form_close:hover {
 			// Array with POST data to save
 			var postData = {};
 	
+			// Add random sleep value
+			postData['random_sleep'] = $('#random_sleep').val();
+
 			// Add general on/off switch
 			postData['msbackup_use'] = $('#msbackup_use').val();
 	

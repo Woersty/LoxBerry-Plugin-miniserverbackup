@@ -406,6 +406,7 @@ $problematic_ms=array();
 array_push($summary,"<HR> ");
 ksort($ms);
 $clouderror0 = 0;
+$randomsleep = 1;
 for ( $msno = 1; $msno <= count($ms); $msno++ ) 
 {
 	$miniserver = $ms[$msno];
@@ -561,6 +562,23 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".$L["MINISERVERBACKUP.INF_0143_WAIT_FOR_RESTART"],6);
 			sleep(5); // Fix for Loxone Cloud restarts at 0, 15, 30 and 45
 		}
+		if ( $miniserver['UseCloudDNS'] == "on" && $randomsleep == 1 && $manual_backup != 1 )
+		{
+			if ( isset($plugin_cfg["RANDOM_SLEEP"]) )
+			{
+				$randomsleep = intval($plugin_cfg["RANDOM_SLEEP"]);
+			}
+			else
+			{
+				$randomsleep = random_int(2,300);
+			}
+			debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<random>",$randomsleep,$L["MINISERVERBACKUP.INF_0144_RANDOM_SLEEP"]),6);
+			$sleep_start = time();
+			$sleep_end = $sleep_start + $randomsleep;
+			$sleep_until = date($date_time_format,$sleep_end);
+			$log->LOGTITLE("MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<time>",$sleep_until." ($randomsleep s)",$L["MINISERVERBACKUP.INF_0144_RANDOM_SLEEP"]));
+			sleep($randomsleep);
+		} 
 		$checkurl = "http://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
 		$response = @file_get_contents($checkurl);
 		$response = json_decode($response,true);
