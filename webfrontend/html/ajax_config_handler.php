@@ -141,7 +141,7 @@ $max_ms = count($ms);
 if (flock($plugin_cfg_handle, LOCK_EX)) 
 { // exklusive Sperre
     ftruncate($plugin_cfg_handle, 0); // kürze Datei
-	fwrite($plugin_cfg_handle, "[MINISERVERBACKUP]\n");
+	fwrite($plugin_cfg_handle, "[MINISERVERBACKUP]\r\n");
 	foreach ($plugin_cfg as $config_key => $config_value)
 	{
 		if ( filter_var($config_key, FILTER_SANITIZE_NUMBER_INT) > $max_ms )
@@ -166,7 +166,7 @@ if (flock($plugin_cfg_handle, LOCK_EX))
 			
 	
 		LOGINF($L["MINISERVERBACKUP.INF_0071_CONFIG_PARAM_WRITTEN"]. " ". $config_key. "=" . $config_value );
-		$written = fwrite($plugin_cfg_handle, $config_key . '="' . $config_value .'"'."\n");
+		$written = fwrite($plugin_cfg_handle, $config_key . '="' . $config_value .'"'."\r\n");
 
 		if ( substr($config_key,0,11) == "LAST_REBOOT" || substr($config_key,0,9) == "LAST_SAVE" )
 		{
