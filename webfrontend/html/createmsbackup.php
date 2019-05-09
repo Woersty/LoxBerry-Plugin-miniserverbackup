@@ -572,11 +572,11 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			{
 				$randomsleep = random_int(2,300);
 			}
-			debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<time>",$randomsleep,$L["MINISERVERBACKUP.INF_0144_RANDOM_SLEEP"]),6);
 			$sleep_start = time();
 			$sleep_end = $sleep_start + $randomsleep;
 			$sleep_until = date($date_time_format,$sleep_end);
 			$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<time>",$sleep_until." ($randomsleep s)",$L["MINISERVERBACKUP.INF_0144_RANDOM_SLEEP"]);
+			debug(__line__,$wait_info_string,6);
 			$log->LOGTITLE($wait_info_string);
 			file_put_contents($backupstate_file,$wait_info_string);
 			sleep($randomsleep);
