@@ -27,8 +27,8 @@ rm -rf $ARGV5/data/plugins/$ARGV3"_backups"
 echo "<INFO> Remove temporary folders"
 rm -r /tmp/$ARGV1\_upgrade
 
-php -f $ARGV5/webfrontend/html/plugins/$ARGV3/ajax_config_handler.php
-php -f $ARGV5/webfrontend/html/plugins/$ARGV3/createmsbackup.php symlink
+php -f $ARGV5/webfrontend/html/plugins/$ARGV3/ajax_config_handler.php >/dev/null 2>&1
+php -f $ARGV5/webfrontend/html/plugins/$ARGV3/createmsbackup.php symlink >/dev/null 2>&1
  
 # Exit with Status 0
 exit 0
