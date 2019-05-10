@@ -26,9 +26,12 @@ $bkp_dest_dir 			= $lbphtmldir."/backups";                # Where the browser on
 $default_finalstorage	= $lbpdatadir."/backups_storage";        # Default localstorage
 $backupstate_file		= $lbphtmldir."/"."backupstate.txt";     # State file, do not change! Linked to $backupstate_tmp
 $backupstate_tmp    	= "/tmp"."/"."backupstate.txt";          # State file on RAMdisk, do not change!
-$logfilename			= LBPLOGDIR."/miniserver_backup_".date("Y-M-d_H\hi\ms\s",time()).".log";
-$L = LBSystem::readlanguage("language.ini");
+$logfileprefix			= LBPLOGDIR."/miniserver_backup_";
+$logfilesuffix			= ".txt";
+$logfilename			= $logfileprefix.date("Y-m-d_H\hi\ms\s",time()).$logfilesuffix;
+$L						= LBSystem::readlanguage("language.ini");
 $plugin_config_file 	= $lbpconfigdir."/miniserverbackup.cfg";
+$logfiles_to_keep		= 48;									 # Number of logfiles to keep
 $params = [
     "name" => $L["MINISERVERBACKUP.INF_0131_BACKUP_NAME"],
     "filename" => $logfilename,
@@ -156,9 +159,36 @@ debug(__line__,"Loglevel: ".$plugindata['PLUGINDB_LOGLEVEL'],6);
 // Plugin version
 debug(__line__,"Version: ".LBSystem::pluginversion(),6);
 
-// Read language
-$L = LBSystem::readlanguage("language.ini");
+// Read language info
 debug(__line__,count($L)." ".$L["MINISERVERBACKUP.INF_0001_NB_LANGUAGE_STRINGS_READ"],6);
+
+// Logfile-Check
+$logfiles = glob($logfileprefix."*".$logfilesuffix, GLOB_NOSORT);
+if ( count($logfiles) > $logfiles_to_keep )
+{
+	usort($logfiles,"sort_by_mtime");
+	$log_keeps = $logfiles;
+	$log_keeps = array_slice($log_keeps, 0 - $logfiles_to_keep, $logfiles_to_keep);			
+	debug(__line__,str_ireplace("<number>",$logfiles_to_keep,$L["MINISERVERBACKUP.INF_0145_LOGFILE_CHECK"]),6);
+
+	foreach($log_keeps as $log_keep) 
+	{
+		debug(__line__," -> ".$L["MINISERVERBACKUP.INF_0146_LOGFILE_KEEP"]." ".$log_keep,7);
+	}
+	unset($log_keeps);
+	
+	if ( count($logfiles) > $logfiles_to_keep )
+	{
+		$log_deletions = array_slice($logfiles, 0, count($logfiles) - $logfiles_to_keep);
+	
+		foreach($log_deletions as $log_to_delete) 
+		{
+			debug(__line__," -> ".$L["MINISERVERBACKUP.INF_0147_LOGFILE_DELETE"]." ".$log_to_delete,6);
+			unlink($log_to_delete);
+		}
+		unset($log_deletions);
+	}
+}
 
 // Warning if Loglevel > 5 (OK)
 if ($plugindata['PLUGINDB_LOGLEVEL'] > 6 && $plugindata['PLUGINDB_LOGLEVEL'] <= 7) debug(__line__,$L["MINISERVERBACKUP.INF_0026_LOGLEVEL_WARNING"]." ".$L["LOGGING.LOGLEVEL".$plugindata['PLUGINDB_LOGLEVEL']]." (".$plugindata['PLUGINDB_LOGLEVEL'].")",6);
