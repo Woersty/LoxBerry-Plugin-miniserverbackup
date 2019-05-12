@@ -460,7 +460,6 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	}
 	file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
     debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0004_PROCESSING_MINISERVER"]." ".$msno."/".count($ms)." => ".$miniserver['Name'],5);
-
 	$filetree["name"] 		= array();
 	$filetree["size"] 		= array();
 	$filetree["time"] 		= array();
@@ -583,8 +582,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			for ($i = 1; $i <= 31; $i++) 
 			{
 				$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,str_ireplace("<time>",secondsToTime($sleep_end - time()),$L["MINISERVERBACKUP.INF_0142_TIME_TO_WAIT"]));
-				$log->LOGTITLE($wait_info_string);
 				file_put_contents($backupstate_file,$wait_info_string);
+				$log->LOGTITLE($wait_info_string);
     			sleep(60);
 			}
 		}
@@ -608,8 +607,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			$sleep_until = date($date_time_format,$sleep_end);
 			$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<time>",$sleep_until." ($randomsleep s)",$L["MINISERVERBACKUP.INF_0144_RANDOM_SLEEP"]);
 			debug(__line__,$wait_info_string,6);
-			$log->LOGTITLE($wait_info_string);
 			file_put_contents($backupstate_file,$wait_info_string);
+			$log->LOGTITLE($wait_info_string);
 			sleep($randomsleep);
 		} 
 		$checkurl = "http://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
@@ -682,8 +681,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				for ($i = 1; $i <= 122; $i++) 
 				{
 					$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,str_ireplace("<time>",secondsToTime($sleep_end - time()),$L["MINISERVERBACKUP.INF_0142_TIME_TO_WAIT"]));
-					$log->LOGTITLE($wait_info_string);
 					file_put_contents($backupstate_file,$wait_info_string);
+					$log->LOGTITLE($wait_info_string);
 	    			sleep(60);
 				}
 				$msno--;
@@ -1122,6 +1121,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 						if ($percent_done <= 95)
 						{
 						 	debug(__line__,"MS#".$msno." ".str_pad($percent_done,3," ",STR_PAD_LEFT).$L["MINISERVERBACKUP.INF_0022_PERCENT_DONE"]." (".str_pad(round(array_sum($save_ok_list["size"]),0),strlen(round(array_sum($filetree["size"]),0))," ", STR_PAD_LEFT)."/".str_pad(round(array_sum($filetree["size"]),0),strlen(round(array_sum($filetree["size"]),0))," ", STR_PAD_LEFT)." Bytes) [".str_pad(count($save_ok_list["name"]),strlen(count($filetree["name"]))," ", STR_PAD_LEFT)."/".str_pad(count($filetree["name"]),strlen(count($filetree["name"]))," ", STR_PAD_LEFT)."]",5);
+						 	$log->LOGTITLE("MS#".$msno." ".str_pad($percent_done,3," ",STR_PAD_LEFT).$L["MINISERVERBACKUP.INF_0022_PERCENT_DONE"]." (".str_pad(round(array_sum($save_ok_list["size"]),0),strlen(round(array_sum($filetree["size"]),0))," ", STR_PAD_LEFT)."/".str_pad(round(array_sum($filetree["size"]),0),strlen(round(array_sum($filetree["size"]),0))," ", STR_PAD_LEFT)." Bytes) [".str_pad(count($save_ok_list["name"]),strlen(count($filetree["name"]))," ", STR_PAD_LEFT)."/".str_pad(count($filetree["name"]),strlen(count($filetree["name"]))," ", STR_PAD_LEFT)."]");
 						}
 		 			}
 		 			$percent_displ = $percent_done;
@@ -1138,6 +1138,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		
 		debug(__line__,"MS#".$msno." ".$percent_done.$L["MINISERVERBACKUP.INF_0022_PERCENT_DONE"]." (".round(array_sum($save_ok_list["size"]),0)."/".round(array_sum($filetree["size"]),0)." Bytes) [".count($save_ok_list["name"])."/".count($filetree["name"])."]",5);
 		file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
+		$log->LOGTITLE(str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
 		debug(__line__,"MS#".$msno." ".count($save_ok_list["name"])." ".$L["MINISERVERBACKUP.INF_0018_BACKUP_COMPLETE"]." (".array_sum($save_ok_list["size"])." Bytes)",5);
 		if ( (count($filetree["name"]) - count($save_ok_list["name"])) > 0 )
 		{	
@@ -1550,7 +1551,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	}
 	debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0032_CLEAN_WORKDIR_TMP"]." ".$workdir_tmp);
 	create_clean_workdir_tmp($workdir_tmp);
-	file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
+	file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0136_BACKUP_COMPLETED_MS"]));
 	system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_SAVE'.$msno.'='.time());
 	$at_least_one_save = 1;
 	array_push($summary,"<HR> ");
@@ -1629,6 +1630,7 @@ function recurse_copy($src,$dst,$copied_bytes,$filestosave)
 				{
 					$stateinfo = " (".$L["MINISERVERBACKUP.INF_0081_STATE_COPY"]." ".str_pad($filestosave,4," ",STR_PAD_LEFT).", ".$L["MINISERVERBACKUP.INF_0082_STATE_COPY_MB"]." ".round( $copied_bytes / 1024 / 1024 ,2 )." MB)";
 					file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]).$stateinfo);
+	                $log->LOGTITLE(str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]).$stateinfo);
 	                debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0079_DEBUG_COPY_PROGRESS"].$stateinfo,6);
 				}
             } 
