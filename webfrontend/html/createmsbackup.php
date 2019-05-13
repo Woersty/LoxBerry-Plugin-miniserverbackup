@@ -7,6 +7,7 @@ header('Content-Type: text/plain; charset=utf-8');
 
 // Calculate running time
 $start =  microtime(true);	
+$last_save_stamp = roundToPrevMin(new DateTime(),5)->format('U'); //Round time to prev 5 min
 
 // Go to the right directory
 chdir(dirname($_SERVER['PHP_SELF']));
@@ -482,15 +483,15 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	if ( $backupinterval != "-1" )
 	{
 		if ( isset($plugin_cfg["LAST_SAVE".$msno]) ) $last_save = $plugin_cfg["LAST_SAVE".$msno];
-		if ( $last_save >= time() || $last_save == "" ) 
+		if ( $last_save > $last_save_stamp || $last_save == "" ) 
 		{
 			debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0043_ERR_LAST_SAVE_INVALID"],6);	
-			$last_save = time() - (intval($backupinterval)*60) - 1;
+			$last_save = $last_save_stamp - (intval($backupinterval)*60) - 1;
 		}
 	}
 	else
 	{
-		$last_save = time();
+		$last_save = $last_save_stamp;
 	}
 	#Manual Backup Button on Admin page
 	$manual_backup = 0;
@@ -539,9 +540,9 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			continue;
 		}
 	}
-	if ( ( $backupinterval > ((time()-intval($last_save))/60) || $backupinterval == "0" ) && $manual_backup != "1")
+	if ( ( $backupinterval >= ( ( ( time() - intval($last_save - 60)) / 60 ) ) || $backupinterval == "0" ) && $manual_backup != "1")
 	{
-	    debug(__line__,"MS#".$msno." ".str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-intval($last_save))/60,1),str_ireplace("<datetime>",date ($date_time_format, $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
+	    debug(__line__,"MS#".$msno." ".str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time() - intval($last_save))/60,1),str_ireplace("<datetime>",date ($date_time_format, $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
 		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0089_INTERVAL_NOT_ELAPSED"],5);
 		continue;
 	}
@@ -560,7 +561,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			}
 			else
 			{
-			    debug(__line__,"MS#".$msno." ".str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time()-intval($last_save))/60,1),str_ireplace("<datetime>",date ($date_time_format, $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
+			    debug(__line__,"MS#".$msno." ".str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time() - intval($last_save))/60,1),str_ireplace("<datetime>",date ($date_time_format, $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
 				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0088_INTERVAL_ELAPSED"],5);
 			}
 		}
@@ -1534,8 +1535,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			"LOGFILE"	=> $logfilename);
 			if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) 
 			{
-				var_dump($notification);
-				notify_ext ($notification);
+				@notify_ext ($notification);
 			}
 			array_push($summary,"MS#".$msno." "."<OK> ".$message);
 	}
@@ -1552,7 +1552,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0032_CLEAN_WORKDIR_TMP"]." ".$workdir_tmp);
 	create_clean_workdir_tmp($workdir_tmp);
 	file_put_contents($backupstate_file,str_ireplace("<MS>",$msno,$L["MINISERVERBACKUP.INF_0136_BACKUP_COMPLETED_MS"]));
-	system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_SAVE'.$msno.'='.time());
+	@system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_SAVE'.$msno.'='.$last_save_stamp.' >/dev/null 2>&1');
 	$at_least_one_save = 1;
 	array_push($summary,"<HR> ");
 	array_push($saved_ms," #".$msno." (".$miniserver['Name'].")");
@@ -1694,7 +1694,7 @@ class MSbackupZIP
 	array_push($summary,"MS#".$msno." "."<INFO> ".$L["MINISERVERBACKUP.INF_0062_LAST_MS_REBOOT"]." ".preg_replace("/[\n\r]/","",str_ireplace(';PRG Reboot',' (Version:',$last_reboot_key).")"));
 	if ( isset ( $last_reboot_key ) ) 
 	{
-		system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_REBOOT'.$msno.'="'.$last_reboot_key.'"');
+		@system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_REBOOT'.$msno.'="'.$last_reboot_key.'" >/dev/null 2>&1');
 	}
 	$key_in_deflog = array_search($last_reboot_key,$deflog,true);
 	$deflog = array_slice($deflog, $key_in_deflog, NULL, TRUE);
@@ -1776,6 +1776,12 @@ class MSbackupZIP
   }
 } 
 
+function roundToPrevMin(\DateTime $dt, $precision = 5) 
+{ 
+    $s = $precision * 60; 
+    $dt->setTimestamp($s * floor($dt->getTimestamp()/$s)); 
+    return $dt; 
+} 
 
 function getDirContents($path) 
 {
@@ -2245,7 +2251,7 @@ Content-Disposition: ".$inline."; filename=\"logo_".$datetime->format("Y-m-d_i\h
 				$handle = fopen($tmpfname, "w") or debug(__line__,$L["ERRORS.ERR_0056_ERR_OPEN_TEMPFILE_EMAIL"]." ".$tmpfname,4);
 				fwrite($handle, $html) or debug(__line__,$L["ERRORS.ERR_0057_ERR_WRITE_TEMPFILE_EMAIL"]." ".$tmpfname,4);
 				fclose($handle);
-				exec("/usr/sbin/sendmail -v -t 2>&1 < $tmpfname ",$resultarray,$retval);
+				@exec("/usr/sbin/sendmail -v -t 2>&1 < $tmpfname ",$resultarray,$retval);
 				unlink($tmpfname) or debug(__line__,$L["ERRORS.ERR_0058_ERR_DELETE_TEMPFILE_EMAIL"]." ".$tmpfname,4);
 				debug(__line__,"Sendmail:\n".htmlspecialchars(join("\n",$resultarray)),7);
 				if($retval)
