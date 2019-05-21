@@ -440,7 +440,6 @@ array_push($summary,"<HR> ");
 ksort($ms);
 $clouderror0 = 0;
 $randomsleep = 1;
-$different_cloudrequests = 0;
 $all_cloudrequests = 0;
 for ( $msno = 1; $msno <= count($ms); $msno++ ) 
 {
@@ -658,6 +657,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			array_push($cloud_requests_json_array, $cloud_request_array_to_push);
 		}
 		$cloud_requests_json_array_today = array_map("cloud_requests_today", $cloud_requests_json_array);
+		$different_cloudrequests = 0;
 		foreach($cloud_requests_json_array_today as $datapacket) 
 		{
 			if ( intval($datapacket['requests']) > 0 ) 
