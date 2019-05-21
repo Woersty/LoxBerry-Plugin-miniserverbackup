@@ -426,7 +426,6 @@ array_push($summary,"<HR> ");
 ksort($ms);
 $clouderror0 = 0;
 $randomsleep = 1;
-$all_cloudrequests = 0;
 for ( $msno = 1; $msno <= count($ms); $msno++ ) 
 {
 	$miniserver = $ms[$msno];
@@ -602,6 +601,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		//Check for earlier Cloud DNS requests on RAM Disk
 		touch($cloud_requests_file); // Touch file to prevent errors if inexistent
 		$known_for_today = 0;
+		$all_cloudrequests = 0;
 		$cloud_requests_json_array = json_decode(file_get_contents($cloud_requests_file),true);
 		if ($cloud_requests_json_array)
 		{
