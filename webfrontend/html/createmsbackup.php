@@ -652,12 +652,12 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			}
 		}
 		debug(__line__,"MS#".$msno." ".str_ireplace("<all>",$all_cloudrequests,str_ireplace("<max_different_request>",10,str_ireplace("<different_request>",$different_cloudrequests,$L["MINISERVERBACKUP.INF_0148_CLOUD_DNS_REQUEST_NUMBER"])))." (".$miniserver['CloudURL'].")",6);
-		file_put_contents($cloud_requests_file,json_encode($cloud_requests_json_array_today));
 		if ( $different_cloudrequests > 10 && $known_for_today != 1)
 		{
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0066_CLOUDDNS_TOO_MUCH_REQUESTS_FOR_TODAY"]." => ".$miniserver['Name'],5);
 				continue;
 		}
+		file_put_contents($cloud_requests_file,json_encode($cloud_requests_json_array_today));
 		$response = @file_get_contents($checkurl);
 		$response = json_decode($response,true);
 		// Possible is
