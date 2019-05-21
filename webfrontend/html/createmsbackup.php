@@ -1375,7 +1375,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		        break;
 		    case "7Z":
 				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0058_CREATE_ZIP_ARCHIVE"]." <br>".$savedir_path."/".$bkpfolder." => ".$finalstorage."/".$bkpdir.$fileformat_extension,6);
-				$7z_output = "";
+				$seven_zip_output = "";
 				file_put_contents($backupstate_file,str_ireplace("<MS>",$msno." (".$miniserver['Name'].")",$L["MINISERVERBACKUP.INF_0068_STATE_RUN"])." (".$L["MINISERVERBACKUP.INF_0067_STATE_ZIP"].")");
 				$log->LOGTITLE(str_ireplace("<MS>",$msno." (".$miniserver['Name'].")",$L["MINISERVERBACKUP.INF_0068_STATE_RUN"])." (".$L["MINISERVERBACKUP.INF_0067_STATE_ZIP"].")");
 				$path = $bkp_dest_dir.'/'.$bkpfolder;
@@ -1397,24 +1397,24 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				{
 					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0072_ZIP_PREVIOUS_BACKUP_FOUND"]." ".$latest_filename,5);
 					copy($bkp_dest_dir.'/'.$bkpfolder.'/'.$latest_filename, $bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension); 
-					exec('7za u '.$bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.'.7z '.$savedir_path.'/'.$bkpfolder.' -ms=off -mx=9 -t7z -up0q3r2x2y2z0w2!'.$bkp_dest_dir.'/'.$bkpfolder.'/'.'Incremental_'.$bkpdir.$fileformat_extension.' 2>&1', $7z_output);
+					exec('7za u '.$bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.'.7z '.$savedir_path.'/'.$bkpfolder.' -ms=off -mx=9 -t7z -up0q3r2x2y2z0w2!'.$bkp_dest_dir.'/'.$bkpfolder.'/'.'Incremental_'.$bkpdir.$fileformat_extension.' 2>&1', $seven_zip_output);
 				}
 				else
 				{
 					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0073_ZIP_NO_PREVIOUS_BACKUP_FOUND"],5);
-					exec('7za a '.$bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension.' '.$savedir_path.'/'.$bkpfolder.' -ms=off -mx=9 -t7z 2>&1', $7z_output);
+					exec('7za a '.$bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension.' '.$savedir_path.'/'.$bkpfolder.' -ms=off -mx=9 -t7z 2>&1', $seven_zip_output);
 				}
-				$zipresult=end($7z_output);
+				$zipresult=end($seven_zip_output);
 				if ( $zipresult != "Everything is Ok" )
 				{
 					unlink($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension); # Delete previously copied zip in case of errors
 					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0060_CREATE_ZIP_ARCHIVE_FAILED"]." [".$zipresult."]",3);
-					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0074_ZIP_COMPRESSION_RESULT"]." ".implode("<br>",$7z_output),6);
+					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0074_ZIP_COMPRESSION_RESULT"]." ".implode("<br>",$seven_zip_output),6);
 					$crit_issue=1;
 				}
 				else
 				{
-					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0074_ZIP_COMPRESSION_RESULT"]." ".implode("<br>",$7z_output),6);
+					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0074_ZIP_COMPRESSION_RESULT"]." ".implode("<br>",$seven_zip_output),6);
 					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0061_CREATE_ZIP_ARCHIVE_DONE"]." ".$finalstorage."/".$bkpdir.$fileformat_extension." (". round( intval( filesize($finalstorage."/".$bkpdir.$fileformat_extension) ) / 1024 / 1024 ,2 ) ." MB)",5);
 				}
                 if ( is_file($savedir_path.'/'.$bkpfolder."/log/def.log"))
