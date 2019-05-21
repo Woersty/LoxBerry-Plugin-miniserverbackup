@@ -68,31 +68,31 @@ function debug($line,$message = "", $loglevel = 7)
 			        // OFF
 			        break;
 			    case 1:
-			    	$message = "<ALERT> ".$message;
+			    	$message = "<ALERT>".$message;
 			        LOGALERT  (         $message);
 					array_push($summary,$message);
 			        break;
 			    case 2:
-			    	$message = "<CRITICAL> ".$message;
+			    	$message = "<CRITICAL>".$message;
 			        LOGCRIT   (         $message);
 					array_push($summary,$message);
 			        break;
 			    case 3:
-			    	$message = "<ERROR> ".$message;
+			    	$message = "<ERROR>".$message;
 			        LOGERR    (         $message);
 					array_push($summary,$message);
 			        break;
 			    case 4:
-			    	$message = "<WARNING> ".$message;
+			    	$message = "<WARNING>".$message;
 			        LOGWARN   (         $message);
 					array_push($summary,$message);
 			        break;
 			    case 5:
-			    	$message = "<OK> ".$message;
+			    	$message = "<OK>".$message;
 			        LOGOK     (         $message);
 			        break;
 			    case 6:
-			    	$message = "<INFO> ".$message;
+			    	$message = "<INFO>".$message;
 			        LOGINF   (         $message);
 			        break;
 			    case 7:
@@ -109,25 +109,11 @@ function debug($line,$message = "", $loglevel = 7)
 			{
 				$msi = "";
 			}
-			if ( $loglevel <= 3 ) 
-			{
-				$at_least_one_error = 1;
-				$search  = array('<ALERT> PHP', '<CRITICAL> PHP', '<ERROR> PHP');
-				$replace = array($L["LOGGING.NOTIFY_LOGLEVEL1"],$L["LOGGING.NOTIFY_LOGLEVEL2"],$L["LOGGING.NOTIFY_LOGLEVEL3"]);
-				$notification = array (
-				"PACKAGE" => LBPPLUGINDIR,
-				"NAME" => $L['GENERAL.MY_NAME']." ".$msi,
-				"MESSAGE" => str_replace($search, $replace, $raw_message),
-				"SEVERITY" => 3,
-				"LOGFILE"	=> $logfilename);
-				if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) notify_ext ($notification);
-				return;
-			}
 			if ( $loglevel <= 4 ) 
 			{
 				$at_least_one_error = 1;
-				$search  = array('<WARNING> PHP');
-				$replace = array($L["LOGGING.NOTIFY_LOGLEVEL4"]);
+				$search  = array('<ALERT>', '<CRITICAL>', '<ERROR>','<WARNING>');
+				$replace = array($L["LOGGING.NOTIFY_LOGLEVEL1"],$L["LOGGING.NOTIFY_LOGLEVEL2"],$L["LOGGING.NOTIFY_LOGLEVEL3"],$L["LOGGING.NOTIFY_LOGLEVEL4"]);
 				$notification = array (
 				"PACKAGE" => LBPPLUGINDIR,
 				"NAME" => $L['GENERAL.MY_NAME']." ".$msi,
