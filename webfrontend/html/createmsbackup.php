@@ -579,16 +579,13 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		if ( isset($checkurl) ) 
 		{
 			$sleep_start = time();
-			$sleep_end = $sleep_start + 60;
+			$sleep_end = $sleep_start + 2;
 			$sleep_until = date($date_time_format,$sleep_end);
 			debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,$L["MINISERVERBACKUP.INF_0107_SLEEP_BEFORE_SENDING_NEXT_CLOUD_DNS_QUERY"]),5);
-			for ($i = 1; $i <= 4; $i++) 
-			{
-				$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,str_ireplace("<time>",secondsToTime($sleep_end - time()),$L["MINISERVERBACKUP.INF_0142_TIME_TO_WAIT"]));
-				file_put_contents($backupstate_file,$wait_info_string);
-				$log->LOGTITLE($wait_info_string);
-    			sleep(15);
-			}
+			$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,str_ireplace("<time>",secondsToTime($sleep_end - time()),$L["MINISERVERBACKUP.INF_0142_TIME_TO_WAIT"]));
+			file_put_contents($backupstate_file,$wait_info_string);
+			$log->LOGTITLE($wait_info_string);
+			sleep(2);
 		}
 		if ( date("i",time()) == "00" || date("i",time()) == "15" || date("i",time()) == "30" || date("i",time()) == "45" )
 		{ 
