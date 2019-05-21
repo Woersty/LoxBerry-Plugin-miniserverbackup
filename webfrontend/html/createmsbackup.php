@@ -657,17 +657,6 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			$cloud_request_array_to_push['requests'] = 1;
 			array_push($cloud_requests_json_array, $cloud_request_array_to_push);
 		}
-		function cloud_requests_today($indata)
-		{
-			if ( substr($indata["date"],0,8) == date("Ymd",time()) ) 
-			{
-				return($indata);
-			}
-			else
-			{
-				return(false);
-			}
-		}
 		$cloud_requests_json_array_today = array_map("cloud_requests_today", $cloud_requests_json_array);
 		foreach($cloud_requests_json_array_today as $datapacket) 
 		{
@@ -2112,6 +2101,18 @@ function get_free_space ( $path )
 	if ( $free == "" ) $free = @exec('if [ -d "'.$base.'" ]; then df -k --output=avail '.$base.' 2>/dev/null |grep -v Avail; fi');
 	if ( $free == "" ) $free = "0";
 	return $free*1024;
+}
+
+function cloud_requests_today($indata)
+{
+	if ( substr($indata["date"],0,8) == date("Ymd",time()) ) 
+	{
+		return($indata);
+	}
+	else
+	{
+		return(false);
+	}
 }
 
 $runtime = microtime(true) - $start;
