@@ -27,6 +27,7 @@ $bkp_dest_dir 			= $lbphtmldir."/backups";                # Where the browser on
 $default_finalstorage	= $lbpdatadir."/backups_storage";        # Default localstorage
 $backupstate_file		= $lbphtmldir."/"."backupstate.txt";     # State file, do not change! Linked to $backupstate_tmp
 $backupstate_tmp    	= "/tmp"."/"."backupstate.txt";          # State file on RAMdisk, do not change!
+$cloud_requests_file	= "/tmp/cloudrequests.txt";       		 # Request file on RAMdisk, do not change!
 $logfileprefix			= LBPLOGDIR."/miniserver_backup_";
 $logfilesuffix			= ".txt";
 $logfilename			= $logfileprefix.date("Y-m-d_H\hi\ms\s",time()).$logfilesuffix;
@@ -439,6 +440,8 @@ array_push($summary,"<HR> ");
 ksort($ms);
 $clouderror0 = 0;
 $randomsleep = 1;
+$different_cloudrequests = 0;
+$all_cloudrequests = 0;
 for ( $msno = 1; $msno <= count($ms); $msno++ ) 
 {
 	$miniserver = $ms[$msno];
@@ -577,15 +580,15 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		if ( isset($checkurl) ) 
 		{
 			$sleep_start = time();
-			$sleep_end = $sleep_start + 1860;
+			$sleep_end = $sleep_start + 60;
 			$sleep_until = date($date_time_format,$sleep_end);
 			debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,$L["MINISERVERBACKUP.INF_0107_SLEEP_BEFORE_SENDING_NEXT_CLOUD_DNS_QUERY"]),5);
-			for ($i = 1; $i <= 31; $i++) 
+			for ($i = 1; $i <= 4; $i++) 
 			{
 				$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,str_ireplace("<time>",secondsToTime($sleep_end - time()),$L["MINISERVERBACKUP.INF_0142_TIME_TO_WAIT"]));
 				file_put_contents($backupstate_file,$wait_info_string);
 				$log->LOGTITLE($wait_info_string);
-    			sleep(60);
+    			sleep(15);
 			}
 		}
 		if ( date("i",time()) == "00" || date("i",time()) == "15" || date("i",time()) == "30" || date("i",time()) == "45" )
@@ -613,6 +616,74 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			sleep($randomsleep);
 		} 
 		$checkurl = "http://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
+		
+		//Check for earlier Cloud DNS requests on RAM Disk
+		touch($cloud_requests_file); // Touch file to prevent errors if inexistent
+		$cloud_requests_json_array = json_decode(file_get_contents($cloud_requests_file),true);
+		if ($cloud_requests_json_array)
+		{
+			$key = array_search(strtolower($miniserver['CloudURL']), array_column($cloud_requests_json_array, 'cloudurl'));
+			if ($key !== FALSE)
+			{
+				if ( substr($cloud_requests_json_array[$key]["date"],0,8) == date("Ymd",time()) )
+				{
+					$cloud_requests_json_array[$key]["requests"]++; 
+				}
+				else
+				{
+					$cloud_requests_json_array[$key]["requests"] = 1; 
+				}
+				debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<no>",$cloud_requests_json_array[$key]["requests"],$L["MINISERVERBACKUP.INF_0149_CLOUD_DNS_REQUEST_DATA_MS_FOUND"]),6);
+			}
+			else
+			{
+				debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".$L["MINISERVERBACKUP.INF_0150_CLOUD_DNS_REQUEST_DATA_MS_NOT_FOUND"],6);
+				unset ($cloud_request_array_to_push);
+				$cloud_request_array_to_push['msno'] = $msno;
+				$cloud_request_array_to_push['date'] = date("Ymd",time());
+				$cloud_request_array_to_push['cloudurl'] = strtolower($miniserver['CloudURL']);
+				$cloud_request_array_to_push['requests'] = 1;
+				array_push($cloud_requests_json_array, $cloud_request_array_to_push);
+			}
+		}
+		else
+		{
+			debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".$L["MINISERVERBACKUP.INF_0151_CLOUD_DNS_REQUEST_DATA_NOT_FOUND"],6);
+			$cloud_requests_json_array = array();
+			unset ($cloud_request_array_to_push);
+			$cloud_request_array_to_push['msno'] = $msno;
+			$cloud_request_array_to_push['date'] = date("Ymd",time());
+			$cloud_request_array_to_push['cloudurl'] = strtolower($miniserver['CloudURL']);
+			$cloud_request_array_to_push['requests'] = 1;
+			array_push($cloud_requests_json_array, $cloud_request_array_to_push);
+		}
+		function cloud_requests_today($indata)
+		{
+			if ( substr($indata["date"],0,8) == date("Ymd",time()) ) 
+			{
+				return($indata);
+			}
+			else
+			{
+				return(false);
+			}
+		}
+		$cloud_requests_json_array_today = array_map("cloud_requests_today", $cloud_requests_json_array);
+		foreach($cloud_requests_json_array_today as $datapacket) 
+		{
+			if ( intval($datapacket['requests']) > 0 ) 
+			{
+				$different_cloudrequests++;
+				$all_cloudrequests = $all_cloudrequests + intval($datapacket['requests']);
+			}
+		}
+		debug(__line__,"MS#".$msno." ".str_ireplace("<all>",$all_cloudrequests,str_ireplace("<max_different_request>",10,str_ireplace("<different_request>",$different_cloudrequests,$L["MINISERVERBACKUP.INF_0148_CLOUD_DNS_REQUEST_NUMBER"])))." (".$miniserver['CloudURL'].")",6);
+		file_put_contents($cloud_requests_file,json_encode($cloud_requests_json_array_today));
+		if ( $different_cloudrequests > 10 )
+		{
+				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0066_CLOUDDNS_TOO_MUCH_REQUESTS_FOR_TODAY"]." => ".$miniserver['Name'],4);
+				continue;
+		}
 		$response = @file_get_contents($checkurl);
 		$response = json_decode($response,true);
 		// Possible is
@@ -675,18 +746,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				$cloudcancel=1;
 			break;
 			case "418":
-				$sleep_start = time();
-				$sleep_end = $sleep_start + 7320;
-				$sleep_until = date($date_time_format,$sleep_end);
-				debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,$L["ERRORS.ERR_0053_CLOUDDNS_ERROR_418"]),4);
-				for ($i = 1; $i <= 122; $i++) 
-				{
-					$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,str_ireplace("<time>",secondsToTime($sleep_end - time()),$L["MINISERVERBACKUP.INF_0142_TIME_TO_WAIT"]));
-					file_put_contents($backupstate_file,$wait_info_string);
-					$log->LOGTITLE($wait_info_string);
-	    			sleep(60);
-				}
-				$msno--;
+				debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".$L["ERRORS.ERR_0053_CLOUDDNS_ERROR_418"],5);
 				$cloudcancel=1;
 			break;
 			case "500":
