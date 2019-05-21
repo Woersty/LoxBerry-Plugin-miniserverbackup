@@ -667,7 +667,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		file_put_contents($cloud_requests_file,json_encode($cloud_requests_json_array_today));
 		if ( $different_cloudrequests > 10 )
 		{
-				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0066_CLOUDDNS_TOO_MUCH_REQUESTS_FOR_TODAY"]." => ".$miniserver['Name'],4);
+				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0066_CLOUDDNS_TOO_MUCH_REQUESTS_FOR_TODAY"]." => ".$miniserver['Name'],5);
 				continue;
 		}
 		$response = @file_get_contents($checkurl);
