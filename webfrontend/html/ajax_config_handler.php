@@ -206,14 +206,15 @@ foreach ($plugin_cfg as $config_key => $config_value)
 	}
 }
 #Create Cron-Job
+if ( is_link(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR)  ) unlink(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR) or LOGERR($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"]); #Delete obsolete 30 min Cronjob
 if ( $all_interval_used > 0 )
 {
-	if ( ! is_link(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR)  )
+	if ( ! is_link(LBHOMEDIR."/system/cron/cron.hourly/".LBPPLUGINDIR)  )
 	{
-		@symlink(LBPHTMLAUTHDIR."/bin/createmsbackup.pl", LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR);
+		@symlink(LBPHTMLAUTHDIR."/bin/createmsbackup.pl", LBHOMEDIR."/system/cron/cron.hourly/".LBPPLUGINDIR);
 	}
 		
-	if ( ! is_link(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR) )
+	if ( ! is_link(LBHOMEDIR."/system/cron/cron.hourly/".LBPPLUGINDIR) )
 	{
 		LOGERR($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"]);	
 	}
@@ -224,9 +225,9 @@ if ( $all_interval_used > 0 )
 }
 else
 {
-	if ( is_link(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR) )
+	if ( is_link(LBHOMEDIR."/system/cron/cron.hourly/".LBPPLUGINDIR) )
 	{
-		unlink(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR) or LOGERR($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"]);
+		unlink(LBHOMEDIR."/system/cron/cron.hourly/".LBPPLUGINDIR) or LOGERR($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"]);
 	}
 	LOGINF($L["MINISERVERBACKUP.INF_0085_INFO_CRON_JOB_STOPPED"]);	
 }
