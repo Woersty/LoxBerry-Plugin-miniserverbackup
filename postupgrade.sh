@@ -12,17 +12,18 @@ echo "<INFO> Moving back existing config files"
 mv -v /tmp/$ARGV1\_upgrade/config/* $ARGV5/config/plugins/$ARGV3/
 
 echo "<INFO> Moving back existing compare files"
-mv -v $ARGV5/data/plugins/$ARGV3"_upgrade"/* $ARGV5/data/plugins/$ARGV3/
-rm -rf $ARGV5/data/plugins/$ARGV3"_upgrade"
+mv -v $ARGV5/data/plugins/tmp_miniserver_compare/* $ARGV5/data/plugins/$ARGV3/
+rm -rf $ARGV5/data/plugins/tmp_miniserver_compare >/dev/null 2>&1
 
 echo "<INFO> Moving back existing log files"
 mv -v /tmp/$ARGV1\_upgrade/log/* $ARGV5/log/plugins/$ARGV3/
 rm -rf $ARGV5/log/plugins/$ARGV3/backuplog.*
 
 echo "<INFO> Moving back existing backup archives"
-mv -v $ARGV5/data/plugins/$ARGV3"_backups"/* $ARGV5/webfrontend/html/plugins/$ARGV3/backups/
+mkdir $ARGV5/webfrontend/html/plugins/$ARGV3/backups/ >/dev/null 2>&1
+mv -v $ARGV5/data/plugins/tmp_miniserver_backups/* $ARGV5/webfrontend/html/plugins/$ARGV3/backups/
 ln -s $ARGV5/webfrontend/html/plugins/$ARGV3/backups/ $ARGV5/data/plugins/$ARGV3/backups
-rm -rf $ARGV5/data/plugins/$ARGV3"_backups"
+rm -rf $ARGV5/data/plugins/tmp_miniserver_backups >/dev/null 2>&1
 
 echo "<INFO> Remove temporary folders"
 rm -r /tmp/$ARGV1\_upgrade
