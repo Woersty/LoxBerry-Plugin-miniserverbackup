@@ -1386,9 +1386,9 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				else
 				{
 					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0152_NO_COMPRESS_COPY_END_FAIL"],6);
+			        $crit_issue = 1;
 				}
 		        $copyerror = 0;
-		        $crit_issue = 1;
 		        break;
 		    case "7Z":
 				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0058_CREATE_ZIP_ARCHIVE"]." <br>".$savedir_path."/".$bkpfolder." => ".$finalstorage."/".$bkpdir.$fileformat_extension,6);
