@@ -1660,7 +1660,7 @@ function recurse_copy($src,$dst,$copied_bytes,$filestosave)
     $dir = opendir($src); 
 	if ( ! is_dir($dst) )
 	{ 
-	    debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0035_DEBUG_DIRECTORY_CREATE"]." ".$workdir_tmp);
+	    debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0035_DEBUG_DIRECTORY_CREATE"]." ".$dst);
 		if(!@mkdir($dst))
 		{
 		    $errors= error_get_last();
