@@ -178,9 +178,6 @@ if ( count($logfiles) > $logfiles_to_keep )
 	}
 }
 
-// Warning if Loglevel > 5 (OK)
-if ($plugindata['PLUGINDB_LOGLEVEL'] > 6 && $plugindata['PLUGINDB_LOGLEVEL'] <= 7) debug(__line__,$L["MINISERVERBACKUP.INF_0026_LOGLEVEL_WARNING"]." ".$L["LOGGING.LOGLEVEL".$plugindata['PLUGINDB_LOGLEVEL']]." (".$plugindata['PLUGINDB_LOGLEVEL'].")",6);
-
 if ( is_file($backupstate_file) )
 {
 	if ( file_get_contents($backupstate_file) != "-" && file_get_contents($backupstate_file) != "" )
@@ -246,6 +243,8 @@ else
 # Check if Plugin is disabled
 if ( $plugin_cfg["MSBACKUP_USE"] == "on" )
 {
+    // Warning if Loglevel > 5 (OK)
+    if ($plugindata['PLUGINDB_LOGLEVEL'] > 5 && $plugindata['PLUGINDB_LOGLEVEL'] <= 7) debug(__line__,$L["MINISERVERBACKUP.INF_0026_LOGLEVEL_WARNING"]." ".$L["LOGGING.LOGLEVEL".$plugindata['PLUGINDB_LOGLEVEL']]." (".$plugindata['PLUGINDB_LOGLEVEL'].")",4);
 	debug(__line__,$L["MINISERVERBACKUP.INF_0112_PLUGIN_ENABLED"],5);
 }
 else
