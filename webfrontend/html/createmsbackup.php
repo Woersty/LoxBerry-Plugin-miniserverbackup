@@ -2362,6 +2362,7 @@ file_put_contents($backupstate_file, "-");
 
 if ( $argv[1] == "symlink" )
 {
+	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0153_SYMLINKS_AFTER_UPGRADE_OK"]);
 	LOGOK ($L["MINISERVERBACKUP.INF_0153_SYMLINKS_AFTER_UPGRADE_OK"]);
 }
 else
