@@ -2359,6 +2359,14 @@ else
 
 sleep(3); // To prevent misdetection in createmsbackup.pl
 file_put_contents($backupstate_file, "-");
-LOGOK ($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s");
+
+if ( $argv[1] == "symlink" )
+{
+	LOGOK ($L["MINISERVERBACKUP.INF_0153_SYMLINKS_AFTER_UPGRADE_OK"]);
+}
+else
+{
+	LOGOK ($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s");
+}
 LOGEND ("");
                                                                                                                                                         
