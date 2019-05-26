@@ -53,7 +53,7 @@ my $backupstate_tmp_file 		= "/tmp/".$backupstate_name;
 my @netshares 					= LoxBerry::Storage::get_netshares();
 my @usbdevices 					= LoxBerry::Storage::get_usbstorage();
 my $localstorage                = $lbpdatadir."/backup_storage";
-my %backup_interval_minutes		= (0,60,120,240,480,720,1440,10080,20160,43200,-1);
+my @backup_interval_minutes		= (0,60,120,240,480,720,1440,10080,20160,43200,-1);
 my %backups_to_keep_values		= (1,3,7,14,30,60,90,365);
 my @file_formats				= ('7z','zip','uncompressed');
 my $backup_intervals			= "";
@@ -87,7 +87,7 @@ my $plugin = LoxBerry::System::plugindata();
 $LoxBerry::System::DEBUG 	= 1 if $plugin->{PLUGINDB_LOGLEVEL} eq 7;
 $LoxBerry::Web::DEBUG 		= 1 if $plugin->{PLUGINDB_LOGLEVEL} eq 7;
 $log->loglevel($plugin->{PLUGINDB_LOGLEVEL});
-my %ERR 						= LoxBerry::System::readlanguage();
+my %ERR 						= LoxBerry::System::readlanguage('language.ini');
 LOGSTART $ERR{'MINISERVERBACKUP.INF_0129_WEBUI_CALLED'} if $plugin->{PLUGINDB_LOGLEVEL} ge 5;
 LOGOK "Version: ".$version   if $plugin->{PLUGINDB_LOGLEVEL} ge 5;
 LOGDEB "Init CGI and import names in namespace R::";
@@ -129,8 +129,7 @@ my $errortemplate = HTML::Template->new(
 		loop_context_vars => 1,
 		die_on_bad_params=> 0,
 		associate => $cgi,
-		%htmltemplate_options,
-		debug => 1,
+		%htmltemplate_options
 		);
 %ERR = LoxBerry::System::readlanguage($errortemplate, $languagefile);
 
@@ -246,8 +245,7 @@ my $maintemplate = HTML::Template->new(
 		global_vars => 1,
 		loop_context_vars => 1,
 		die_on_bad_params=> 0,
-		%htmltemplate_options,
-		debug => 1
+		%htmltemplate_options
 		);
 my %L = LoxBerry::System::readlanguage($maintemplate, $languagefile);
 $maintemplate->param( "LBPPLUGINDIR"			, $lbpplugindir);
@@ -300,8 +298,7 @@ my $successtemplate = HTML::Template->new(
 		loop_context_vars => 1,
 		die_on_bad_params=> 0,
 		associate => $cgi,
-		%htmltemplate_options,
-		debug => 1,
+		%htmltemplate_options
 		);
 LOGDEB "Read success strings from " . $languagefile . " for language " . $lang;
 my %SUC = LoxBerry::System::readlanguage($successtemplate, $languagefile);
@@ -469,11 +466,11 @@ exit;
  				$row{'LAST_REBOOT'}				= $L{"GENERAL.NO_LAST_REBOOT_INFO"};
 	  			$row{'LAST_REBOOT'}				= $Config{"MINISERVERBACKUP.LAST_REBOOT".$ms_id} if ( $Config{"MINISERVERBACKUP.LAST_REBOOT".$ms_id} ne "" );
 
-				foreach  (  sort { $a <=> $b } %backup_interval_minutes) 
+				foreach  (  sort { $a <=> $b } @backup_interval_minutes) 
 				{ 
 					$backup_intervals = $backup_intervals . '<OPTION value="'.$_.'"> '.$L{"MINISERVERBACKUP.INTERVAL".$_}.' </OPTION>' if ( $_ ne "" );
 				}
-				LOGDEB "Backup intervals for MS# $ms_id (".$ms{Name}."): ".join(',',%backup_interval_minutes)." current is: ".$row{'CURRENT_INTERVAL'};
+				LOGDEB "Backup intervals for MS# $ms_id (".$ms{Name}."): ".join(',',@backup_interval_minutes)." current is: ".$row{'CURRENT_INTERVAL'};
 				$row{'BACKUP_INTERVAL_VALUE'} 	= $backup_intervals;
 
 				my $file_formats="";
