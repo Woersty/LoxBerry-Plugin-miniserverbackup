@@ -113,6 +113,7 @@ function debug($line,$message = "", $loglevel = 7)
 			if ( $loglevel <= 4 ) 
 			{
 				$at_least_one_error = 1;
+				@system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_ERROR'.$msno.'='.roundToPrevMin(new DateTime(),5)->format('U').' >/dev/null 2>&1');
 				$search  = array('<ALERT>', '<CRITICAL>', '<ERROR>','<WARNING>');
 				$replace = array($L["LOGGING.NOTIFY_LOGLEVEL1"],$L["LOGGING.NOTIFY_LOGLEVEL2"],$L["LOGGING.NOTIFY_LOGLEVEL3"],$L["LOGGING.NOTIFY_LOGLEVEL4"]);
 				$notification = array (
@@ -447,6 +448,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			continue;	
 		}
 	}
+
 	file_put_contents($backupstate_file,str_ireplace("<MS>",$msno." (".$miniserver['Name'].")",$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
     debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0004_PROCESSING_MINISERVER"]." ".$msno."/".count($ms)." => ".$miniserver['Name'],5);
 	$filetree["name"] 		= array();
@@ -551,6 +553,17 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			{
 			    debug(__line__,"MS#".$msno." ".str_ireplace("<interval>",$backupinterval,str_ireplace("<age>",round((time() - intval($last_save))/60,1),str_ireplace("<datetime>",date ($date_time_format, $last_save),$L["MINISERVERBACKUP.INF_0087_LAST_MODIFICATION_WAS"]))),5);
 				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0088_INTERVAL_ELAPSED"],5);
+			    $last_error = 0;
+				if ( isset($plugin_cfg["LAST_ERROR".$msno]) ) $last_error = $plugin_cfg["LAST_ERROR".$msno];
+			    if ( $last_error + 86400 >= time() )
+			    {
+					debug(__line__,"MS#".$msno." ".str_ireplace("<until>",date($date_time_format, $last_error + 86400),$L["MINISERVERBACKUP.INF_0154_SKIP_ON_PREVIOUS_ERROR"]),5);
+			    	continue;	
+			    }
+				else
+				{
+					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0155_NO_PREVIOUS_ERROR"],5);
+				}
 			}
 		}
 	}

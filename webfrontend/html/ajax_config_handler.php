@@ -108,7 +108,13 @@ if (php_sapi_name() === 'cli')
 			$plugin_cfg[strtoupper($cli_config[0])] = $cli_config[1];
 			$output .= "console.log(".strtoupper($cli_config[0]). "=" . $cli_config[1] . ");\n";
 		}
-		if ( substr($argv[1],0,11) == "LAST_REBOOT" )
+		else if ( substr($argv[1],0,10) == "LAST_ERROR" )
+		{
+			$cli_config = preg_split("/[=]+/",$argv[1]);
+			$plugin_cfg[strtoupper($cli_config[0])] = $cli_config[1];
+			$output .= "console.log(".strtoupper($cli_config[0]). "=" . $cli_config[1] . ");\n";
+		}
+		else if ( substr($argv[1],0,11) == "LAST_REBOOT" )
 		{
 			$cli_config = preg_split("/[=]+/",$argv[1]);
 			$cli_config_sub = preg_split("/[;]+/",$cli_config[1]);
@@ -168,7 +174,7 @@ if (flock($plugin_cfg_handle, LOCK_EX))
 		LOGINF($L["MINISERVERBACKUP.INF_0071_CONFIG_PARAM_WRITTEN"]. " ". $config_key. "=" . $config_value );
 		$written = fwrite($plugin_cfg_handle, $config_key . '="' . $config_value .'"'."\r\n");
 
-		if ( substr($config_key,0,11) == "LAST_REBOOT" || substr($config_key,0,9) == "LAST_SAVE" )
+		if ( substr($config_key,0,11) == "LAST_REBOOT" || substr($config_key,0,9) == "LAST_SAVE" || substr($config_key,0,10) == "LAST_ERROR" )
 		{
 					$output .= "";
 		}
