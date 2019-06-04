@@ -1624,6 +1624,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	array_push($summary,"<HR> ");
 	array_push($saved_ms," #".$msno." (".$miniserver['Name'].")");
 	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0136_BACKUP_COMPLETED_MS"]." #".$msno." (".$miniserver['Name'].")");
+	@system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_ERROR'.$msno.'=0 >/dev/null 2>&1');
 }
 if ( $msno > count($ms) ) { $msno = ""; };
 array_push($summary," ");
