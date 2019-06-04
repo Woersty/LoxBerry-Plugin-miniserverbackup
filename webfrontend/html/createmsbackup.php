@@ -671,6 +671,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0066_CLOUDDNS_TOO_MUCH_REQUESTS_FOR_TODAY"]." => ".$miniserver['Name'],5);
 				continue;
 		}
+		file_put_contents($backupstate_file,str_ireplace("<MS>",$msno." (".$miniserver['Name'].")",$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
+		$log->LOGTITLE(str_ireplace("<MS>",$msno." (".$miniserver['Name'].")",$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
 		file_put_contents($cloud_requests_file,json_encode($cloud_requests_json_array_today));
 		$response = @file_get_contents($checkurl);
 		$response = json_decode($response,true);
