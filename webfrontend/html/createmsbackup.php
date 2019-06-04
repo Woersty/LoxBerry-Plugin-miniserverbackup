@@ -2138,6 +2138,7 @@ function get_free_space ( $path )
 
 function cloud_requests_today($indata)
 {
+	if ( !isset($indata["date"]) ) return(false);
 	if ( substr($indata["date"],0,8) == date("Ymd",time()) ) 
 	{
 		return($indata);
@@ -2373,10 +2374,17 @@ else
 sleep(3); // To prevent misdetection in createmsbackup.pl
 file_put_contents($backupstate_file, "-");
 
-if ( $argv[1] == "symlink" )
+if ( isset($argv[1]) ) 
 {
-	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0153_SYMLINKS_AFTER_UPGRADE_OK"]);
-	LOGOK ($L["MINISERVERBACKUP.INF_0153_SYMLINKS_AFTER_UPGRADE_OK"]);
+	if ( $argv[1] == "symlink" )
+	{
+		$log->LOGTITLE($L["MINISERVERBACKUP.INF_0153_SYMLINKS_AFTER_UPGRADE_OK"]);
+		LOGOK ($L["MINISERVERBACKUP.INF_0153_SYMLINKS_AFTER_UPGRADE_OK"]);
+	}
+	else
+	{
+		LOGOK ($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s");
+	}
 }
 else
 {
