@@ -1892,9 +1892,9 @@ function secondsToTime($seconds)
 function read_ms_tree ($folder)
 {	
 	global $L,$curl,$miniserver,$filetree,$msno;
-	if ( substr($folder,-3) == "/./" || substr($folder,-4) == "/../" ) 
+	if ( substr($folder,-3) == "/./" || substr($folder,-4) == "/../" || substr($folder,0,6) == "/temp/" ) 
 		{
-			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0007_FUNCTION"]." read_ms_tree => ".$folder." => Ignoring . and ..!");
+			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0007_FUNCTION"]." read_ms_tree => ".$folder." => Ignoring . and .. and temp!");
 			return;
 		}
 	debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0007_FUNCTION"]." read_ms_tree => ".$folder);
