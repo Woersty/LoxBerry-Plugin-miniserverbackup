@@ -51,10 +51,11 @@ ini_set("display_errors", false);
 ini_set("log_errors", 1);
 
 $summary			= array();
-$at_least_one_error= 0;
+$at_least_one_error	= 0;
+$at_least_one_warning = 0;
 function debug($line,$message = "", $loglevel = 7)
 {
-	global $L, $plugindata, $summary, $miniserver,$msno,$plugin_cfg,$at_least_one_error,$logfilename;
+	global $L, $plugindata, $summary, $miniserver,$msno,$plugin_cfg,$at_least_one_error,$at_least_one_warning,$logfilename;
 	if ( $plugindata['PLUGINDB_LOGLEVEL'] >= intval($loglevel) )  
 	{
 		$message = preg_replace('/["]/','',$message); // Remove quotes => https://github.com/mschlenstedt/Loxberry/issues/655
@@ -110,7 +111,21 @@ function debug($line,$message = "", $loglevel = 7)
 			{
 				$msi = "";
 			}
-			if ( $loglevel <= 4 ) 
+			if ( $loglevel == 4 ) 
+			{
+				$at_least_one_warning = 1;
+				$search  = array('<WARNING>');
+				$replace = array($L["LOGGING.NOTIFY_LOGLEVEL4"]);
+				$notification = array (
+				"PACKAGE" => LBPPLUGINDIR,
+				"NAME" => $L['GENERAL.MY_NAME']." ".$msi,
+				"MESSAGE" => str_replace($search, $replace, $raw_message),
+				"SEVERITY" => 4,
+				"LOGFILE"	=> $logfilename);
+				if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) notify_ext ($notification);
+				return;
+			}
+			if ( $loglevel <= 3 ) 
 			{
 				$at_least_one_error = 1;
 				@system("php -f ".dirname($_SERVER['PHP_SELF']).'/ajax_config_handler.php LAST_ERROR'.$msno.'='.roundToPrevMin(new DateTime(),5)->format('U').' >/dev/null 2>&1');
@@ -2211,10 +2226,16 @@ foreach ($summary as &$errors)
 #$err_html 	 = preg_replace('/\\r+/i','',$err_html);
 $err_html 	 = preg_replace('/\s\s+/i',' ',$err_html);
 $err_html 	 = preg_replace('/<HR>\s<br>+/i','<HR>',$err_html);
-if (str_replace(array('<ALERT>', '<CRITICAL>','<ERROR>', '<WARNING>'),'', $err_html) != $err_html)
+if (str_replace(array('<ALERT>', '<CRITICAL>','<ERROR>'),'', $err_html) != $err_html)
 {
 	$at_least_one_error = 1;
 }
+else if (str_replace(array('<WARNING>'),'', $err_html) != $err_html)
+{
+	$at_least_one_warning = 1;
+}
+
+
 if ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" ) 
 {
 	debug(__line__,$L["MINISERVERBACKUP.INF_0116_MAIL_ENABLED"]." ".$L["MINISERVERBACKUP.INF_0140_EMAIL_ERROR_ONLY"],6);
@@ -2223,7 +2244,7 @@ else
 {
 	debug(__line__,$L["MINISERVERBACKUP.INF_0116_MAIL_ENABLED"],6);
 }
-if ( ( $at_least_one_error == 1 || $at_least_one_save == 1 ) && ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" || ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" && $at_least_one_error == 1 ) ) )  
+if ( ( $at_least_one_error == 1 || $at_least_one_warning == 1 || $at_least_one_save == 1 ) && ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" || ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" && $at_least_one_error == 1 ) ) )  
 {
 	debug(__line__,$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"],6);
 	$mail_config_file   = LBSCONFIGDIR."/mail.json";
@@ -2278,10 +2299,15 @@ if ( ( $at_least_one_error == 1 || $at_least_one_save == 1 ) && ( $plugin_cfg['M
 			{
 				$emoji = "=E2=9D=8C"; # Fail X
 			}
-			else
+			else if ( $at_least_one_warning == 1 )
+			{
+				$emoji = "=E2=9D=95"; # Warning !
+			}
+			else 
 			{
 				$emoji = "=E2=9C=85"; # OK V
 			}
+			
 			$html = "From: ".$mailFromName." <".$mailFrom.">
 To: ".$mailTo." 
 Subject: =?utf-8?Q? ".$emoji." ".$L["EMAIL.EMAIL_SUBJECT"]." ?=   
