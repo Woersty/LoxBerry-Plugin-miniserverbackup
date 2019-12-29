@@ -1892,6 +1892,11 @@ function secondsToTime($seconds)
 function read_ms_tree ($folder)
 {	
 	global $L,$curl,$miniserver,$filetree,$msno;
+	if ( substr($folder,-3) == "/./" || substr($folder,-4) == "/../" ) 
+		{
+			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0007_FUNCTION"]." read_ms_tree => ".$folder." => Ignoring . and ..!");
+			return;
+		}
 	debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0007_FUNCTION"]." read_ms_tree => ".$folder);
 	$LoxURL  = "http://".$miniserver['IPAddress'].":".$miniserver['Port']."/dev/fslist".$folder;
     debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0008_URL_TO_READ"]." ".$LoxURL);
