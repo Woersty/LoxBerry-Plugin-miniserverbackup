@@ -308,133 +308,7 @@ curl_setopt($curl, CURLOPT_TIMEOUT			, 600);
 // Process all miniservers
 set_time_limit(0);
 
-$workdir_tmp = $plugin_cfg["WORKDIR_PATH"];
-if ( $plugin_cfg["WORKDIR_PATH_SUBDIR"] != "" )
-{
-	if (strpbrk($plugin_cfg["WORKDIR_PATH_SUBDIR"], "\\/?%*:|\"<>") !== FALSE) 
-	{
-		debug(__line__,$L["ERRORS.ERR_0047_ERR_WORK_SUBDIR_INVALID"]." ".$plugin_cfg["WORKDIR_PATH_SUBDIR"],3);
-		$runtime = microtime(true) - $start;
-		sleep(3); // To prevent misdetection in createmsbackup.pl
-		file_put_contents($backupstate_file, "-");
-		$log->LOGTITLE($L["MINISERVERBACKUP.INF_0138_BACKUP_ABORTED_WITH_ERROR"]);
-        LOGERR ($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s");
-		LOGEND ("");
-		exit(1);
-	}	
-	else
-	{
-		$workdir_tmp .= "/".$plugin_cfg["WORKDIR_PATH_SUBDIR"];
-	}
-}
-	
-debug(__line__,$L["MINISERVERBACKUP.INF_0032_CLEAN_WORKDIR_TMP"]." ".$workdir_tmp);
-create_clean_workdir_tmp($workdir_tmp);
-@system("echo '".$workdir_tmp."' > /tmp/msb_free_space");
-if (!realpath($workdir_tmp)) 
-{
-	debug(__line__,$L["ERRORS.ERR_0022_PROBLEM_WITH_WORKDIR"],3);
-	$runtime = microtime(true) - $start;
-	sleep(3); // To prevent misdetection in createmsbackup.pl
-	file_put_contents($backupstate_file, "-");
-	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0138_BACKUP_ABORTED_WITH_ERROR"]);
-	LOGERR ($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s");
-	LOGEND ("");
-	exit(1);
-}
 
-debug(__line__,$L["MINISERVERBACKUP.INF_0038_DEBUG_DIR_FILE_LINK_EXISTS"]." -> ".$workdir_data);
-if ( is_file($workdir_data) || is_dir($workdir_data) || is_link( $workdir_data ) )
-{
-	debug(__line__,$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"]." -> ".$L["MINISERVERBACKUP.INF_0039_DEBUG_IS_LINK"]." -> ".$workdir_data);
-	if ( is_link( $workdir_data ) )
-	{
-		debug(__line__,$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"]." -> ".$L["MINISERVERBACKUP.INF_0042_DEBUG_CORRECT_TARGET"]." -> ".$workdir_data." => ".$workdir_tmp);
-		if ( readlink($workdir_data) == $workdir_tmp )
-		{
-			debug(__line__,$L["MINISERVERBACKUP.INF_0030_WORKDIR_IS_SYMLINK"]); 
-			# Everything in place => ok!
-		}
-		else
-		{
-			debug(__line__,$L["MINISERVERBACKUP.INF_0037_DEBUG_NO"]." -> ".$L["MINISERVERBACKUP.INF_0043_DEBUG_DELETE_SYMLINK"]." -> ".$workdir_data);
-			unlink($workdir_data);
-			debug(__line__,$L["MINISERVERBACKUP.INF_0044_DEBUG_CREATE_SYMLINK"]." -> ".$workdir_data ."=>".$workdir_tmp);
-			symlink ($workdir_tmp, $workdir_data);
-		}
-	}
-	else
-	{
-		debug(__line__,$L["MINISERVERBACKUP.INF_0037_DEBUG_NO"]." -> ".$L["MINISERVERBACKUP.INF_0041_DEBUG_IS_DIR"]." -> ".$workdir_data);
-		if (is_dir($workdir_data))
-		{
-			debug(__line__,$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"]." -> ".$L["MINISERVERBACKUP.INF_0034_DEBUG_DIRECTORY_DELETE"]." -> ".$workdir_data);
-			rrmdir($workdir_data);			
-		}
-		else
-		{
-			debug(__line__,$L["MINISERVERBACKUP.INF_0037_DEBUG_NO"]." -> ".$L["MINISERVERBACKUP.INF_0040_DEBUG_IS_FILE"]." -> ".$workdir_data);
-			if (is_file($workdir_data))
-			{
-				debug(__line__,$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"]." -> ".$L["MINISERVERBACKUP.INF_0045_DEBUG_DELETE_FILE"]." -> ".$workdir_data);
-				unlink($workdir_data);
-			}
-			else
-			{
-				debug(__line__,"Oh no! You should never read this",2);
-			}
-		}
-		debug(__line__,$L["MINISERVERBACKUP.INF_0044_DEBUG_CREATE_SYMLINK"]." -> ".$workdir_data ."=>".$workdir_tmp);
-		symlink($workdir_tmp, $workdir_data);
-	}
-} 
-else
-{
-	debug(__line__,$L["MINISERVERBACKUP.INF_0037_DEBUG_NO"]." -> ".$L["MINISERVERBACKUP.INF_0044_DEBUG_CREATE_SYMLINK"]." -> ".$workdir_data ."=>".$workdir_tmp);
-	symlink($workdir_tmp, $workdir_data);
-} 
-if (readlink($workdir_data) == $workdir_tmp)
-{
-	chmod($workdir_tmp	, 0777);
-	chmod($workdir_data	, 0777);
-	debug(__line__,$L["MINISERVERBACKUP.INF_0031_SET_WORKDIR_AS_SYMLINK"]." (".$workdir_data.")",6); 
-}
-else
-{
-	debug(__line__,$L["ERRORS.ERR_0021_CANNOT_SET_WORKDIR_AS_SYMLINK_TO_RAMDISK"],3);
-	$runtime = microtime(true) - $start;
-	sleep(3); // To prevent misdetection in createmsbackup.pl
-	file_put_contents($backupstate_file, "-");
-	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0138_BACKUP_ABORTED_WITH_ERROR"]);
-	LOGERR ($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s");
-	LOGEND ("");
-	exit(1);
-}
-
-// Define and create save directories base folder
-if (is_file($savedir_path))
-{
-	debug(__line__,$L["MINISERVERBACKUP.INF_0040_DEBUG_IS_FILE"]." -> ".$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"]." -> ".$L["MINISERVERBACKUP.INF_0045_DEBUG_DELETE_FILE"]." -> ".$savedir_path);
-	unlink($savedir_path);
-}
-if (!is_dir($savedir_path))
-{
-	debug(__line__,$L["MINISERVERBACKUP.INF_0041_DEBUG_IS_DIR"]." -> ".$L["MINISERVERBACKUP.INF_0037_DEBUG_NO"]." -> ".$L["MINISERVERBACKUP.INF_0035_DEBUG_DIRECTORY_CREATE"]." -> ".$savedir_path);
-	$resultarray = array();
-	@exec("mkdir -v -p ".$savedir_path." 2>&1",$resultarray,$retval);
-}
-if (!is_dir($savedir_path))
-{
-	debug(__line__,$L["ERRORS.ERR_0020_CREATE_BACKUP_BASE_FOLDER"]." ".$savedir_path." (".join(" ",$resultarray).")",3); 
-	$runtime = microtime(true) - $start;
-	sleep(3); // To prevent misdetection in createmsbackup.pl
-	file_put_contents($backupstate_file, "-");
-	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0138_BACKUP_ABORTED_WITH_ERROR"]);
-	LOGERR ($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s");
-	LOGEND ("");
-	exit(1);
-}
-debug(__line__,$L["MINISERVERBACKUP.INF_0046_BACKUP_BASE_FOLDER_OK"]." (".$savedir_path.")",6); 
 
 $at_least_one_save = 0;
 $saved_ms=array();
@@ -582,6 +456,134 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			}
 		}
 	}
+	
+	$workdir_tmp = $plugin_cfg["WORKDIR_PATH"];
+	if ( $plugin_cfg["WORKDIR_PATH_SUBDIR"] != "" )
+	{
+		if (strpbrk($plugin_cfg["WORKDIR_PATH_SUBDIR"], "\\/?%*:|\"<>") !== FALSE) 
+		{
+			debug(__line__,$L["ERRORS.ERR_0047_ERR_WORK_SUBDIR_INVALID"]." ".$plugin_cfg["WORKDIR_PATH_SUBDIR"],3);
+			$runtime = microtime(true) - $start;
+			sleep(3); // To prevent misdetection in createmsbackup.pl
+			file_put_contents($backupstate_file, "-");
+			$log->LOGTITLE($L["MINISERVERBACKUP.INF_0138_BACKUP_ABORTED_WITH_ERROR"]);
+	        LOGERR ($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s");
+			LOGEND ("");
+			exit(1);
+		}	
+		else
+		{
+			$workdir_tmp .= "/".$plugin_cfg["WORKDIR_PATH_SUBDIR"];
+		}
+	}
+		
+	debug(__line__,$L["MINISERVERBACKUP.INF_0032_CLEAN_WORKDIR_TMP"]." ".$workdir_tmp);
+	create_clean_workdir_tmp($workdir_tmp);
+	@system("echo '".$workdir_tmp."' > /tmp/msb_free_space");
+	if (!realpath($workdir_tmp)) 
+	{
+		debug(__line__,$L["ERRORS.ERR_0022_PROBLEM_WITH_WORKDIR"],3);
+		$runtime = microtime(true) - $start;
+		sleep(3); // To prevent misdetection in createmsbackup.pl
+		file_put_contents($backupstate_file, "-");
+		$log->LOGTITLE($L["MINISERVERBACKUP.INF_0138_BACKUP_ABORTED_WITH_ERROR"]);
+		LOGERR ($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s");
+		LOGEND ("");
+		exit(1);
+	}
+	
+	debug(__line__,$L["MINISERVERBACKUP.INF_0038_DEBUG_DIR_FILE_LINK_EXISTS"]." -> ".$workdir_data);
+	if ( is_file($workdir_data) || is_dir($workdir_data) || is_link( $workdir_data ) )
+	{
+		debug(__line__,$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"]." -> ".$L["MINISERVERBACKUP.INF_0039_DEBUG_IS_LINK"]." -> ".$workdir_data);
+		if ( is_link( $workdir_data ) )
+		{
+			debug(__line__,$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"]." -> ".$L["MINISERVERBACKUP.INF_0042_DEBUG_CORRECT_TARGET"]." -> ".$workdir_data." => ".$workdir_tmp);
+			if ( readlink($workdir_data) == $workdir_tmp )
+			{
+				debug(__line__,$L["MINISERVERBACKUP.INF_0030_WORKDIR_IS_SYMLINK"]); 
+				# Everything in place => ok!
+			}
+			else
+			{
+				debug(__line__,$L["MINISERVERBACKUP.INF_0037_DEBUG_NO"]." -> ".$L["MINISERVERBACKUP.INF_0043_DEBUG_DELETE_SYMLINK"]." -> ".$workdir_data);
+				unlink($workdir_data);
+				debug(__line__,$L["MINISERVERBACKUP.INF_0044_DEBUG_CREATE_SYMLINK"]." -> ".$workdir_data ."=>".$workdir_tmp);
+				symlink ($workdir_tmp, $workdir_data);
+			}
+		}
+		else
+		{
+			debug(__line__,$L["MINISERVERBACKUP.INF_0037_DEBUG_NO"]." -> ".$L["MINISERVERBACKUP.INF_0041_DEBUG_IS_DIR"]." -> ".$workdir_data);
+			if (is_dir($workdir_data))
+			{
+				debug(__line__,$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"]." -> ".$L["MINISERVERBACKUP.INF_0034_DEBUG_DIRECTORY_DELETE"]." -> ".$workdir_data);
+				rrmdir($workdir_data);			
+			}
+			else
+			{
+				debug(__line__,$L["MINISERVERBACKUP.INF_0037_DEBUG_NO"]." -> ".$L["MINISERVERBACKUP.INF_0040_DEBUG_IS_FILE"]." -> ".$workdir_data);
+				if (is_file($workdir_data))
+				{
+					debug(__line__,$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"]." -> ".$L["MINISERVERBACKUP.INF_0045_DEBUG_DELETE_FILE"]." -> ".$workdir_data);
+					unlink($workdir_data);
+				}
+				else
+				{
+					debug(__line__,"Oh no! You should never read this",2);
+				}
+			}
+			debug(__line__,$L["MINISERVERBACKUP.INF_0044_DEBUG_CREATE_SYMLINK"]." -> ".$workdir_data ."=>".$workdir_tmp);
+			symlink($workdir_tmp, $workdir_data);
+		}
+	} 
+	else
+	{
+		debug(__line__,$L["MINISERVERBACKUP.INF_0037_DEBUG_NO"]." -> ".$L["MINISERVERBACKUP.INF_0044_DEBUG_CREATE_SYMLINK"]." -> ".$workdir_data ."=>".$workdir_tmp);
+		symlink($workdir_tmp, $workdir_data);
+	} 
+	if (readlink($workdir_data) == $workdir_tmp)
+	{
+		chmod($workdir_tmp	, 0777);
+		chmod($workdir_data	, 0777);
+		debug(__line__,$L["MINISERVERBACKUP.INF_0031_SET_WORKDIR_AS_SYMLINK"]." (".$workdir_data.")",6); 
+	}
+	else
+	{
+		debug(__line__,$L["ERRORS.ERR_0021_CANNOT_SET_WORKDIR_AS_SYMLINK_TO_RAMDISK"],3);
+		$runtime = microtime(true) - $start;
+		sleep(3); // To prevent misdetection in createmsbackup.pl
+		file_put_contents($backupstate_file, "-");
+		$log->LOGTITLE($L["MINISERVERBACKUP.INF_0138_BACKUP_ABORTED_WITH_ERROR"]);
+		LOGERR ($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s");
+		LOGEND ("");
+		exit(1);
+	}
+	
+	// Define and create save directories base folder
+	if (is_file($savedir_path))
+	{
+		debug(__line__,$L["MINISERVERBACKUP.INF_0040_DEBUG_IS_FILE"]." -> ".$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"]." -> ".$L["MINISERVERBACKUP.INF_0045_DEBUG_DELETE_FILE"]." -> ".$savedir_path);
+		unlink($savedir_path);
+	}
+	if (!is_dir($savedir_path))
+	{
+		debug(__line__,$L["MINISERVERBACKUP.INF_0041_DEBUG_IS_DIR"]." -> ".$L["MINISERVERBACKUP.INF_0037_DEBUG_NO"]." -> ".$L["MINISERVERBACKUP.INF_0035_DEBUG_DIRECTORY_CREATE"]." -> ".$savedir_path);
+		$resultarray = array();
+		@exec("mkdir -v -p ".$savedir_path." 2>&1",$resultarray,$retval);
+	}
+	if (!is_dir($savedir_path))
+	{
+		debug(__line__,$L["ERRORS.ERR_0020_CREATE_BACKUP_BASE_FOLDER"]." ".$savedir_path." (".join(" ",$resultarray).")",3); 
+		$runtime = microtime(true) - $start;
+		sleep(3); // To prevent misdetection in createmsbackup.pl
+		file_put_contents($backupstate_file, "-");
+		$log->LOGTITLE($L["MINISERVERBACKUP.INF_0138_BACKUP_ABORTED_WITH_ERROR"]);
+		LOGERR ($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s");
+		LOGEND ("");
+		exit(1);
+	}
+	debug(__line__,$L["MINISERVERBACKUP.INF_0046_BACKUP_BASE_FOLDER_OK"]." (".$savedir_path.")",6); 
 
 	if ($miniserver['UseCloudDNS'] == "on" ) 
 	{
