@@ -122,7 +122,7 @@ function debug($line,$message = "", $loglevel = 7)
 				"MESSAGE" => str_replace($search, $replace, $raw_message),
 				"SEVERITY" => 4,
 				"LOGFILE"	=> $logfilename);
-				if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) notify_ext ($notification);
+				if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" || $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "1" ) notify_ext ($notification);
 				return;
 			}
 			if ( $loglevel <= 3 ) 
@@ -137,7 +137,7 @@ function debug($line,$message = "", $loglevel = 7)
 				"MESSAGE" => str_replace($search, $replace, $raw_message),
 				"SEVERITY" => 3,
 				"LOGFILE"	=> $logfilename);
-				if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) notify_ext ($notification);
+				if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ||$plugin_cfg["MSBACKUP_USE_NOTIFY"] == "1" ) notify_ext ($notification);
 				return;
 			}
 		}
@@ -258,7 +258,7 @@ else
 }
 
 # Check if Plugin is disabled
-if ( $plugin_cfg["MSBACKUP_USE"] == "on" )
+if ( $plugin_cfg["MSBACKUP_USE"] == "on" || $plugin_cfg["MSBACKUP_USE"] == "1" )
 {
     // Warning if Loglevel > 5 (OK)
     if ($plugindata['PLUGINDB_LOGLEVEL'] > 5 && $plugindata['PLUGINDB_LOGLEVEL'] <= 7) debug(__line__,$L["MINISERVERBACKUP.INF_0026_LOGLEVEL_WARNING"]." ".$L["LOGGING.LOGLEVEL".$plugindata['PLUGINDB_LOGLEVEL']]." (".$plugindata['PLUGINDB_LOGLEVEL'].")",4);
@@ -585,7 +585,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	}
 	debug(__line__,$L["MINISERVERBACKUP.INF_0046_BACKUP_BASE_FOLDER_OK"]." (".$savedir_path.")",6); 
 
-	if ($miniserver['UseCloudDNS'] == "on" ) 
+	if ( $miniserver['UseCloudDNS'] == "on" || $miniserver['UseCloudDNS'] == "1" ) 
 	{
 		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0111_CLOUD_DNS_USED"]." => ".$miniserver['Name'],6);
 		if ( $miniserver['CloudURL'] == "" )
@@ -608,7 +608,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".$L["MINISERVERBACKUP.INF_0143_WAIT_FOR_RESTART"],6);
 			sleep(5); // Fix for Loxone Cloud restarts at 0, 15, 30 and 45
 		}
-		if ( $miniserver['UseCloudDNS'] == "on" && $randomsleep == 1 && $manual_backup != 1 )
+		if ( ($miniserver['UseCloudDNS'] == "on" ||$miniserver['UseCloudDNS'] == "1") && $randomsleep == 1 && $manual_backup != 1 )
 		{
 			if ( isset($plugin_cfg["RANDOM_SLEEP"]) )
 			{
@@ -1256,7 +1256,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			}
 			$finalstorage .= "/".$bkpfolder;
 			$resultarray = array();
-			@exec("mkdir -v -p ".$finalstorage." 2>&1",$resultarray,$retval);
+			@exec('mkdir -v -p "'.$finalstorage.'" 2>&1',$resultarray,$retval);
 		}
 		else if (substr($finalstorage, -1) == "~")
 		{
@@ -1279,7 +1279,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			}
 			$finalstorage .= "/".$bkpfolder;
 			$resultarray = array();
-			@exec("mkdir -v -p ".$finalstorage." 2>&1",$resultarray,$retval);
+			@exec('mkdir -v -p "'.$finalstorage.'" 2>&1',$resultarray,$retval);
 		}
 		else
 		{
@@ -1306,7 +1306,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		if (!is_dir($finalstorage))
 		{ 
 			$resultarray = array();
-			@exec("mkdir -v -p ".$finalstorage." 2>&1",$resultarray,$retval);
+			@exec('mkdir -v -p "'.$finalstorage.'" 2>&1',$resultarray,$retval);
 		}
 	}
 	if (!is_dir($finalstorage)) 
@@ -1445,13 +1445,28 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				if ( $latest_filename ) 
 				{
 					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0072_ZIP_PREVIOUS_BACKUP_FOUND"]." ".$latest_filename,5);
-					copy($bkp_dest_dir.'/'.$bkpfolder.'/'.$latest_filename, $bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension); 
-					exec('7za u '.$bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.'.7z '.$savedir_path.'/'.$bkpfolder.' -ms=off -mx=9 -t7z -up0q3r2x2y2z0w2!'.$bkp_dest_dir.'/'.$bkpfolder.'/'.'Incremental_'.$bkpdir.$fileformat_extension.' 2>&1', $seven_zip_output);
+					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0157_ZIP_CHECK_BACKUP_FOUND"]." ".$latest_filename,5);
+					exec('7za l '.$bkp_dest_dir.'/'.$bkpfolder.'/'.$latest_filename.' |grep -v "/" | grep '.$bkpfolder.'|wc -l', $seven_zip_check);
+					debug(__line__,"MS#".$msno." Old Format=".intval(implode("\n",$seven_zip_check)));
+					if (intval(implode("\n",$seven_zip_check)) == 1)
+					{
+						debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0158_ZIP_CHECK_BACKUP_OLD_FORMAT"],4);
+						debug(__line__,"MS#".$msno." Command: 7za a $bkp_dest_dir/$bkpfolder/$bkpdir$fileformat_extension $savedir_path/$bkpfolder/* -ms=off -mx=9 -t7z");
+						exec('7za a "'.$bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension.'" "'.$savedir_path.'/'.$bkpfolder.'/*" -ms=off -mx=9 -t7z 2>&1', $seven_zip_output);
+					}
+					else
+					{
+						debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0156_ZIP_SEEMS_NOT_TO_BE_IN_OLD_FORMAT"],5);
+						copy($bkp_dest_dir.'/'.$bkpfolder.'/'.$latest_filename, $bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension); 
+						debug(__line__,"MS#".$msno." Command: 7za u $bkp_dest_dir/$bkpfolder$bkpdir.7z $savedir_path/$bkpfolder/* -ms=off -mx=9 -t7z -up0q3r2x2y2z0w2!$bkp_dest_dir/$bkpfolder/Incremental_$bkpdir$fileformat_extension");
+						exec('7za u "'.$bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.'.7z" "'.$savedir_path.'/'.$bkpfolder.'/*" -ms=off -mx=9 -t7z -up0q3r2x2y2z0w2!"'.$bkp_dest_dir.'/'.$bkpfolder.'/'.'Incremental_'.$bkpdir.$fileformat_extension.'" 2>&1', $seven_zip_output);
+					}
 				}
 				else
 				{
 					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0073_ZIP_NO_PREVIOUS_BACKUP_FOUND"],5);
-					exec('7za a '.$bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension.' '.$savedir_path.'/'.$bkpfolder.' -ms=off -mx=9 -t7z 2>&1', $seven_zip_output);
+					debug(__line__,"MS#".$msno." Command: 7za a $bkp_dest_dir/$bkpfolder/$bkpdir$fileformat_extension $savedir_path/$bkpfolder/* -ms=off -mx=9 -t7z");
+					exec('7za a "'.$bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension.'" "'.$savedir_path.'/'.$bkpfolder.'/*" -ms=off -mx=9 -t7z 2>&1', $seven_zip_output);
 				}
 				$zipresult=end($seven_zip_output);
 				if ( $zipresult != "Everything is Ok" )
@@ -1617,7 +1632,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			"MESSAGE" => $message,
 			"SEVERITY" => 6,
 			"LOGFILE"	=> $logfilename);
-			if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) 
+			if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" || $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "1" ) 
 			{
 				@notify_ext ($notification);
 			}
@@ -1850,7 +1865,7 @@ class MSbackupZIP
 			array_push($summary,"MS#".$msno." "."<CRITICAL> ".str_ireplace("<counter>",array_sum($error_count_severe),$L["ERRORS.ERR_0026_SEVERE_SD_CARD_ERRORS_DETECTED"])." ".$L["ERRORS.ERR_0027_LAST_SD_CARD_ERROR_DETECTED"]." ".substr($match_severe,0,strpos($match_severe,' ')));
 			array_push($summary,"MS#".$msno." "."<CRITICAL> ".$L["MINISERVERBACKUP.INF_0127_SUMMARY_SEVERE_SD_ERRORS"]."</span>\n"."MS#".$msno." ".join("\n"."MS#".$msno." ",$severe_SDC_errors));
 			array_push($summary,"MS#".$msno." "."<ALERT> ".$L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]." (".$miniserver['Name'].")");
-		    if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on" ) notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." "."MS#".$msno." ".$miniserver['Name'], $L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]. " (" . $miniserver['Name'] .") ".$L["MINISERVERBACKUP.INF_0062_LAST_MS_REBOOT"]." ".$last_reboot_key);		
+		    if ( $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "on"  || $plugin_cfg["MSBACKUP_USE_NOTIFY"] == "1"  ) notify ( LBPPLUGINDIR, $L['GENERAL.MY_NAME']." "."MS#".$msno." ".$miniserver['Name'], $L["MINISERVERBACKUP.INF_0063_SHOULD_REPLACE_SDCARD"]. " (" . $miniserver['Name'] .") ".$L["MINISERVERBACKUP.INF_0062_LAST_MS_REBOOT"]." ".$last_reboot_key);		
 		}
 	}
 	
@@ -2246,7 +2261,7 @@ else
 {
 	debug(__line__,$L["MINISERVERBACKUP.INF_0116_MAIL_ENABLED"],6);
 }
-if ( ( $at_least_one_error == 1 || $at_least_one_warning == 1 || $at_least_one_save == 1 ) && ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" || ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" && $at_least_one_error == 1 ) ) )  
+if ( ( $at_least_one_error == 1 || $at_least_one_warning == 1 || $at_least_one_save == 1 ) && (( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" || $plugin_cfg['MSBACKUP_USE_EMAILS'] == "1" )|| ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" && $at_least_one_error == 1 ) ) )  
 {
 	debug(__line__,$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"],6);
 	$mail_config_file   = LBSCONFIGDIR."/mail.json";
@@ -2369,13 +2384,14 @@ Content-Disposition: ".$inline."; filename=\"logo_".$datetime->format("Y-m-d_i\h
 			switch (strtolower($plugin_cfg['MSBACKUP_USE_EMAILS']))
 			{
 			    case "on":
+			    case "1":
 					$condition = $L["GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_ON"];
 			        break;
 			    case "fail":
 			        $condition = $L["GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_ERROR"];
 			        break;
 			}
-			if ( ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" && $at_least_one_error == 1 ) || $plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" )
+			if ( ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" && $at_least_one_error == 1 ) || ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" || $plugin_cfg['MSBACKUP_USE_EMAILS'] == "1" ) )
 			{
 				debug(__line__,$L["MINISERVERBACKUP.INF_0125_SEND_EMAIL_ON_ERROR"]." ".$condition,6);
 				$tmpfname = tempnam("/tmp", "msbackup_mail_");

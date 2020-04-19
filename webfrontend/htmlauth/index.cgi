@@ -53,7 +53,7 @@ my $backupstate_tmp_file 		= "/tmp/".$backupstate_name;
 my @netshares 					= LoxBerry::Storage::get_netshares();
 my @usbdevices 					= LoxBerry::Storage::get_usbstorage();
 my $localstorage                = $lbpdatadir."/backup_storage";
-my @backup_interval_minutes		= (0,60,120,240,480,720,1440,10080,20160,43200,-1);
+my @backup_interval_minutes		= (0,120,240,480,720,1440,10080,20160,43200,-1);
 my %backups_to_keep_values		= (1,3,7,14,30,60,90,365);
 my @file_formats				= ('7z','zip','uncompressed');
 my $backup_intervals			= "";
@@ -221,7 +221,7 @@ if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 		$miniservers{$msnr}{SecureGateway} = $mscfg->param("MINISERVER$msnr.SECUREGATEWAY");
 		$miniservers{$msnr}{EncryptResponse} = $mscfg->param("MINISERVER$msnr.ENCRYPTRESPONSE");
 
-		if ( ($miniservers{$msnr}{UseCloudDNS} eq "on" ) && ( $miniservers{$msnr}{CloudURL} ne "" )) 
+		if ( ($miniservers{$msnr}{UseCloudDNS} eq "on" || $miniservers{$msnr}{UseCloudDNS} eq "1" ) && ( $miniservers{$msnr}{CloudURL} ne ""  || $miniservers{$msnr}{CloudURL} ne "0" )) 
 		{
 			$miniservers{$msnr}{IPAddress} = "CloudDNS";
 		}
