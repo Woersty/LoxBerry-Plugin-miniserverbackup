@@ -210,7 +210,44 @@ if ( is_file($backupstate_file) )
 
 // Read Miniservers
 debug(__line__,$L["MINISERVERBACKUP.INF_0002_READ_MINISERVERS"]);
-LBSystem::read_generalcfg();
+$cfg = parse_ini_file(LBHOMEDIR . "/config/system/general.cfg", True, INI_SCANNER_RAW) or error_log("LoxBerry System ERROR: Could not read general.cfg in " . LBHOMEDIR . "/config/system/");
+$clouddnsaddress = $cfg['BASE']['CLOUDDNS'] or LOGERR ($L["ERRORS.ERR_0068_PROBLEM_READING_CLOUD_DNS_ADDR"]);
+
+# If no miniservers are defined, return NULL
+$miniservercount = $cfg['BASE']['MINISERVERS'];
+if (!$miniservercount || $miniservercount < 1) 
+{
+	debug(__line__,$L["ERRORS.ERR_0001_NO_MINISERVERS_CONFIGURED"],3);
+	$runtime = microtime(true) - $start;
+	sleep(3); // To prevent misdetection in createmsbackup.pl
+	file_put_contents($backupstate_file, "-");
+	$log->LOGTITLE($L["MINISERVERBACKUP.INF_0138_BACKUP_ABORTED_WITH_ERROR"]);
+	LOGERR ($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s");
+	LOGEND ("");
+	exit(1);
+}
+
+for ($msnr = 1; $msnr <= $miniservercount; $msnr++) 
+{
+	@$miniservers[$msnr]['Name'] = $cfg["MINISERVER$msnr"]['NAME'];
+	@$miniservers[$msnr]['IPAddress'] = $cfg["MINISERVER$msnr"]['IPADDRESS'];
+	@$miniservers[$msnr]['Admin'] = $cfg["MINISERVER$msnr"]['ADMIN'];
+	@$miniservers[$msnr]['Pass'] = $cfg["MINISERVER$msnr"]['PASS'];
+	@$miniservers[$msnr]['Credentials'] = $miniservers[$msnr]['Admin'] . ':' . $miniservers[$msnr]['Pass'];
+	@$miniservers[$msnr]['Note'] = $cfg["MINISERVER$msnr"]['NOTE'];
+	@$miniservers[$msnr]['Port'] = $cfg["MINISERVER$msnr"]['PORT'];
+	@$miniservers[$msnr]['PortHttps'] = $cfg["MINISERVER$msnr"]['PORTHTTPS'];
+	@$miniservers[$msnr]['PreferHttps'] = $cfg["MINISERVER$msnr"]['PREFERHTTPS'];
+	@$miniservers[$msnr]['UseCloudDNS'] = $cfg["MINISERVER$msnr"]['USECLOUDDNS'];
+	@$miniservers[$msnr]['CloudURLFTPPort'] = $cfg["MINISERVER$msnr"]['CLOUDURLFTPPORT'];
+	@$miniservers[$msnr]['CloudURL'] = $cfg["MINISERVER$msnr"]['CLOUDURL'];
+	@$miniservers[$msnr]['Admin_RAW'] = urldecode($miniservers[$msnr]['Admin']);
+	@$miniservers[$msnr]['Pass_RAW'] = urldecode($miniservers[$msnr]['Pass']);
+	@$miniservers[$msnr]['Credentials_RAW'] = $miniservers[$msnr]['Admin_RAW'] . ':' . $miniservers[$msnr]['Pass_RAW'];
+	@$miniservers[$msnr]['SecureGateway'] = isset($cfg["MINISERVER$msnr"]['SECUREGATEWAY']) && is_enabled($cfg["MINISERVER$msnr"]['SECUREGATEWAY']) ? 1 : 0;
+	@$miniservers[$msnr]['EncryptResponse'] = isset ($cfg["MINISERVER$msnr"]['ENCRYPTRESPONSE']) && is_enabled($cfg["MINISERVER$msnr"]['ENCRYPTRESPONSE']) ? 1 : 0;
+}
+
 $ms = $miniservers;
 if (!is_array($ms)) 
 {

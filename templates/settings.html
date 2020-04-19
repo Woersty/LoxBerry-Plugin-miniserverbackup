@@ -298,12 +298,16 @@ span#alert_form_close:hover {
 		</DIV>
 	</TMPL_LOOP>
 	<br><br>
+	<STYLE>
+	.PreferHttps1 {	border-style: solid; border-width: thin; border-radius: 5px; background: #C0FFC0; padding: 2px; font-size:10px; }
+	.PreferHttps0 {	visibility: hidden; }
+	</STYLE>
 	<TMPL_LOOP TEMPLATE_ROW>
 		<DIV style="display:inline-block; width:100%;" class="to_disable_on_save">
 			<DIV id="MS_LOOP_ROW<TMPL_VAR MSID>" style="text-align:left; display:inline-block; margin-bottom:5px; width:99%; padding:10px; border: 1px solid black; border-radius: 5px; background-color: rgba(228,228,228,.1);"> 
 				<DIV style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(0,228,228,.1);">
 					<TMPL_LOOP NAME="MSROW">
-						#<TMPL_VAR MSID> - <TMPL_VAR Name> <small>[<TMPL_VAR IPAddress>]</small><BR>
+						#<TMPL_VAR MSID> - <TMPL_VAR Name> <small>[<TMPL_VAR IPAddress>]</small> <span class="PreferHttps<TMPL_VAR PreferHttps>">HTTPS</span><BR>
 					</TMPL_LOOP>
 					<a id="btnbackup_single<TMPL_VAR MSID>" class="ui-disabled btnbackup_single to_disable_on_save" data-role="button" data-icon="clock" data-mini="true" onclick="$('.btnbackup_single').addClass('ui-disabled'); clearInterval(watchDog); $('#btnbackup').text('<TMPL_VAR GENERAL.PLEASE_WAIT>'); watchDog = setInterval(function() { checkState(); },2500); $.get('./index.cgi?do=backup&which=<TMPL_VAR MSID>'); "><TMPL_VAR GENERAL.LABEL_START_ONE_BACKUP_NOW></a>
 				</DIV>

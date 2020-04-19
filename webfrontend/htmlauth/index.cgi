@@ -211,13 +211,14 @@ if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 		$miniservers{$msnr}{Credentials} = $miniservers{$msnr}{Admin} . ':' . $miniservers{$msnr}{Pass};
 		$miniservers{$msnr}{Note} = $mscfg->param("MINISERVER$msnr.NOTE");
 		$miniservers{$msnr}{Port} = $mscfg->param("MINISERVER$msnr.PORT");
+		$miniservers{$msnr}{PortHttps} = $mscfg->param("MINISERVER$msnr.PORTHTTPS");
+		$miniservers{$msnr}{PreferHttps} = $mscfg->param("MINISERVER$msnr.PREFERHTTPS");
 		$miniservers{$msnr}{UseCloudDNS} = $mscfg->param("MINISERVER$msnr.USECLOUDDNS");
 		$miniservers{$msnr}{CloudURLFTPPort} = $mscfg->param("MINISERVER$msnr.CLOUDURLFTPPORT");
 		$miniservers{$msnr}{CloudURL} = $mscfg->param("MINISERVER$msnr.CLOUDURL");
 		$miniservers{$msnr}{Admin_RAW} = URI::Escape::uri_unescape($miniservers{$msnr}{Admin});
 		$miniservers{$msnr}{Pass_RAW} = URI::Escape::uri_unescape($miniservers{$msnr}{Pass});
 		$miniservers{$msnr}{Credentials_RAW} = $miniservers{$msnr}{Admin_RAW} . ':' . $miniservers{$msnr}{Pass_RAW};
-		
 		$miniservers{$msnr}{SecureGateway} = $mscfg->param("MINISERVER$msnr.SECUREGATEWAY");
 		$miniservers{$msnr}{EncryptResponse} = $mscfg->param("MINISERVER$msnr.ENCRYPTRESPONSE");
 
@@ -347,6 +348,16 @@ exit;
 		my %ms;
 		$ms{Name} 			= $miniservers{$ms_id}{'Name'};
 		$ms{IPAddress} 		= $miniservers{$ms_id}{'IPAddress'};
+		$ms{PreferHttps} 	= $miniservers{$ms_id}{'PreferHttps'};
+		
+		if ( $ms{PreferHttps} eq "1" )
+		{
+			$ms{Port} 		= $miniservers{$ms_id}{'PortHttps'};
+		}
+		else
+		{
+			$ms{Port} 		= $miniservers{$ms_id}{'Port'};
+		}
 		my %gen;
 		$gen{Name} 			= "general";
 
