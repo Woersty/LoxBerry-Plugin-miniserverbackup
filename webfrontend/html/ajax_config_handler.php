@@ -122,6 +122,7 @@ if (php_sapi_name() === 'cli')
 			$format = $L["GENERAL.DATE_TIME_FORMAT_PHP"];
 			$date_str = date($format ,$date);
 			$cli_config_sub[1] = str_ireplace('PRG Reboot',' (Version',$cli_config_sub[1]);
+			$cli_config_sub[1] = str_ireplace('PRG Start',' (Version',$cli_config_sub[1]);
 			$plugin_cfg[strtoupper($cli_config[0])] = '"'.$date_str." ".trim($cli_config_sub[1]).')"';
 			$output .= "console.log('".strtoupper($cli_config[0]). "=" .$date_str." ".$cli_config_sub[1]."');\n";
 		}
