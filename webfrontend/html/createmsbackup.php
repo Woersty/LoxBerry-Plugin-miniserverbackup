@@ -826,8 +826,6 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			curl_close($curl_dns);
 			if ( $cloudcancel == 1 )
 			{
-				array_push($summary,"<HR> ");
-				array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 				curl_close($curl_dns);
 				return $cloudcancel;
 			}
@@ -1980,7 +1978,7 @@ class MSbackupZIP
   	global $L,$summary,$miniserver,$backupstate_file,$msno,$plugin_cfg;
 	debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0080_CHECK_DEFLOG"]." (" . $miniserver['Name'] .")",6);
 	$deflog = explode("\n",file_get_contents($filePath));
-	$lookfor = "PRG Reboot";
+	$lookfor = "PRG Start|PRG Reboot";
 	$matches = array_filter($deflog, function($var) use ($lookfor) { return preg_match("/\b$lookfor\b/i", $var); });
 	$last_reboot_key = array_pop($matches);
 	array_push($summary,"MS#".$msno." "."<INFO> ".$L["MINISERVERBACKUP.INF_0062_LAST_MS_REBOOT"]." ".preg_replace("/[\n\r]/","",str_ireplace(';PRG Reboot',' (Version:',$last_reboot_key).")"));
