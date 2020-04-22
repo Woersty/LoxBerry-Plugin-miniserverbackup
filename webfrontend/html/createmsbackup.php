@@ -765,7 +765,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			switch ($code) 
 			{
 				case "200":
-					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0109_CLOUD_DNS_QUERY_RESULT"]." ".$miniserver['Name']." => IP: ".$response["IP".$HTTPS_mode]." Code: ".$response["Code"]." LastUpdated: ".$response["LastUpdated"]." PortOpen".$HTTPS_mode.": ".$response["PortOpen".$HTTPS_mode]." DNS-Status: ".$response["DNS-Status"],5);
+					$RemoteConnect = ( isset($response["RemoteConnect"]) ) $response["RemoteConnect"]:"false";
+					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0109_CLOUD_DNS_QUERY_RESULT"]." ".$miniserver['Name']." => IP: ".$response["IP".$HTTPS_mode]." Code: ".$response["Code"]." LastUpdated: ".$response["LastUpdated"]." PortOpen".$HTTPS_mode.": ".$response["PortOpen".$HTTPS_mode]." DNS-Status: ".$response["DNS-Status"]." RemoteConnect: ".$RemoteConnect,5);
 					if ( $response["Code"] == "405" )
 					{	
 						debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0063_CLOUDDNS_ERROR_405"]." => ".$miniserver['Name']."\nURL: ".$checkurl." => Code ".$code."\n".join("\n",$response),4);
@@ -791,6 +792,12 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 						debug(__line__,"MS#".$msno." ".str_ireplace("<miniserver>",$miniserver['Name'],$L["ERRORS.ERR_0050_CLOUDDNS_PORT_NOT_OPEN"])." ".$response["LastUpdated"],3);
 						$cloudcancel=1;
 					}
+					if ( $response["RemoteConnect"] != "true" ) 
+					{
+						debug(__line__,"MS#".$msno." ".str_ireplace("<miniserver>",$miniserver['Name'],$L["ERRORS.ERR_0072_CLOUDDNS_REMOTE_CONNECT_NOT_TRUE"])." ".$response["LastUpdated"],3);
+						$cloudcancel=1;
+					}
+					
 				break;
 				case "403":
 					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0051_CLOUDDNS_ERROR_403"]." => ".$miniserver['Name'],4);
@@ -885,6 +892,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	if ( $clouderror == 2 ) 
 	{
 		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0071_TOO_MANY_CLOUD_DNS_FAILS"]." ".$miniserver['Name']." ".curl_error($curl),3);
+		create_clean_workdir_tmp($workdir_tmp);
+		file_put_contents($backupstate_file,"-");
 		array_push($summary,"<HR> ");
 		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 		continue;
@@ -897,6 +906,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	{
 		debug(__line__,"MS#".$msno." ".$url);
 		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0018_ERROR_READ_LOCAL_MS_IP"]." ".$miniserver['Name']." ".curl_error($curl),3);
+		create_clean_workdir_tmp($workdir_tmp);
+		file_put_contents($backupstate_file,"-");
 		array_push($summary,"<HR> ");
 		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 		continue;
@@ -911,6 +922,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		else
 		{
 			debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0018_ERROR_READ_LOCAL_MS_IP"]." ".$url." => ".nl2br(htmlentities($read_line)),3);
+			create_clean_workdir_tmp($workdir_tmp);
+			file_put_contents($backupstate_file,"-");
 			array_push($summary,"<HR> ");
 			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 			continue;
@@ -922,6 +935,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	if(curl_exec($curl) === false)
 	{
 		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0019_ERROR_READ_LOCAL_MS_VERSION"]." ".curl_error($curl),3);
+		create_clean_workdir_tmp($workdir_tmp);
+		file_put_contents($backupstate_file,"-");
 		array_push($summary,"<HR> ");
 		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 		continue;
@@ -937,6 +952,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		else
 		{
 			debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0019_ERROR_READ_LOCAL_MS_VERSION"]." ".curl_error($curl),3);
+			create_clean_workdir_tmp($workdir_tmp);
+			file_put_contents($backupstate_file,"-");
 			array_push($summary,"<HR> ");
 			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 			continue;
@@ -1272,9 +1289,6 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				}
 				curl_setopt($curl_save, CURLOPT_FILE, $fp) or $curl_save_issue=1;
 				$data = curl_exec($curl_save);
-				
-				###############
-				
 			}
 
 			if ( $data === FALSE)
@@ -1375,6 +1389,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		}
 		if ( $crit_issue == 1 )
 		{
+			create_clean_workdir_tmp($workdir_tmp);
+			file_put_contents($backupstate_file,"-");
 			array_push($summary,"<HR> ");
 			array_push($problematic_ms," #".$msno." (".$miniserver['Name']." FIXME )");
 			continue;
