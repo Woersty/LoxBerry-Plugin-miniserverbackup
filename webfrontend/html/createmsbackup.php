@@ -634,7 +634,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				2 = Too many errors, stop retrying
 				3 = Too much errors for today
 				4 = Port not open / Remote connect disabled
-				5 = Error init cURL
+				5 = Error init cURL, stop retrying
+				6 = Error 405, stop retrying
 			*/
 			if ( $connection_data_returncode == 1)
 			{
@@ -650,7 +651,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			}
 		} while ($connection_data_returncode == 1);
 		
-		if ( $connection_data_returncode == 2 || $connection_data_returncode == 3 || $connection_data_returncode == 4 || $connection_data_returncode == 5 ) 
+		if ( $connection_data_returncode == 2 || $connection_data_returncode == 3 || $connection_data_returncode == 4 || $connection_data_returncode == 5 || $connection_data_returncode == 6 ) 
 		{
 			create_clean_workdir_tmp($workdir_tmp);
 			file_put_contents($backupstate_file,"-");
@@ -987,6 +988,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 							3 = Too much errors for today
 							4 = Port not open / Remote connect disabled
 							5 = Error init cURL
+							6 = Error 405, stop retrying
 						*/
 						if ( $connection_data_returncode == 1)
 						{
@@ -1002,7 +1004,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 						}
 					} while ($connection_data_returncode == 1);
 					
-					if ( $connection_data_returncode == 2 || $connection_data_returncode == 3 || $connection_data_returncode == 4 || $connection_data_returncode == 5 ) 
+					if ( $connection_data_returncode == 2 || $connection_data_returncode == 3 || $connection_data_returncode == 4 || $connection_data_returncode == 5 || $connection_data_returncode == 6 ) 
 					{
 						create_clean_workdir_tmp($workdir_tmp);
 						file_put_contents($backupstate_file,"-");
@@ -2084,7 +2086,7 @@ function get_connection_data($checkurl)
 				{	
 					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0063_CLOUDDNS_ERROR_405"]." => ".$miniserver['Name']."\nURL: ".$checkurl." => Code ".$code,4);
 					debug(__line__,"MS#".$msno." ".join(" ",$response));
-					$connection_data_returncode = 1;
+					$connection_data_returncode = 6;
 					break;
 				}
 				if ( $response["Code"] != "200" )
@@ -2150,7 +2152,7 @@ function get_connection_data($checkurl)
 				$connection_data_returncode = 1;
 		}
 		curl_close($curl_dns);
-		if ( $connection_data_returncode == 1 ||$connection_data_returncode == 4 )
+		if ( $connection_data_returncode == 1 || $connection_data_returncode >= 4 )
 		{
 			return $connection_data_returncode;
 		}
