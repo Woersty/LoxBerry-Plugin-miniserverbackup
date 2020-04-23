@@ -634,7 +634,19 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		}
 		else if ( $clouderror == 3)
 		{
-			debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0066_CLOUDDNS_TOO_MUCH_REQUESTS_FOR_TODAY"]." => ".$miniserver['Name']);
+			$dns_errors++;
+			create_clean_workdir_tmp($workdir_tmp);
+			file_put_contents($backupstate_file,"-");
+			array_push($summary,"<HR> ");
+			continue;
+		}
+		else if ( $clouderror == 4 ) 
+		{
+			create_clean_workdir_tmp($workdir_tmp);
+			file_put_contents($backupstate_file,"-");
+			array_push($summary,"<HR> ");
+			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
+			continue;
 		}
 		else
 		{
@@ -652,13 +664,6 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		file_put_contents($backupstate_file,"-");
 		array_push($summary,"<HR> ");
 		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
-		continue;
-	}
-	if ( $clouderror == 3 ) 
-	{
-		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0066_CLOUDDNS_TOO_MUCH_REQUESTS_FOR_TODAY"]." => ".$miniserver['Name'],5);
-		create_clean_workdir_tmp($workdir_tmp);
-		file_put_contents($backupstate_file,"-");
 		continue;
 	}
 	curl_setopt($curl, CURLOPT_USERPWD, $miniserver['Credentials_RAW']);
@@ -968,8 +973,15 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 						debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0160_CLOUD_DNS_OKAY"]." (#$dns_errors/$max_accepted_dns_errors)",6);
 					}
 					if ( $dns_errors > $max_accepted_dns_errors ) $clouderror = 2; 
-				} while ($clouderror == 1);
-				if ( $clouderror == 2 ) 
+				} while ($clouderror >= 1);
+				if ( $clouderror == 0 ) 
+				{
+					if ( $miniserver['UseCloudDNS'] == "on" || $miniserver['UseCloudDNS'] == "1" ) 
+					{
+						debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0160_CLOUD_DNS_OKAY"]." (#$dns_errors/$max_accepted_dns_errors)",6);
+					}
+				}
+				else if ( $clouderror == 2 ) 
 				{
 					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0071_TOO_MANY_CLOUD_DNS_FAILS"]." ".$miniserver['Name']." ".curl_error($curl),3);
 					create_clean_workdir_tmp($workdir_tmp);
@@ -978,6 +990,23 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 					array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 					continue;
 				}
+				else if ( $clouderror == 3)
+				{
+					$dns_errors++;
+					create_clean_workdir_tmp($workdir_tmp);
+					file_put_contents($backupstate_file,"-");
+					array_push($summary,"<HR> ");
+					continue;
+				}
+				else if ( $clouderror == 4 ) 
+				{
+					create_clean_workdir_tmp($workdir_tmp);
+					file_put_contents($backupstate_file,"-");
+					array_push($summary,"<HR> ");
+					array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
+					continue;
+				}
+
 
 				curl_close($curl_save); 
 				sleep(2);
@@ -2001,7 +2030,7 @@ function get_clouddns_data($checkurl)
 		debug(__line__,"MS#".$msno." ".str_ireplace("<all>",$all_cloudrequests,str_ireplace("<max_different_request>",10,str_ireplace("<different_request>",$different_cloudrequests,$L["MINISERVERBACKUP.INF_0148_CLOUD_DNS_REQUEST_NUMBER"])))." (".$miniserver['CloudURL'].")",6);
 		if ( $different_cloudrequests > 10 && $known_for_today != 1)
 		{
-				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0066_CLOUDDNS_TOO_MUCH_REQUESTS_FOR_TODAY"]." => ".$miniserver['Name']);
+				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0066_CLOUDDNS_TOO_MUCH_REQUESTS_FOR_TODAY"]." => ".$miniserver['Name'],5);
 				$cloudcancel = 3;
 				return $cloudcancel;
 		}
@@ -2077,14 +2106,14 @@ function get_clouddns_data($checkurl)
 				if ( $response["PortOpen".$HTTPS_mode] != "true" ) 
 				{
 					debug(__line__,"MS#".$msno." ".str_ireplace("<miniserver>",$miniserver['Name'],$L["ERRORS.ERR_0050_CLOUDDNS_PORT_NOT_OPEN"])." ".$response["LastUpdated"],3);
-					$cloudcancel=1;
+					$cloudcancel = 4;
 				}
 				else
 				{
 					if ( $response["RemoteConnect"] != "true" && $HTTPS_mode == "HTTPS") 
 					{
 						debug(__line__,"MS#".$msno." ".str_ireplace("<miniserver>",$miniserver['Name'],$L["ERRORS.ERR_0072_CLOUDDNS_REMOTE_CONNECT_NOT_TRUE"])." ".$response["LastUpdated"],3);
-						$cloudcancel=1;
+						$cloudcancel = 4;
 					}
 				}
 				
