@@ -617,275 +617,31 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 
 	//Check for earlier Cloud DNS requests on RAM Disk
 	touch($cloud_requests_file); // Touch file to prevent errors if inexistent
-	function get_clouddns_data($checkurl)
-	{
-		global $all_cloudrequests,$known_for_today,$miniserver,$L,$msno,$workdir_tmp,$backupstate_file,$summary,$problematic_ms,$port,$prefix,$log,$date_time_format,$plugin_cfg,$cfg,$cloud_requests_file,$cloudcancel,$clouderror0;
-		$cloudcancel	=	0;
-		if ( $miniserver['UseCloudDNS'] == "on" || $miniserver['UseCloudDNS'] == "1" ) 
-		{
-			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0111_CLOUD_DNS_USED"]." => ".$miniserver['Name'],6);
-			if ( $miniserver['CloudURL'] == "" )
-			{
-				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0108_NO_PREVIOUS_CLOUD_DNS_QUERY_FOUND_PROCEED"]." => ".$miniserver['Name'],5);
-			}
-			if ( isset($checkurl) ) 
-			{
-				$sleep_start = time();
-				$sleep_end = $sleep_start + 2;
-				$sleep_until = date($date_time_format,$sleep_end);
-				debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,$L["MINISERVERBACKUP.INF_0107_SLEEP_BEFORE_SENDING_NEXT_CLOUD_DNS_QUERY"]),5);
-				$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,str_ireplace("<time>",secondsToTime($sleep_end - time()),$L["MINISERVERBACKUP.INF_0142_TIME_TO_WAIT"]));
-				file_put_contents($backupstate_file,$wait_info_string);
-				$log->LOGTITLE($wait_info_string);
-				sleep(2);
-			}
-			if ( date("i",time()) == "00" || date("i",time()) == "15" || date("i",time()) == "30" || date("i",time()) == "45" )
-			{ 
-				debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".$L["MINISERVERBACKUP.INF_0143_WAIT_FOR_RESTART"],6);
-				sleep(5); // Fix for Loxone Cloud restarts at 0, 15, 30 and 45
-			}
-			if ( ($miniserver['UseCloudDNS'] == "on" ||$miniserver['UseCloudDNS'] == "1") && $randomsleep == 1 && $manual_backup != 1 )
-			{
-				if ( isset($plugin_cfg["RANDOM_SLEEP"]) )
-				{
-					$randomsleep = intval($plugin_cfg["RANDOM_SLEEP"]);
-				}
-				else
-				{
-					$randomsleep = random_int(2,300);
-				}
-				$sleep_start = time();
-				$sleep_end = $sleep_start + $randomsleep;
-				$sleep_until = date($date_time_format,$sleep_end);
-				$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<time>",$sleep_until." ($randomsleep s)",$L["MINISERVERBACKUP.INF_0144_RANDOM_SLEEP"]);
-				debug(__line__,$wait_info_string,6);
-				file_put_contents($backupstate_file,$wait_info_string);
-				$log->LOGTITLE($wait_info_string);
-				sleep($randomsleep);
-			} 
-			
-			$cloud_requests_json_array = json_decode(file_get_contents($cloud_requests_file),true);
-			if ($cloud_requests_json_array)
-			{
-				$key = array_search(strtolower($miniserver['CloudURL']), array_column($cloud_requests_json_array, 'cloudurl'));
-				if ($key !== FALSE)
-				{
-					if ( substr($cloud_requests_json_array[$key]["date"],0,8) == date("Ymd",time()) )
-					{
-						$cloud_requests_json_array[$key]["requests"]++; 
-						$known_for_today = 1;
-					}
-					else
-					{
-						$cloud_requests_json_array[$key]["requests"] = 1; 
-					}
-					debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<no>",$cloud_requests_json_array[$key]["requests"],$L["MINISERVERBACKUP.INF_0149_CLOUD_DNS_REQUEST_DATA_MS_FOUND"]),6);
-				}
-				else
-				{
-					debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".$L["MINISERVERBACKUP.INF_0150_CLOUD_DNS_REQUEST_DATA_MS_NOT_FOUND"],6);
-					unset ($cloud_request_array_to_push);
-					$cloud_request_array_to_push['msno'] = $msno;
-					$cloud_request_array_to_push['date'] = date("Ymd",time());
-					$cloud_request_array_to_push['cloudurl'] = strtolower($miniserver['CloudURL']);
-					$cloud_request_array_to_push['requests'] = 1;
-					array_push($cloud_requests_json_array, $cloud_request_array_to_push);
-				}
-			}
-			else
-			{
-				debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".$L["MINISERVERBACKUP.INF_0151_CLOUD_DNS_REQUEST_DATA_NOT_FOUND"],6);
-				$cloud_requests_json_array = array();
-				unset ($cloud_request_array_to_push);
-				$cloud_request_array_to_push['msno'] = $msno;
-				$cloud_request_array_to_push['date'] = date("Ymd",time());
-				$cloud_request_array_to_push['cloudurl'] = strtolower($miniserver['CloudURL']);
-				$cloud_request_array_to_push['requests'] = 1;
-				array_push($cloud_requests_json_array, $cloud_request_array_to_push);
-			}
-			$cloud_requests_json_array_today = array_map("cloud_requests_today", $cloud_requests_json_array);
-			$different_cloudrequests = 0;
-			foreach($cloud_requests_json_array_today as $datapacket) 
-			{
-				if ( intval($datapacket['requests']) > 0 ) 
-				{
-					$different_cloudrequests++;
-					$all_cloudrequests = $all_cloudrequests + intval($datapacket['requests']);
-				}
-			}
-			debug(__line__,"MS#".$msno." ".str_ireplace("<all>",$all_cloudrequests,str_ireplace("<max_different_request>",10,str_ireplace("<different_request>",$different_cloudrequests,$L["MINISERVERBACKUP.INF_0148_CLOUD_DNS_REQUEST_NUMBER"])))." (".$miniserver['CloudURL'].")",6);
-			if ( $different_cloudrequests > 10 && $known_for_today != 1)
-			{
-					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0066_CLOUDDNS_TOO_MUCH_REQUESTS_FOR_TODAY"]." => ".$miniserver['Name'],5);
-					$cloudcancel =1;
-					return $cloudcancel;
-			}
-			file_put_contents($backupstate_file,str_ireplace("<MS>",$msno." (".$miniserver['Name'].")",$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
-			$log->LOGTITLE(str_ireplace("<MS>",$msno." (".$miniserver['Name'].")",$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
-			file_put_contents($cloud_requests_file,json_encode($cloud_requests_json_array_today));
-
-			$curl_dns = curl_init(str_replace(" ","%20",$checkurl));
-			curl_setopt($curl_dns, CURLOPT_NOPROGRESS		, 1);
-			curl_setopt($curl_dns, CURLOPT_FOLLOWLOCATION	, 0);
-			curl_setopt($curl_dns, CURLOPT_CONNECTTIMEOUT	, 600); 
-			curl_setopt($curl_dns, CURLOPT_TIMEOUT			, 600);
-			curl_setopt($curl_dns, CURLOPT_SSL_VERIFYPEER	, 0);
-			curl_setopt($curl_dns, CURLOPT_SSL_VERIFYSTATUS	, 0);
-			curl_setopt($curl_dns, CURLOPT_SSL_VERIFYHOST	, 0);
-			curl_setopt($curl_dns, CURLOPT_RETURNTRANSFER 	, 1);
-			if ( !$curl_dns )
-			{
-				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0002_ERROR_INIT_CURL"],3);
-				create_clean_workdir_tmp($workdir_tmp);
-				file_put_contents($backupstate_file,"-");
-				array_push($summary,"<HR> ");
-				array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
-				$cloudcancel	=	1;
-				curl_close($curl_dns);
-				return $cloudcancel;
-			}
-			sleep(1);
-			curl_exec($curl_dns);
-			$response= curl_multi_getcontent($curl_dns); 
-			debug(__line__,"MS#".$msno." URL: $checkurl => Response: ".$response."\n");
-			$response = json_decode($response,true);
-			// Possible is for example
-			// cmd getip
-			// IP xxx.xxx.xxx.xxx
-			// IPHTTPS xxx.xxx.xxx.xxx:yyyy
-			// Code 403 (Forbidden) 200 (OK)    
-			// LastUpdated 2018-03-11 16:52:30
-			// PortOpen   		(true/false)
-			// PortOpenHTTPS	(true/false)
-			// DNS-Status 		registered
-			// RemoteConnect 	(true/false)
-			$HTTPS_mode 	=	($miniserver['PreferHttps'] == 1) ? "HTTPS":"";
-			$code			=	curl_getinfo($curl_dns,CURLINFO_RESPONSE_CODE);
-			
-			switch ($code) 
-			{
-				case "200":
-					$RemoteConnect = ( isset($response["RemoteConnect"]) ) ? $response["RemoteConnect"]:"false";
-					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0109_CLOUD_DNS_QUERY_RESULT"]." ".$miniserver['Name']." => IP: ".$response["IP".$HTTPS_mode]." Code: ".$response["Code"]." LastUpdated: ".$response["LastUpdated"]." PortOpen".$HTTPS_mode.": ".$response["PortOpen".$HTTPS_mode]." DNS-Status: ".$response["DNS-Status"]." RemoteConnect: ".$RemoteConnect,5);
-					if ( $response["Code"] == "405" )
-					{	
-						debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0063_CLOUDDNS_ERROR_405"]." => ".$miniserver['Name']."\nURL: ".$checkurl." => Code ".$code."\n".join("\n",$response),4);
-						$cloudcancel=1;
-						break;
-					}
-					if ( $response["Code"] != "200" )
-					{
-						debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0064_CLOUDDNS_CODE_MISMATCH"]." => ".$miniserver['Name']."\nURL: ".$checkurl." => Code ".$code."\n".join("\n",$response),4);
-					}
-					$ip_info = explode(":",$response["IP".$HTTPS_mode]);
-					$miniserver['IPAddress']=$ip_info[0];
-					if (count($ip_info) == 2) 
-					{
-						$port	= $ip_info[1];
-					}
-					else 
-					{
-						$port   = ($miniserver['PreferHttps'] == 1) ? 443:80;
-					}
-					if ( $response["PortOpen".$HTTPS_mode] != "true" ) 
-					{
-						debug(__line__,"MS#".$msno." ".str_ireplace("<miniserver>",$miniserver['Name'],$L["ERRORS.ERR_0050_CLOUDDNS_PORT_NOT_OPEN"])." ".$response["LastUpdated"],3);
-						$cloudcancel=1;
-					}
-					if ( $response["RemoteConnect"] != "true" ) 
-					{
-						debug(__line__,"MS#".$msno." ".str_ireplace("<miniserver>",$miniserver['Name'],$L["ERRORS.ERR_0072_CLOUDDNS_REMOTE_CONNECT_NOT_TRUE"])." ".$response["LastUpdated"],3);
-						$cloudcancel=1;
-					}
-					
-				break;
-				case "403":
-					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0051_CLOUDDNS_ERROR_403"]." => ".$miniserver['Name'],4);
-					$cloudcancel=1;
-				break;
-				case "0":
-					if ( $clouderror0 > 5 )
-					{
-						debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0065_TOO_MANY_CLOUDDNS_ERROR_0"]." => ".$miniserver['Name'],4);
-						$cloudcancel=1;
-					}
-					else
-					{
-						debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0062_CLOUDDNS_ERROR_0"]." => ".$miniserver['Name'],5);
-						sleep(1);
-						$clouderror0++;
-						//$msno--;
-					}
-					$cloudcancel=1;
-				break;
-				case "418":
-					debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".$L["ERRORS.ERR_0053_CLOUDDNS_ERROR_418"],5);
-					$cloudcancel=1;
-				break;
-				case "500":
-					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0061_CLOUDDNS_ERROR_500"]." => ".$miniserver['Name'],4);
-					$cloudcancel=1;
-				break;
-				default;
-					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0052_CLOUDDNS_UNEXPECTED_ERROR"]." => ".$miniserver['Name']."\nURL: ".$checkurl." => Code ".$code."\n".join("\n",$response),3);
-					$cloudcancel=1;
-			}
-			curl_close($curl_dns);
-			if ( $cloudcancel == 1 )
-			{
-				curl_close($curl_dns);
-				return $cloudcancel;
-			}
-			$clouderror0 = 0;
-
-		}
-		else
-		{
-			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0110_CLOUD_DNS_NOT_USED"]." => ".$miniserver['Name']." @ ".$miniserver['IPAddress'],5);
-		}
-
-		if ( $miniserver['IPAddress'] == "0.0.0.0" || $miniserver['IPAddress'] == "" ) 
-		{
-			debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"]." => ".$miniserver['Name'],3);
-			array_push($summary,"<HR> ");
-			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
-			$cloudcancel = 1;
-			curl_close($curl_dns);
-			return $cloudcancel;
-		}
-		if ( $miniserver['IPAddress'] == "" ) 
-		{
-			debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0003_MS_CONFIG_NO_IP"],3);
-			array_push($summary,"<HR> ");
-			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
-			$cloudcancel = 1;
-			curl_close($curl_dns);
-			return $cloudcancel;
-		}
-		else
-		{
-			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0005_MS_IP_HOST_PORT"]."=".$miniserver['IPAddress'].":".$port,6);
-		}
-		curl_close($curl_dns);
-		return 0;
-	}
-	
 	$checkurl = "https://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
-
+	debug(__line__,"CheckURL: $checkurl"); 
 	$max_accepted_dns_errors = 10;
 	$dns_errors = 1;
+	$clouderror=0;
 	do 
 	{
 		sleep(1);
+		debug(__line__,"MS#".$msno."Function get_clouddns_data => ".$miniserver['Name'].);
 		$clouderror = get_clouddns_data($checkurl);
 		if ( $clouderror == 1)
 		{
 			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0159_CLOUD_DNS_FAIL"]." (#$dns_errors/$max_accepted_dns_errors)",6);
 			$dns_errors++;
 		}
+		else if ( $clouderror == 3)
+		{
+			debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0066_CLOUDDNS_TOO_MUCH_REQUESTS_FOR_TODAY"]." => ".$miniserver['Name']);
+		}
 		else
 		{
-			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0160_CLOUD_DNS_OKAY"]." (#$dns_errors/$max_accepted_dns_errors)",6);
+			if ( $miniserver['UseCloudDNS'] == "on" || $miniserver['UseCloudDNS'] == "1" ) 
+			{
+				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0160_CLOUD_DNS_OKAY"]." (#$dns_errors/$max_accepted_dns_errors)",6);
+			}
 		}
 		if ( $dns_errors > $max_accepted_dns_errors ) $clouderror = 2; 
 	} while ($clouderror == 1);
@@ -896,6 +652,13 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		file_put_contents($backupstate_file,"-");
 		array_push($summary,"<HR> ");
 		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
+		continue;
+	}
+	if ( $clouderror == 3 ) 
+	{
+		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0066_CLOUDDNS_TOO_MUCH_REQUESTS_FOR_TODAY"]." => ".$miniserver['Name'],5);
+		create_clean_workdir_tmp($workdir_tmp);
+		file_put_contents($backupstate_file,"-");
 		continue;
 	}
 	curl_setopt($curl, CURLOPT_USERPWD, $miniserver['Credentials_RAW']);
@@ -1392,7 +1155,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			create_clean_workdir_tmp($workdir_tmp);
 			file_put_contents($backupstate_file,"-");
 			array_push($summary,"<HR> ");
-			array_push($problematic_ms," #".$msno." (".$miniserver['Name']." FIXME )");
+			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 			continue;
 		}
 		
@@ -1681,7 +1444,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			create_clean_workdir_tmp($workdir_tmp);
 			file_put_contents($backupstate_file,"-");
 			array_push($summary,"<HR> ");
-			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].") FIXME3");
+			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 			continue;
 		}
 		switch ($fileformat) 
@@ -1882,6 +1645,520 @@ curl_close($curl);
 debug(__line__,$L["MINISERVERBACKUP.INF_0034_DEBUG_DIRECTORY_DELETE"]." -> ".$workdir_tmp);
 rrmdir($workdir_tmp);
 
+$runtime = microtime(true) - $start;
+
+if ( count($summary) > 2 )
+{
+	error_log($L["MINISERVERBACKUP.INF_9999_SUMMARIZE_ERRORS"]);
+	foreach ($summary as &$errors) 
+	{
+		if ( ! preg_match("/<HR>/i", $errors) && $errors != " " )
+		{
+			error_log($errors);
+		}
+	}
+}
+
+
+$err_html = "";
+
+foreach ($summary as &$errors) 
+{
+	debug("Summary:\n".htmlentities($errors));
+	$errors = nl2br($errors);
+	if ( preg_match("/<INFO>/i", $errors) )
+	{
+		$err_html .= "<br><span style='color:#000000; background-color:#DDEFFF'>".$errors."</span>";
+	}
+	else if ( preg_match("/<OK>/i", $errors) )
+	{
+		$err_html .= "<br><span style='color:#000000; background-color:#D8FADC'>".$errors."</span>";
+	}
+	else if ( preg_match("/<WARNING>/i", $errors)  )
+	{ 
+		$err_html .= "<br><span style='color:#000000; background-color:#FFFFC0'>".$errors."</span>";
+	}
+	else if ( preg_match("/<ERROR>/i", $errors)  )
+	{
+		$err_html .= "<br><span style='color:#000000; background-color:#FFE0E0'>".$errors."</span>";
+	}
+	else if ( preg_match("/<CRITICAL>/i", $errors)  )
+	{
+		$err_html .= "<br><span style='color:#000000; background-color:#FFc0c0'>".$errors."</span>";
+	}
+	else if ( preg_match("/<ALERT>/i", $errors)  )
+	{
+		$err_html .= "<br><span style='color:#ffffff; background-color:#0000a0'>".$errors."</span>";
+	}
+	else
+	{
+		$err_html .= "<br>".$errors;
+	}
+}
+#$err_html 	 = preg_replace('/\\n+/i','',$err_html);
+#$err_html 	 = preg_replace('/\\r+/i','',$err_html);
+$err_html 	 = preg_replace('/\s\s+/i',' ',$err_html);
+$err_html 	 = preg_replace('/<HR>\s<br>+/i','<HR>',$err_html);
+if (str_replace(array('<ALERT>', '<CRITICAL>','<ERROR>'),'', $err_html) != $err_html)
+{
+	$at_least_one_error = 1;
+}
+else if (str_replace(array('<WARNING>'),'', $err_html) != $err_html)
+{
+	$at_least_one_warning = 1;
+}
+
+
+if ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" ) 
+{
+	debug(__line__,$L["MINISERVERBACKUP.INF_0116_MAIL_ENABLED"]." ".$L["MINISERVERBACKUP.INF_0140_EMAIL_ERROR_ONLY"],6);
+}
+else
+{
+	debug(__line__,$L["MINISERVERBACKUP.INF_0116_MAIL_ENABLED"],6);
+}
+if ( ( $at_least_one_error == 1 || $at_least_one_warning == 1 || $at_least_one_save == 1 ) && (( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" || $plugin_cfg['MSBACKUP_USE_EMAILS'] == "1" )|| ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" && $at_least_one_error == 1 ) ) )  
+{
+	debug(__line__,$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"],6);
+	$mail_config_file   = LBSCONFIGDIR."/mail.json";
+	if (is_readable($mail_config_file)) 
+	{
+		debug(__line__,$L["MINISERVERBACKUP.INF_0115_READ_MAIL_CONFIG"]." => ".$mail_config_file,6);
+		$mail_cfg  = json_decode(file_get_contents($mail_config_file), true);
+	}
+	else
+	{
+		debug(__line__,$L["ERRORS.ERR_0055_ERR_READ_EMAIL_CONFIG"]." => ".$mail_config_file,6);
+		$mail_config_file   = LBSCONFIGDIR."/mail.cfg";
+		debug(__line__,$L["MINISERVERBACKUP.INF_0117_TRY_OLD_EMAIL_CFG"]." => ".$mail_config_file,6);
+
+		if (is_readable($mail_config_file)) 
+		{
+			debug(__line__,$L["MINISERVERBACKUP.INF_0115_READ_MAIL_CONFIG"]." => ".$mail_config_file,6);
+			$mail_cfg    = parse_ini_file($mail_config_file,true);
+		}
+	}
+
+	if ( !isset($mail_cfg) )
+	{
+		debug(__line__,$L["ERRORS.ERR_0055_ERR_READ_EMAIL_CONFIG"],4);
+	}
+	else
+	{
+		debug(__line__,$L["MINISERVERBACKUP.INF_0118_EMAIL_CFG_OK"]." [".$mail_cfg['SMTP']['SMTPSERVER'].":".$mail_cfg['SMTP']['PORT']."]",6);
+		if ( $mail_cfg['SMTP']['ISCONFIGURED'] == "0" )
+		{
+			debug(__line__,$L["MINISERVERBACKUP.INF_0119_EMAIL_NOT_CONFIGURED"],6);
+		}
+		else
+		{
+			$datetime    = new DateTime;
+			$datetime->getTimestamp();
+			$outer_boundary= md5("o".time());
+			$inner_boundary= md5("i".time());
+			$htmlpic="";
+			$mailTo = implode(",",explode(";",$plugin_cfg['EMAIL_RECIPIENT']));
+			$mailFromName   = $L["EMAIL.EMAIL_FROM_NAME"];  // Sender name fix from Language file
+			if ( isset($mail_cfg['SMTP']['EMAIL']) )
+			{
+			  $mailFrom =	trim(str_ireplace('"',"",$mail_cfg['SMTP']['EMAIL']));
+			  if ( !isset($mailFromName) )
+			  {
+			      $mailFromName   = "\"LoxBerry\"";  // Sender name
+			  }
+			}
+			debug(__line__,$L["MINISERVERBACKUP.INF_0120_SEND_EMAIL_INFO"]." From: ".$mailFromName.htmlentities(" <".$mailFrom."> ")." To: ".$mailTo,6);
+			if ( $at_least_one_error == 1 )
+			{
+				$emoji = "=E2=9D=8C"; # Fail X
+			}
+			else if ( $at_least_one_warning == 1 )
+			{
+				$emoji = "=E2=9D=95"; # Warning !
+			}
+			else 
+			{
+				$emoji = "=E2=9C=85"; # OK V
+			}
+			
+			$html = "From: ".$mailFromName." <".$mailFrom.">
+To: ".$mailTo." 
+Subject: =?utf-8?Q? ".$emoji." ".$L["EMAIL.EMAIL_SUBJECT"]." ?=   
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary=\"------------".$outer_boundary."\"
+
+This is a multi-part message in MIME format.
+--------------".$outer_boundary."
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+
+
+
+
+
+".strip_tags( $L["EMAIL.EMAIL_BODY"] )."\n".strip_tags(implode("\n",$summary))."
+
+
+\n--\n".strip_tags($L["EMAIL.EMAIL_SINATURE"])."
+
+--------------".$outer_boundary."
+Content-Type: multipart/related;
+ boundary=\"------------".$inner_boundary."\"
+
+
+--------------".$inner_boundary."
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+<html>
+  <head>
+    <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">
+  </head>
+  <body style=\"margin:0px;\" text=\"#000000\" bgcolor=\"#FFFFFF\">
+  
+";
+			$htmlpicdata="";
+			$inline  =  'inline';
+			$email_image_part =  "\n<img src=\"cid:logo_".$datetime->format("Y-m-d_i\hh\mH\s")."\" alt=\"[Logo]\" />\n<br>";
+			$htmlpic 	 .= $email_image_part;
+			$htmlpicdata .= "--------------".$inner_boundary."
+Content-Type: image/jpeg; name=\"logo_".$datetime->format("Y-m-d_i\hh\mH\s").".png\"
+Content-Transfer-Encoding: base64
+Content-ID: <logo_".$datetime->format("Y-m-d_i\hh\mH\s").">
+Content-Disposition: ".$inline."; filename=\"logo_".$datetime->format("Y-m-d_i\hh\mH\s").".png\"
+
+".chunk_split(base64_encode(file_get_contents('logo.png')))."\n";
+			$html .= $htmlpic;
+			$html .= "<div style=\"padding:10px;\"><font face=\"Verdana\">".$L["EMAIL.EMAIL_BODY"]."<br>";
+			$html 		.= preg_replace('/<br>\\s<br>+/i','',$err_html);
+			$html .="<br>\n\n--<br>".$L["EMAIL.EMAIL_SINATURE"]." </font></div></body></html>\n\n";
+			$html .= $htmlpicdata;
+			$html .= "--------------".$inner_boundary."--\n\n";
+			$html .= "--------------".$outer_boundary."--\n\n";
+			$condition = "";
+			switch (strtolower($plugin_cfg['MSBACKUP_USE_EMAILS']))
+			{
+			    case "on":
+			    case "1":
+					$condition = $L["GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_ON"];
+			        break;
+			    case "fail":
+			        $condition = $L["GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_ERROR"];
+			        break;
+			}
+			if ( ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" && $at_least_one_error == 1 ) || ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" || $plugin_cfg['MSBACKUP_USE_EMAILS'] == "1" ) )
+			{
+				debug(__line__,$L["MINISERVERBACKUP.INF_0125_SEND_EMAIL_ON_ERROR"]." ".$condition,6);
+				$tmpfname = tempnam("/tmp", "msbackup_mail_");
+				$handle = fopen($tmpfname, "w") or debug(__line__,$L["ERRORS.ERR_0056_ERR_OPEN_TEMPFILE_EMAIL"]." ".$tmpfname,4);
+				fwrite($handle, $html) or debug(__line__,$L["ERRORS.ERR_0057_ERR_WRITE_TEMPFILE_EMAIL"]." ".$tmpfname,4);
+				fclose($handle);
+				$resultarray = array();
+				@exec("/usr/sbin/sendmail -v -t 2>&1 < $tmpfname ",$resultarray,$retval);
+				unlink($tmpfname) or debug(__line__,$L["ERRORS.ERR_0058_ERR_DELETE_TEMPFILE_EMAIL"]." ".$tmpfname,4);
+				debug(__line__,"Sendmail:\n".htmlspecialchars(join("\n",$resultarray)),7);
+				if($retval)
+				{
+					debug(__line__,$L["ERRORS.ERR_0059_ERR_SEND_EMAIL"]." ".array_pop($resultarray),3);
+				}
+				else
+				{
+					debug(__line__,$L["MINISERVERBACKUP.INF_0121_EMAIL_SEND_OK"],5);
+				}
+			}
+			else
+			{
+				debug(__line__,$L["MINISERVERBACKUP.INF_0126_DO_NOT_SEND_EMAIL_ON_ERROR"]." ".$condition,6);
+			}
+		}		
+	}
+}
+else
+{
+	debug(__line__,$L["MINISERVERBACKUP.INF_0037_DEBUG_NO"],6);
+}
+
+sleep(3); // To prevent misdetection in createmsbackup.pl
+file_put_contents($backupstate_file, "-");
+
+if ( isset($argv[1]) ) 
+{
+	if ( $argv[1] == "symlink" )
+	{
+		$log->LOGTITLE($L["MINISERVERBACKUP.INF_0153_SYMLINKS_AFTER_UPGRADE_OK"]);
+		LOGOK ($L["MINISERVERBACKUP.INF_0153_SYMLINKS_AFTER_UPGRADE_OK"]);
+	}
+	else
+	{
+		LOGOK ($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s");
+	}
+}
+else
+{
+	LOGOK ($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s");
+}
+LOGEND ("");
+exit;
+
+function get_clouddns_data($checkurl)
+{
+	global $different_cloudrequests,$cloudcancel,$all_cloudrequests,$known_for_today,$miniserver,$L,$msno,$workdir_tmp,$backupstate_file,$summary,$problematic_ms,$port,$prefix,$log,$date_time_format,$plugin_cfg,$cfg,$cloud_requests_file,$cloudcancel,$clouderror0;
+	debug(__line__,"MS#".$msno." get_clouddns_data ".$checkurl." => ".$miniserver['Name']);
+	$cloudcancel	=	0;
+	if ( $miniserver['UseCloudDNS'] == "on" || $miniserver['UseCloudDNS'] == "1" ) 
+	{
+		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0111_CLOUD_DNS_USED"]." => ".$miniserver['Name'],6);
+		if ( $miniserver['CloudURL'] == "" )
+		{
+			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0108_NO_PREVIOUS_CLOUD_DNS_QUERY_FOUND_PROCEED"]." => ".$miniserver['Name'],5);
+		}
+		if ( isset($checkurl) ) 
+		{
+			$sleep_start = time();
+			$sleep_end = $sleep_start + 2;
+			$sleep_until = date($date_time_format,$sleep_end);
+			debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,$L["MINISERVERBACKUP.INF_0107_SLEEP_BEFORE_SENDING_NEXT_CLOUD_DNS_QUERY"]),5);
+			$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<wait_until>",$sleep_until,str_ireplace("<time>",secondsToTime($sleep_end - time()),$L["MINISERVERBACKUP.INF_0142_TIME_TO_WAIT"]));
+			file_put_contents($backupstate_file,$wait_info_string);
+			$log->LOGTITLE($wait_info_string);
+			sleep(2);
+		}
+		if ( date("i",time()) == "00" || date("i",time()) == "15" || date("i",time()) == "30" || date("i",time()) == "45" )
+		{ 
+			debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".$L["MINISERVERBACKUP.INF_0143_WAIT_FOR_RESTART"],6);
+			sleep(5); // Fix for Loxone Cloud restarts at 0, 15, 30 and 45
+		}
+		if ( ($miniserver['UseCloudDNS'] == "on" ||$miniserver['UseCloudDNS'] == "1") && $randomsleep == 1 && $manual_backup != 1 )
+		{
+			if ( isset($plugin_cfg["RANDOM_SLEEP"]) )
+			{
+				$randomsleep = intval($plugin_cfg["RANDOM_SLEEP"]);
+			}
+			else
+			{
+				$randomsleep = random_int(2,300);
+			}
+			$sleep_start = time();
+			$sleep_end = $sleep_start + $randomsleep;
+			$sleep_until = date($date_time_format,$sleep_end);
+			$wait_info_string = "MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<time>",$sleep_until." ($randomsleep s)",$L["MINISERVERBACKUP.INF_0144_RANDOM_SLEEP"]);
+			debug(__line__,$wait_info_string,6);
+			file_put_contents($backupstate_file,$wait_info_string);
+			$log->LOGTITLE($wait_info_string);
+			sleep($randomsleep);
+		} 
+		
+		$cloud_requests_json_array = json_decode(file_get_contents($cloud_requests_file),true);
+		if ($cloud_requests_json_array)
+		{
+			$key = array_search(strtolower($miniserver['CloudURL']), array_column($cloud_requests_json_array, 'cloudurl'));
+			if ($key !== FALSE)
+			{
+				if ( substr($cloud_requests_json_array[$key]["date"],0,8) == date("Ymd",time()) )
+				{
+					$cloud_requests_json_array[$key]["requests"]++; 
+					$known_for_today = 1;
+				}
+				else
+				{
+					$cloud_requests_json_array[$key]["requests"] = 1; 
+				}
+				debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".str_ireplace("<no>",$cloud_requests_json_array[$key]["requests"],$L["MINISERVERBACKUP.INF_0149_CLOUD_DNS_REQUEST_DATA_MS_FOUND"]),6);
+			}
+			else
+			{
+				debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".$L["MINISERVERBACKUP.INF_0150_CLOUD_DNS_REQUEST_DATA_MS_NOT_FOUND"],6);
+				unset ($cloud_request_array_to_push);
+				$cloud_request_array_to_push['msno'] = $msno;
+				$cloud_request_array_to_push['date'] = date("Ymd",time());
+				$cloud_request_array_to_push['cloudurl'] = strtolower($miniserver['CloudURL']);
+				$cloud_request_array_to_push['requests'] = 1;
+				array_push($cloud_requests_json_array, $cloud_request_array_to_push);
+			}
+		}
+		else
+		{
+			debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".$L["MINISERVERBACKUP.INF_0151_CLOUD_DNS_REQUEST_DATA_NOT_FOUND"],6);
+			$cloud_requests_json_array = array();
+			unset ($cloud_request_array_to_push);
+			$cloud_request_array_to_push['msno'] = $msno;
+			$cloud_request_array_to_push['date'] = date("Ymd",time());
+			$cloud_request_array_to_push['cloudurl'] = strtolower($miniserver['CloudURL']);
+			$cloud_request_array_to_push['requests'] = 1;
+			array_push($cloud_requests_json_array, $cloud_request_array_to_push);
+		}
+		$cloud_requests_json_array_today = array_map("cloud_requests_today", $cloud_requests_json_array);
+		$different_cloudrequests = 0;
+		foreach($cloud_requests_json_array_today as $datapacket) 
+		{
+			if ( intval($datapacket['requests']) > 0 ) 
+			{
+				$different_cloudrequests++;
+				$all_cloudrequests = $all_cloudrequests + intval($datapacket['requests']);
+			}
+		}
+		debug(__line__,"MS#".$msno." ".str_ireplace("<all>",$all_cloudrequests,str_ireplace("<max_different_request>",10,str_ireplace("<different_request>",$different_cloudrequests,$L["MINISERVERBACKUP.INF_0148_CLOUD_DNS_REQUEST_NUMBER"])))." (".$miniserver['CloudURL'].")",6);
+		if ( $different_cloudrequests > 10 && $known_for_today != 1)
+		{
+				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0066_CLOUDDNS_TOO_MUCH_REQUESTS_FOR_TODAY"]." => ".$miniserver['Name']);
+				$cloudcancel = 3;
+				return $cloudcancel;
+		}
+		file_put_contents($backupstate_file,str_ireplace("<MS>",$msno." (".$miniserver['Name'].")",$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
+		$log->LOGTITLE(str_ireplace("<MS>",$msno." (".$miniserver['Name'].")",$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
+		file_put_contents($cloud_requests_file,json_encode($cloud_requests_json_array_today));
+
+		$curl_dns = curl_init(str_replace(" ","%20",$checkurl));
+		curl_setopt($curl_dns, CURLOPT_NOPROGRESS		, 1);
+		curl_setopt($curl_dns, CURLOPT_FOLLOWLOCATION	, 0);
+		curl_setopt($curl_dns, CURLOPT_CONNECTTIMEOUT	, 600); 
+		curl_setopt($curl_dns, CURLOPT_TIMEOUT			, 600);
+		curl_setopt($curl_dns, CURLOPT_SSL_VERIFYPEER	, 0);
+		curl_setopt($curl_dns, CURLOPT_SSL_VERIFYSTATUS	, 0);
+		curl_setopt($curl_dns, CURLOPT_SSL_VERIFYHOST	, 0);
+		curl_setopt($curl_dns, CURLOPT_RETURNTRANSFER 	, 1);
+		if ( !$curl_dns )
+		{
+			debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0002_ERROR_INIT_CURL"],3);
+			create_clean_workdir_tmp($workdir_tmp);
+			file_put_contents($backupstate_file,"-");
+			array_push($summary,"<HR> ");
+			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
+			$cloudcancel	=	1;
+			curl_close($curl_dns);
+			return $cloudcancel;
+		}
+		sleep(1);
+		curl_exec($curl_dns);
+		$response= curl_multi_getcontent($curl_dns); 
+		debug(__line__,"MS#".$msno." URL: $checkurl => Response: ".$response."\n");
+		$response = json_decode($response,true);
+		// Possible is for example
+		// cmd getip
+		// IP xxx.xxx.xxx.xxx
+		// IPHTTPS xxx.xxx.xxx.xxx:yyyy
+		// Code 403 (Forbidden) 200 (OK)    
+		// LastUpdated 2018-03-11 16:52:30
+		// PortOpen   		(true/false)
+		// PortOpenHTTPS	(true/false)
+		// DNS-Status 		registered
+		// RemoteConnect 	(true/false)
+		$HTTPS_mode 	=	($miniserver['PreferHttps'] == 1) ? "HTTPS":"";
+		$code			=	curl_getinfo($curl_dns,CURLINFO_RESPONSE_CODE);
+		
+		switch ($code) 
+		{
+			case "200":
+				$RemoteConnect = ( isset($response["RemoteConnect"]) ) ? $response["RemoteConnect"]:"false";
+				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0109_CLOUD_DNS_QUERY_RESULT"]." ".$miniserver['Name']." => IP: ".$response["IP".$HTTPS_mode]." Code: ".$response["Code"]." LastUpdated: ".$response["LastUpdated"]." PortOpen".$HTTPS_mode.": ".$response["PortOpen".$HTTPS_mode]." DNS-Status: ".$response["DNS-Status"]." RemoteConnect: ".$RemoteConnect,5);
+				if ( $response["Code"] == "405" )
+				{	
+					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0063_CLOUDDNS_ERROR_405"]." => ".$miniserver['Name']."\nURL: ".$checkurl." => Code ".$code."\n".join("\n",$response),4);
+					$cloudcancel=1;
+					break;
+				}
+				if ( $response["Code"] != "200" )
+				{
+					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0064_CLOUDDNS_CODE_MISMATCH"]." => ".$miniserver['Name']."\nURL: ".$checkurl." => Code ".$code."\n".join("\n",$response),4);
+				}
+				$ip_info = explode(":",$response["IP".$HTTPS_mode]);
+				$miniserver['IPAddress']=$ip_info[0];
+				if (count($ip_info) == 2) 
+				{
+					$port	= $ip_info[1];
+				}
+				else 
+				{
+					$port   = ($miniserver['PreferHttps'] == 1) ? 443:80;
+				}
+				if ( $response["PortOpen".$HTTPS_mode] != "true" ) 
+				{
+					debug(__line__,"MS#".$msno." ".str_ireplace("<miniserver>",$miniserver['Name'],$L["ERRORS.ERR_0050_CLOUDDNS_PORT_NOT_OPEN"])." ".$response["LastUpdated"],3);
+					$cloudcancel=1;
+				}
+				else
+				{
+					if ( $response["RemoteConnect"] != "true" && $HTTPS_mode == "HTTPS") 
+					{
+						debug(__line__,"MS#".$msno." ".str_ireplace("<miniserver>",$miniserver['Name'],$L["ERRORS.ERR_0072_CLOUDDNS_REMOTE_CONNECT_NOT_TRUE"])." ".$response["LastUpdated"],3);
+						$cloudcancel=1;
+					}
+				}
+				
+			break;
+			case "403":
+				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0051_CLOUDDNS_ERROR_403"]." => ".$miniserver['Name'],4);
+				$cloudcancel=1;
+			break;
+			case "0":
+				if ( $clouderror0 > 5 )
+				{
+					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0065_TOO_MANY_CLOUDDNS_ERROR_0"]." => ".$miniserver['Name'],4);
+					$cloudcancel=1;
+				}
+				else
+				{
+					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0062_CLOUDDNS_ERROR_0"]." => ".$miniserver['Name'],5);
+					sleep(1);
+					$clouderror0++;
+					//$msno--;
+				}
+				$cloudcancel=1;
+			break;
+			case "418":
+				debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".$L["ERRORS.ERR_0053_CLOUDDNS_ERROR_418"],5);
+				$cloudcancel=1;
+			break;
+			case "500":
+				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0061_CLOUDDNS_ERROR_500"]." => ".$miniserver['Name'],4);
+				$cloudcancel=1;
+			break;
+			default;
+				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0052_CLOUDDNS_UNEXPECTED_ERROR"]." => ".$miniserver['Name']."\nURL: ".$checkurl." => Code ".$code."\n".join("\n",$response),3);
+				$cloudcancel=1;
+		}
+		curl_close($curl_dns);
+		if ( $cloudcancel == 1 )
+		{
+			curl_close($curl_dns);
+			return $cloudcancel;
+		}
+		$clouderror0 = 0;
+
+	}
+	else
+	{
+		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0110_CLOUD_DNS_NOT_USED"]." => ".$miniserver['Name']." @ ".$miniserver['IPAddress'],5);
+	}
+
+	if ( $miniserver['IPAddress'] == "0.0.0.0" || $miniserver['IPAddress'] == "" ) 
+	{
+		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"]." => ".$miniserver['Name'],3);
+		array_push($summary,"<HR> ");
+		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
+		$cloudcancel = 1;
+		curl_close($curl_dns);
+		return $cloudcancel;
+	}
+	if ( $miniserver['IPAddress'] == "" ) 
+	{
+		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0003_MS_CONFIG_NO_IP"],3);
+		array_push($summary,"<HR> ");
+		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
+		$cloudcancel = 1;
+		curl_close($curl_dns);
+		return $cloudcancel;
+	}
+	else
+	{
+		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0005_MS_IP_HOST_PORT"]."=".$miniserver['IPAddress'].":".$port,6);
+	}
+	curl_close($curl_dns);
+	$cloudcancel = 0;
+	return $cloudcancel;
+}
+
 function formatBytes($size, $precision = 2)
 {
 	if ( !is_numeric( $size ) || $size == 0 ) return "0 kB";
@@ -1977,9 +2254,9 @@ class MSbackupZIP
       } 
     } 
     closedir($handle); 
-  } 
+} 
 
-  public static function zipDir($sourcePath, $outZipPath) 
+public static function zipDir($sourcePath, $outZipPath) 
   {
   	global $L,$msno;
     $z = new ZipArchive(); 
@@ -1989,7 +2266,7 @@ class MSbackupZIP
     $z->close(); 
   }
 
-  public static function check_def_log($filePath) 
+public static function check_def_log($filePath) 
   {
   	global $L,$summary,$miniserver,$backupstate_file,$msno,$plugin_cfg;
 	debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0080_CHECK_DEFLOG"]." (" . $miniserver['Name'] .")",6);
@@ -2382,259 +2659,3 @@ function cloud_requests_today($indata)
 		return(false);
 	}
 }
-
-$runtime = microtime(true) - $start;
-
-
-if ( count($summary) > 2 )
-{
-	error_log($L["MINISERVERBACKUP.INF_9999_SUMMARIZE_ERRORS"]);
-	foreach ($summary as &$errors) 
-	{
-		if ( ! preg_match("/<HR>/i", $errors) && $errors != " " )
-		{
-			error_log($errors);
-		}
-	}
-}
-
-
-$err_html = "";
-
-foreach ($summary as &$errors) 
-{
-	$errors = nl2br($errors);
-	if ( preg_match("/<INFO>/i", $errors) )
-	{
-		$err_html .= "<br><span style='color:#000000; background-color:#DDEFFF'>".$errors."</span>";
-	}
-	else if ( preg_match("/<OK>/i", $errors) )
-	{
-		$err_html .= "<br><span style='color:#000000; background-color:#D8FADC'>".$errors."</span>";
-	}
-	else if ( preg_match("/<WARNING>/i", $errors)  )
-	{
-		$err_html .= "<br><span style='color:#000000; background-color:#FFFFC0'>".$errors."</span>";
-	}
-	else if ( preg_match("/<ERROR>/i", $errors)  )
-	{
-		$err_html .= "<br><span style='color:#000000; background-color:#FFE0E0'>".$errors."</span>";
-	}
-	else if ( preg_match("/<CRITICAL>/i", $errors)  )
-	{
-		$err_html .= "<br><span style='color:#000000; background-color:#FFc0c0'>".$errors."</span>";
-	}
-	else if ( preg_match("/<ALERT>/i", $errors)  )
-	{
-		$err_html .= "<br><span style='color:#ffffff; background-color:#0000a0'>".$errors."</span>";
-	}
-	else
-	{
-		$err_html .= "<br>".$errors;
-	}
-}
-#$err_html 	 = preg_replace('/\\n+/i','',$err_html);
-#$err_html 	 = preg_replace('/\\r+/i','',$err_html);
-$err_html 	 = preg_replace('/\s\s+/i',' ',$err_html);
-$err_html 	 = preg_replace('/<HR>\s<br>+/i','<HR>',$err_html);
-if (str_replace(array('<ALERT>', '<CRITICAL>','<ERROR>'),'', $err_html) != $err_html)
-{
-	$at_least_one_error = 1;
-}
-else if (str_replace(array('<WARNING>'),'', $err_html) != $err_html)
-{
-	$at_least_one_warning = 1;
-}
-
-
-if ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" ) 
-{
-	debug(__line__,$L["MINISERVERBACKUP.INF_0116_MAIL_ENABLED"]." ".$L["MINISERVERBACKUP.INF_0140_EMAIL_ERROR_ONLY"],6);
-}
-else
-{
-	debug(__line__,$L["MINISERVERBACKUP.INF_0116_MAIL_ENABLED"],6);
-}
-if ( ( $at_least_one_error == 1 || $at_least_one_warning == 1 || $at_least_one_save == 1 ) && (( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" || $plugin_cfg['MSBACKUP_USE_EMAILS'] == "1" )|| ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" && $at_least_one_error == 1 ) ) )  
-{
-	debug(__line__,$L["MINISERVERBACKUP.INF_0036_DEBUG_YES"],6);
-	$mail_config_file   = LBSCONFIGDIR."/mail.json";
-	if (is_readable($mail_config_file)) 
-	{
-		debug(__line__,$L["MINISERVERBACKUP.INF_0115_READ_MAIL_CONFIG"]." => ".$mail_config_file,6);
-		$mail_cfg  = json_decode(file_get_contents($mail_config_file), true);
-	}
-	else
-	{
-		debug(__line__,$L["ERRORS.ERR_0055_ERR_READ_EMAIL_CONFIG"]." => ".$mail_config_file,6);
-		$mail_config_file   = LBSCONFIGDIR."/mail.cfg";
-		debug(__line__,$L["MINISERVERBACKUP.INF_0117_TRY_OLD_EMAIL_CFG"]." => ".$mail_config_file,6);
-
-		if (is_readable($mail_config_file)) 
-		{
-			debug(__line__,$L["MINISERVERBACKUP.INF_0115_READ_MAIL_CONFIG"]." => ".$mail_config_file,6);
-			$mail_cfg    = parse_ini_file($mail_config_file,true);
-		}
-	}
-
-	if ( !isset($mail_cfg) )
-	{
-		debug(__line__,$L["ERRORS.ERR_0055_ERR_READ_EMAIL_CONFIG"],4);
-	}
-	else
-	{
-		debug(__line__,$L["MINISERVERBACKUP.INF_0118_EMAIL_CFG_OK"]." [".$mail_cfg['SMTP']['SMTPSERVER'].":".$mail_cfg['SMTP']['PORT']."]",6);
-		if ( $mail_cfg['SMTP']['ISCONFIGURED'] == "0" )
-		{
-			debug(__line__,$L["MINISERVERBACKUP.INF_0119_EMAIL_NOT_CONFIGURED"],6);
-		}
-		else
-		{
-			$datetime    = new DateTime;
-			$datetime->getTimestamp();
-			$outer_boundary= md5("o".time());
-			$inner_boundary= md5("i".time());
-			$htmlpic="";
-			$mailTo = implode(",",explode(";",$plugin_cfg['EMAIL_RECIPIENT']));
-			$mailFromName   = $L["EMAIL.EMAIL_FROM_NAME"];  // Sender name fix from Language file
-			if ( isset($mail_cfg['SMTP']['EMAIL']) )
-			{
-			  $mailFrom =	trim(str_ireplace('"',"",$mail_cfg['SMTP']['EMAIL']));
-			  if ( !isset($mailFromName) )
-			  {
-			      $mailFromName   = "\"LoxBerry\"";  // Sender name
-			  }
-			}
-			debug(__line__,$L["MINISERVERBACKUP.INF_0120_SEND_EMAIL_INFO"]." From: ".$mailFromName.htmlentities(" <".$mailFrom."> ")." To: ".$mailTo,6);
-			if ( $at_least_one_error == 1 )
-			{
-				$emoji = "=E2=9D=8C"; # Fail X
-			}
-			else if ( $at_least_one_warning == 1 )
-			{
-				$emoji = "=E2=9D=95"; # Warning !
-			}
-			else 
-			{
-				$emoji = "=E2=9C=85"; # OK V
-			}
-			
-			$html = "From: ".$mailFromName." <".$mailFrom.">
-To: ".$mailTo." 
-Subject: =?utf-8?Q? ".$emoji." ".$L["EMAIL.EMAIL_SUBJECT"]." ?=   
-MIME-Version: 1.0
-Content-Type: multipart/alternative;
- boundary=\"------------".$outer_boundary."\"
-
-This is a multi-part message in MIME format.
---------------".$outer_boundary."
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-
-
-
-
-
-".strip_tags( $L["EMAIL.EMAIL_BODY"] )."\n".strip_tags(implode("\n",$summary))."
-
-
-\n--\n".strip_tags($L["EMAIL.EMAIL_SINATURE"])."
-
---------------".$outer_boundary."
-Content-Type: multipart/related;
- boundary=\"------------".$inner_boundary."\"
-
-
---------------".$inner_boundary."
-Content-Type: text/html; charset=utf-8
-Content-Transfer-Encoding: 8bit
-
-<html>
-  <head>
-    <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">
-  </head>
-  <body style=\"margin:0px;\" text=\"#000000\" bgcolor=\"#FFFFFF\">
-  
-";
-			$htmlpicdata="";
-			$inline  =  'inline';
-			$email_image_part =  "\n<img src=\"cid:logo_".$datetime->format("Y-m-d_i\hh\mH\s")."\" alt=\"[Logo]\" />\n<br>";
-			$htmlpic 	 .= $email_image_part;
-			$htmlpicdata .= "--------------".$inner_boundary."
-Content-Type: image/jpeg; name=\"logo_".$datetime->format("Y-m-d_i\hh\mH\s").".png\"
-Content-Transfer-Encoding: base64
-Content-ID: <logo_".$datetime->format("Y-m-d_i\hh\mH\s").">
-Content-Disposition: ".$inline."; filename=\"logo_".$datetime->format("Y-m-d_i\hh\mH\s").".png\"
-
-".chunk_split(base64_encode(file_get_contents('logo.png')))."\n";
-			$html .= $htmlpic;
-			$html .= "<div style=\"padding:10px;\"><font face=\"Verdana\">".$L["EMAIL.EMAIL_BODY"]."<br>";
-			$html 		.= preg_replace('/<br>\\s<br>+/i','',$err_html);
-			$html .="<br>\n\n--<br>".$L["EMAIL.EMAIL_SINATURE"]." </font></div></body></html>\n\n";
-			$html .= $htmlpicdata;
-			$html .= "--------------".$inner_boundary."--\n\n";
-			$html .= "--------------".$outer_boundary."--\n\n";
-			$condition = "";
-			switch (strtolower($plugin_cfg['MSBACKUP_USE_EMAILS']))
-			{
-			    case "on":
-			    case "1":
-					$condition = $L["GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_ON"];
-			        break;
-			    case "fail":
-			        $condition = $L["GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_ERROR"];
-			        break;
-			}
-			if ( ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "fail" && $at_least_one_error == 1 ) || ( $plugin_cfg['MSBACKUP_USE_EMAILS'] == "on" || $plugin_cfg['MSBACKUP_USE_EMAILS'] == "1" ) )
-			{
-				debug(__line__,$L["MINISERVERBACKUP.INF_0125_SEND_EMAIL_ON_ERROR"]." ".$condition,6);
-				$tmpfname = tempnam("/tmp", "msbackup_mail_");
-				$handle = fopen($tmpfname, "w") or debug(__line__,$L["ERRORS.ERR_0056_ERR_OPEN_TEMPFILE_EMAIL"]." ".$tmpfname,4);
-				fwrite($handle, $html) or debug(__line__,$L["ERRORS.ERR_0057_ERR_WRITE_TEMPFILE_EMAIL"]." ".$tmpfname,4);
-				fclose($handle);
-				$resultarray = array();
-				@exec("/usr/sbin/sendmail -v -t 2>&1 < $tmpfname ",$resultarray,$retval);
-				unlink($tmpfname) or debug(__line__,$L["ERRORS.ERR_0058_ERR_DELETE_TEMPFILE_EMAIL"]." ".$tmpfname,4);
-				debug(__line__,"Sendmail:\n".htmlspecialchars(join("\n",$resultarray)),7);
-				if($retval)
-				{
-					debug(__line__,$L["ERRORS.ERR_0059_ERR_SEND_EMAIL"]." ".array_pop($resultarray),3);
-				}
-				else
-				{
-					debug(__line__,$L["MINISERVERBACKUP.INF_0121_EMAIL_SEND_OK"],5);
-				}
-			}
-			else
-			{
-				debug(__line__,$L["MINISERVERBACKUP.INF_0126_DO_NOT_SEND_EMAIL_ON_ERROR"]." ".$condition,6);
-			}
-		}		
-	}
-}
-else
-{
-	debug(__line__,$L["MINISERVERBACKUP.INF_0037_DEBUG_NO"],6);
-}
-
-sleep(3); // To prevent misdetection in createmsbackup.pl
-file_put_contents($backupstate_file, "-");
-
-if ( isset($argv[1]) ) 
-{
-	if ( $argv[1] == "symlink" )
-	{
-		$log->LOGTITLE($L["MINISERVERBACKUP.INF_0153_SYMLINKS_AFTER_UPGRADE_OK"]);
-		LOGOK ($L["MINISERVERBACKUP.INF_0153_SYMLINKS_AFTER_UPGRADE_OK"]);
-	}
-	else
-	{
-		LOGOK ($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s");
-	}
-}
-else
-{
-	LOGOK ($L["ERRORS.ERR_0000_EXIT"]." ".$runtime." s");
-}
-LOGEND ("");
-                                                                                                                                                        
