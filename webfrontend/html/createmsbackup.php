@@ -341,7 +341,7 @@ $saved_ms=array();
 $problematic_ms=array();
 array_push($summary,"<HR> ");
 ksort($ms);
-$clouderror0 = 0;
+$connection_data_returncode0 = 0;
 $randomsleep = 1;
 $known_for_today = 0;
 $all_cloudrequests = 0;
@@ -615,57 +615,69 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	}
 	debug(__line__,$L["MINISERVERBACKUP.INF_0046_BACKUP_BASE_FOLDER_OK"]." (".$savedir_path.")",6); 
 
-	//Check for earlier Cloud DNS requests on RAM Disk
-	touch($cloud_requests_file); // Touch file to prevent errors if inexistent
-	$checkurl = "https://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
-	debug(__line__,"CheckURL: $checkurl"); 
-	$max_accepted_dns_errors = 10;
-	$dns_errors = 1;
-	$clouderror=0;
-	do 
+	//Check Connection in case of Cloud DNS
+	if ( $miniserver['UseCloudDNS'] == "on" || $miniserver['UseCloudDNS'] == "1" ) 
 	{
-		sleep(1);
-		debug(__line__,"MS#".$msno."Function get_clouddns_data => ".$miniserver['Name']);
-		$clouderror = get_clouddns_data($checkurl);
-		if ( $clouderror == 1)
+		//Check for earlier Cloud DNS requests on RAM Disk
+		touch($cloud_requests_file); // Touch file to prevent errors if inexistent
+		$checkurl = "https://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
+		$max_accepted_dns_errors 	= 10;
+		$dns_errors 				= 0;
+		do 
 		{
-			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0159_CLOUD_DNS_FAIL"]." (#$dns_errors/$max_accepted_dns_errors)",6);
-			$dns_errors++;
-		}
-		else if ( $clouderror == 3)
-		{
-			$dns_errors++;
-			create_clean_workdir_tmp($workdir_tmp);
-			file_put_contents($backupstate_file,"-");
-			array_push($summary,"<HR> ");
-			continue;
-		}
-		else if ( $clouderror == 4 ) 
-		{
-			create_clean_workdir_tmp($workdir_tmp);
-			file_put_contents($backupstate_file,"-");
-			array_push($summary,"<HR> ");
-			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
-			continue;
-		}
-		else
-		{
-			if ( $miniserver['UseCloudDNS'] == "on" || $miniserver['UseCloudDNS'] == "1" ) 
+			sleep(1);
+			debug(__line__,"MS#".$msno." Call function get_connection_data => ".$miniserver['Name']);
+			$connection_data_returncode = get_connection_data($checkurl);
+			/* Possible connection_data_error codes:
+				0 = ok
+				1 = Other error, retry
+				2 = Too many errors, stop retrying
+				3 = Too much errors for today
+				4 = Port not open / Remote connect disabled
+				5 = Error init cURL
+			*/
+			if ( $connection_data_returncode == 1)
 			{
-				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0160_CLOUD_DNS_OKAY"]." (#$dns_errors/$max_accepted_dns_errors)",6);
+				// Code 1 will repeat the loop until $max_accepted_dns_errors is reached
+				// 1 = Other error, retry
+				$dns_errors++;
+				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0159_CLOUD_DNS_FAIL"]." (#$dns_errors/$max_accepted_dns_errors)",6);
 			}
+			if ( $dns_errors > $max_accepted_dns_errors ) 
+			{
+				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0071_TOO_MANY_CLOUD_DNS_FAILS"]." (#$dns_errors/$max_accepted_dns_errors) ".$miniserver['Name']." ".curl_error($curl),3);
+				$connection_data_returncode = 2; 
+			}
+		} while ($connection_data_returncode == 1);
+		
+		if ( $connection_data_returncode == 2 || $connection_data_returncode == 3 || $connection_data_returncode == 4 || $connection_data_returncode == 5 ) 
+		{
+			create_clean_workdir_tmp($workdir_tmp);
+			file_put_contents($backupstate_file,"-");
+			array_push($summary,"<HR> ");
+			if ( $connection_data_returncode != 3 ) array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
+			continue;
 		}
-		if ( $dns_errors > $max_accepted_dns_errors ) $clouderror = 2; 
-	} while ($clouderror == 1);
-	if ( $clouderror == 2 ) 
+	}
+	else
 	{
-		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0071_TOO_MANY_CLOUD_DNS_FAILS"]." (#$dns_errors/$max_accepted_dns_errors) ".$miniserver['Name']." ".curl_error($curl),3);
-		create_clean_workdir_tmp($workdir_tmp);
-		file_put_contents($backupstate_file,"-");
+		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0110_CLOUD_DNS_NOT_USED"]." => ".$miniserver['Name']." @ ".$miniserver['IPAddress'],5);
+	}
+
+	if ( $miniserver['IPAddress'] == "" ) 
+	{
+		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0003_MS_CONFIG_NO_IP"],3);
 		array_push($summary,"<HR> ");
 		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
-		continue;
+		curl_close($curl_dns);
+		$connection_data_returncode = 1;
+		return $connection_data_returncode;
 	}
+	else
+	{
+		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0005_MS_IP_HOST_PORT"]."=".$miniserver['IPAddress'].":".$port,6);
+	}
+	
 	curl_setopt($curl, CURLOPT_USERPWD, $miniserver['Credentials_RAW']);
 	$url = $prefix.$miniserver['IPAddress'].":".$port."/dev/cfg/ip";
 	curl_setopt($curl, CURLOPT_URL, $url);
@@ -955,58 +967,50 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0162_DOWNLOAD_SERVER_RESPONSE_NOT_200"],6);
 				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0163_DATA_BEFORE_REFRESH"]." ".$url,6);
 
-
-
-				$max_accepted_dns_errors = 10;
-				$dns_errors = 1;
-				do 
+				//Check Connection in case of Cloud DNS if file download failed
+				if ( $miniserver['UseCloudDNS'] == "on" || $miniserver['UseCloudDNS'] == "1" ) 
 				{
-					sleep(1);
-					$clouderror = get_clouddns_data($checkurl);
-					if ( $clouderror == 1)
+					//Check for earlier Cloud DNS requests on RAM Disk
+					touch($cloud_requests_file); // Touch file to prevent errors if inexistent
+					$checkurl = "https://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
+					$max_accepted_dns_errors 	= 10;
+					$dns_errors 				= 0;
+					do 
 					{
-						debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0159_CLOUD_DNS_FAIL"]." (#$dns_errors/$max_accepted_dns_errors)",6);
-						$dns_errors++;
-					}
-					else
+						sleep(1);
+						debug(__line__,"MS#".$msno." Call function get_connection_data => ".$miniserver['Name']);
+						$connection_data_returncode = get_connection_data($checkurl);
+						/* Possible connection_data_error codes:
+							0 = ok
+							1 = Other error, retry
+							2 = Too many errors, stop retrying
+							3 = Too much errors for today
+							4 = Port not open / Remote connect disabled
+							5 = Error init cURL
+						*/
+						if ( $connection_data_returncode == 1)
+						{
+							// Code 1 will repeat the loop until $max_accepted_dns_errors is reached
+							// 1 = Other error, retry
+							$dns_errors++;
+							debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0159_CLOUD_DNS_FAIL"]." (#$dns_errors/$max_accepted_dns_errors)",6);
+						}
+						if ( $dns_errors > $max_accepted_dns_errors ) 
+						{
+							debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0071_TOO_MANY_CLOUD_DNS_FAILS"]." (#$dns_errors/$max_accepted_dns_errors) ".$miniserver['Name']." ".curl_error($curl),3);
+							$connection_data_returncode = 2; 
+						}
+					} while ($connection_data_returncode == 1);
+					
+					if ( $connection_data_returncode == 2 || $connection_data_returncode == 3 || $connection_data_returncode == 4 || $connection_data_returncode == 5 ) 
 					{
-						debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0160_CLOUD_DNS_OKAY"]." (#$dns_errors/$max_accepted_dns_errors)",6);
-					}
-					if ( $dns_errors > $max_accepted_dns_errors ) $clouderror = 2; 
-				} while ($clouderror == 1);
-				if ( $clouderror == 0 ) 
-				{
-					if ( $miniserver['UseCloudDNS'] == "on" || $miniserver['UseCloudDNS'] == "1" ) 
-					{
-						debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0160_CLOUD_DNS_OKAY"]." (#$dns_errors/$max_accepted_dns_errors)",6);
+						create_clean_workdir_tmp($workdir_tmp);
+						file_put_contents($backupstate_file,"-");
+						array_push($summary,"<HR> ");
+						if ( $connection_data_returncode != 3 ) array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
+						continue;
 					}
 				}
-				else if ( $clouderror == 2 ) 
-				{
-					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0071_TOO_MANY_CLOUD_DNS_FAILS"]." ".$miniserver['Name']." ".curl_error($curl),3);
-					create_clean_workdir_tmp($workdir_tmp);
-					file_put_contents($backupstate_file,"-");
-					array_push($summary,"<HR> ");
-					array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
-					continue;
-				}
-				else if ( $clouderror == 3)
-				{
-					$dns_errors++;
-					create_clean_workdir_tmp($workdir_tmp);
-					file_put_contents($backupstate_file,"-");
-					array_push($summary,"<HR> ");
-					continue;
-				}
-				else if ( $clouderror == 4 ) 
-				{
-					create_clean_workdir_tmp($workdir_tmp);
-					file_put_contents($backupstate_file,"-");
-					array_push($summary,"<HR> ");
-					array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
-					continue;
-				}
-
 
 				curl_close($curl_save); 
 				sleep(2);
@@ -1930,17 +1934,16 @@ else
 LOGEND ("");
 exit;
 
-function get_clouddns_data($checkurl)
+function get_connection_data($checkurl)
 {
-	global $different_cloudrequests,$cloudcancel,$all_cloudrequests,$known_for_today,$miniserver,$L,$msno,$workdir_tmp,$backupstate_file,$summary,$problematic_ms,$port,$prefix,$log,$date_time_format,$plugin_cfg,$cfg,$cloud_requests_file,$cloudcancel,$clouderror0;
-	debug(__line__,"MS#".$msno." get_clouddns_data ".$checkurl." => ".$miniserver['Name']);
-	$cloudcancel	=	0;
+	global $different_cloudrequests,$connection_data_returncode,$all_cloudrequests,$known_for_today,$miniserver,$L,$msno,$workdir_tmp,$backupstate_file,$summary,$problematic_ms,$port,$prefix,$log,$date_time_format,$plugin_cfg,$cfg,$cloud_requests_file,$connection_data_returncode0;
+	$connection_data_returncode	= 0;
 	if ( $miniserver['UseCloudDNS'] == "on" || $miniserver['UseCloudDNS'] == "1" ) 
 	{
 		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0111_CLOUD_DNS_USED"]." => ".$miniserver['Name'],6);
 		if ( $miniserver['CloudURL'] == "" )
 		{
-			debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0108_NO_PREVIOUS_CLOUD_DNS_QUERY_FOUND_PROCEED"]." => ".$miniserver['Name'],5);
+			debug(__line__,"MS#".$msno." ".$L["ERROR.ERR_0068_PROBLEM_READING_CLOUD_DNS_ADDR"]." => ".$miniserver['Name'],5);
 		}
 		if ( isset($checkurl) ) 
 		{
@@ -2031,8 +2034,8 @@ function get_clouddns_data($checkurl)
 		if ( $different_cloudrequests > 10 && $known_for_today != 1)
 		{
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0066_CLOUDDNS_TOO_MUCH_REQUESTS_FOR_TODAY"]." => ".$miniserver['Name'],5);
-				$cloudcancel = 3;
-				return $cloudcancel;
+				$connection_data_returncode = 3;
+				return $connection_data_returncode;
 		}
 		file_put_contents($backupstate_file,str_ireplace("<MS>",$msno." (".$miniserver['Name'].")",$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
 		$log->LOGTITLE(str_ireplace("<MS>",$msno." (".$miniserver['Name'].")",$L["MINISERVERBACKUP.INF_0068_STATE_RUN"]));
@@ -2050,17 +2053,13 @@ function get_clouddns_data($checkurl)
 		if ( !$curl_dns )
 		{
 			debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0002_ERROR_INIT_CURL"],3);
-			create_clean_workdir_tmp($workdir_tmp);
-			file_put_contents($backupstate_file,"-");
-			array_push($summary,"<HR> ");
-			array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
-			$cloudcancel	=	1;
 			curl_close($curl_dns);
-			return $cloudcancel;
+			$connection_data_returncode	= 5;
+			return $connection_data_returncode;
 		}
 		sleep(1);
 		curl_exec($curl_dns);
-		$response= curl_multi_getcontent($curl_dns); 
+		$response = curl_multi_getcontent($curl_dns); 
 		debug(__line__,"MS#".$msno." URL: $checkurl => Response: ".$response."\n");
 		$response = json_decode($response,true);
 		// Possible is for example
@@ -2085,13 +2084,15 @@ function get_clouddns_data($checkurl)
 				{	
 					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0063_CLOUDDNS_ERROR_405"]." => ".$miniserver['Name']."\nURL: ".$checkurl." => Code ".$code,4);
 					debug(__line__,"MS#".$msno." ".join(" ",$response));
-					$cloudcancel=1;
+					$connection_data_returncode = 1;
 					break;
 				}
 				if ( $response["Code"] != "200" )
 				{
 					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0064_CLOUDDNS_CODE_MISMATCH"]." => ".$miniserver['Name']."\nURL: ".$checkurl." => Code ".$code,4);
 					debug(__line__,"MS#".$msno." ".join(" ",$response));
+					$connection_data_returncode = 1;
+					break;
 				}
 				$ip_info = explode(":",$response["IP".$HTTPS_mode]);
 				$miniserver['IPAddress']=$ip_info[0];
@@ -2106,88 +2107,73 @@ function get_clouddns_data($checkurl)
 				if ( $response["PortOpen".$HTTPS_mode] != "true" ) 
 				{
 					debug(__line__,"MS#".$msno." ".str_ireplace("<miniserver>",$miniserver['Name'],$L["ERRORS.ERR_0050_CLOUDDNS_PORT_NOT_OPEN"])." ".$response["LastUpdated"],3);
-					$cloudcancel = 4;
+					$connection_data_returncode = 4;
+					break;
 				}
 				else
 				{
 					if ( $response["RemoteConnect"] != "true" && $HTTPS_mode == "HTTPS") 
 					{
 						debug(__line__,"MS#".$msno." ".str_ireplace("<miniserver>",$miniserver['Name'],$L["ERRORS.ERR_0072_CLOUDDNS_REMOTE_CONNECT_NOT_TRUE"])." ".$response["LastUpdated"],3);
-						$cloudcancel = 4;
+						$connection_data_returncode = 4;
+						break;
 					}
 				}
-				
-			break;
+				break;
 			case "403":
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0051_CLOUDDNS_ERROR_403"]." => ".$miniserver['Name'],4);
-				$cloudcancel=1;
-			break;
+				$connection_data_returncode = 1;
+				break;
 			case "0":
-				if ( $clouderror0 > 5 )
+				if ( $connection_data_returncode0 > 3 )
 				{
 					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0065_TOO_MANY_CLOUDDNS_ERROR_0"]." => ".$miniserver['Name'],4);
-					$cloudcancel=1;
 				}
 				else
 				{
 					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0062_CLOUDDNS_ERROR_0"]." => ".$miniserver['Name'],5);
 					sleep(1);
-					$clouderror0++;
-					//$msno--;
+					$connection_data_returncode0++;
 				}
-				$cloudcancel=1;
-			break;
+				$connection_data_returncode = 1;
+				break;
 			case "418":
 				debug(__line__,"MS#".$msno." (".$miniserver['Name'].") ".$L["ERRORS.ERR_0053_CLOUDDNS_ERROR_418"],5);
-				$cloudcancel=1;
-			break;
+				$connection_data_returncode = 1;
+				break;
 			case "500":
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0061_CLOUDDNS_ERROR_500"]." => ".$miniserver['Name'],4);
-				$cloudcancel=1;
-			break;
+				$connection_data_returncode = 1;
+				break;
 			default;
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0052_CLOUDDNS_UNEXPECTED_ERROR"]." => ".$miniserver['Name']."\nURL: ".$checkurl." => Code ".$code."\n".join("\n",$response),3);
-				$cloudcancel=1;
+				$connection_data_returncode = 1;
 		}
 		curl_close($curl_dns);
-		if ( $cloudcancel == 1 )
+		if ( $connection_data_returncode == 1 ||$connection_data_returncode == 4 )
 		{
-			curl_close($curl_dns);
-			return $cloudcancel;
+			return $connection_data_returncode;
 		}
-		$clouderror0 = 0;
-
+		$connection_data_returncode0 = 0;
+		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0160_CLOUD_DNS_OKAY"],6);
 	}
 	else
 	{
 		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0110_CLOUD_DNS_NOT_USED"]." => ".$miniserver['Name']." @ ".$miniserver['IPAddress'],5);
 	}
 
-	if ( $miniserver['IPAddress'] == "0.0.0.0" || $miniserver['IPAddress'] == "" ) 
+	if ( $miniserver['IPAddress'] == "0.0.0.0" ) 
 	{
 		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"]." => ".$miniserver['Name'],3);
 		array_push($summary,"<HR> ");
 		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
-		$cloudcancel = 1;
 		curl_close($curl_dns);
-		return $cloudcancel;
-	}
-	if ( $miniserver['IPAddress'] == "" ) 
-	{
-		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0003_MS_CONFIG_NO_IP"],3);
-		array_push($summary,"<HR> ");
-		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
-		$cloudcancel = 1;
-		curl_close($curl_dns);
-		return $cloudcancel;
-	}
-	else
-	{
-		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0005_MS_IP_HOST_PORT"]."=".$miniserver['IPAddress'].":".$port,6);
+		$connection_data_returncode = 1;
+		return $connection_data_returncode;
 	}
 	curl_close($curl_dns);
-	$cloudcancel = 0;
-	return $cloudcancel;
+	$connection_data_returncode = 0;
+	return $connection_data_returncode;
 }
 
 function formatBytes($size, $precision = 2)
