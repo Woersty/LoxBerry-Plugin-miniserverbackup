@@ -973,7 +973,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 						debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0160_CLOUD_DNS_OKAY"]." (#$dns_errors/$max_accepted_dns_errors)",6);
 					}
 					if ( $dns_errors > $max_accepted_dns_errors ) $clouderror = 2; 
-				} while ($clouderror >= 1);
+				} while ($clouderror == 1);
 				if ( $clouderror == 0 ) 
 				{
 					if ( $miniserver['UseCloudDNS'] == "on" || $miniserver['UseCloudDNS'] == "1" ) 
