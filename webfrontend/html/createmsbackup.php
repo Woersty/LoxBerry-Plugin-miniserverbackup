@@ -625,7 +625,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	do 
 	{
 		sleep(1);
-		debug(__line__,"MS#".$msno."Function get_clouddns_data => ".$miniserver['Name'].);
+		debug(__line__,"MS#".$msno."Function get_clouddns_data => ".$miniserver['Name']);
 		$clouderror = get_clouddns_data($checkurl);
 		if ( $clouderror == 1)
 		{
