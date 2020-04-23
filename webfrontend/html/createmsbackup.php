@@ -765,7 +765,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			switch ($code) 
 			{
 				case "200":
-					$RemoteConnect = ( isset($response["RemoteConnect"]) ) $response["RemoteConnect"]:"false";
+					$RemoteConnect = ( isset($response["RemoteConnect"]) ) ? $response["RemoteConnect"]:"false";
 					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0109_CLOUD_DNS_QUERY_RESULT"]." ".$miniserver['Name']." => IP: ".$response["IP".$HTTPS_mode]." Code: ".$response["Code"]." LastUpdated: ".$response["LastUpdated"]." PortOpen".$HTTPS_mode.": ".$response["PortOpen".$HTTPS_mode]." DNS-Status: ".$response["DNS-Status"]." RemoteConnect: ".$RemoteConnect,5);
 					if ( $response["Code"] == "405" )
 					{	
@@ -891,7 +891,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	} while ($clouderror == 1);
 	if ( $clouderror == 2 ) 
 	{
-		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0071_TOO_MANY_CLOUD_DNS_FAILS"]." ".$miniserver['Name']." ".curl_error($curl),3);
+		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0071_TOO_MANY_CLOUD_DNS_FAILS"]." (#$dns_errors/$max_accepted_dns_errors) ".$miniserver['Name']." ".curl_error($curl),3);
 		create_clean_workdir_tmp($workdir_tmp);
 		file_put_contents($backupstate_file,"-");
 		array_push($summary,"<HR> ");
