@@ -636,6 +636,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				4 = Port not open / Remote connect disabled
 				5 = Error init cURL, stop retrying
 				6 = Error 405, stop retrying
+				7 = Error 403, stop retrying
 			*/
 			if ( $connection_data_returncode == 1)
 			{
@@ -651,7 +652,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			}
 		} while ($connection_data_returncode == 1);
 		
-		if ( $connection_data_returncode == 2 || $connection_data_returncode == 3 || $connection_data_returncode == 4 || $connection_data_returncode == 5 || $connection_data_returncode == 6 ) 
+		if ( $connection_data_returncode >= 2 ) 
 		{
 			create_clean_workdir_tmp($workdir_tmp);
 			file_put_contents($backupstate_file,"-");
@@ -989,6 +990,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 							4 = Port not open / Remote connect disabled
 							5 = Error init cURL
 							6 = Error 405, stop retrying
+							7 = Error 403, stop retrying
 						*/
 						if ( $connection_data_returncode == 1)
 						{
@@ -1004,7 +1006,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 						}
 					} while ($connection_data_returncode == 1);
 					
-					if ( $connection_data_returncode == 2 || $connection_data_returncode == 3 || $connection_data_returncode == 4 || $connection_data_returncode == 5 || $connection_data_returncode == 6 ) 
+					if ( $connection_data_returncode >= 2 ) 
 					{
 						create_clean_workdir_tmp($workdir_tmp);
 						file_put_contents($backupstate_file,"-");
@@ -2124,7 +2126,7 @@ function get_connection_data($checkurl)
 				break;
 			case "403":
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0051_CLOUDDNS_ERROR_403"]." => ".$miniserver['Name'],4);
-				$connection_data_returncode = 1;
+				$connection_data_returncode = 7;
 				break;
 			case "0":
 				if ( $connection_data_returncode0 > 3 )
