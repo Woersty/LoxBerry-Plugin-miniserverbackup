@@ -656,8 +656,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		{
 			create_clean_workdir_tmp($workdir_tmp);
 			file_put_contents($backupstate_file,"-");
-			array_push($summary,"<HR> ");
-			if ( $connection_data_returncode != 3 ) array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
+			if ( $connection_data_returncode != 3 && $connection_data_returncode != 6 ) array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 			continue;
 		}
 	}
@@ -1010,8 +1009,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 					{
 						create_clean_workdir_tmp($workdir_tmp);
 						file_put_contents($backupstate_file,"-");
-						array_push($summary,"<HR> ");
-						if ( $connection_data_returncode != 3 ) array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
+						if ( $connection_data_returncode != 3 && $connection_data_returncode != 6 ) array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 						continue;
 					}
 				}
@@ -1986,6 +1984,8 @@ function get_connection_data($checkurl)
 		} 
 		
 		$cloud_requests_json_array = json_decode(file_get_contents($cloud_requests_file),true);
+		$known_for_today = 0;
+		$all_cloudrequests = 0;
 		if ($cloud_requests_json_array)
 		{
 			$key = array_search(strtolower($miniserver['CloudURL']), array_column($cloud_requests_json_array, 'cloudurl'));
@@ -2034,8 +2034,11 @@ function get_connection_data($checkurl)
 				$all_cloudrequests = $all_cloudrequests + intval($datapacket['requests']);
 			}
 		}
-		debug(__line__,"MS#".$msno." ".str_ireplace("<all>",$all_cloudrequests,str_ireplace("<max_different_request>",10,str_ireplace("<different_request>",$different_cloudrequests,$L["MINISERVERBACKUP.INF_0148_CLOUD_DNS_REQUEST_NUMBER"])))." (".$miniserver['CloudURL'].")",6);
-		if ( $different_cloudrequests > 10 && $known_for_today != 1)
+		if ( $known_for_today != 1)
+		{
+			debug(__line__,"MS#".$msno." ".str_ireplace("<all>",$all_cloudrequests,str_ireplace("<max_different_request>",10,str_ireplace("<different_request>",$different_cloudrequests,$L["MINISERVERBACKUP.INF_0148_CLOUD_DNS_REQUEST_NUMBER"])))." (".$miniserver['CloudURL'].")",6);
+		}
+		if ( $different_cloudrequests >= 10 && $known_for_today != 1)
 		{
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0066_CLOUDDNS_TOO_MUCH_REQUESTS_FOR_TODAY"]." => ".$miniserver['Name'],5);
 				$connection_data_returncode = 3;
