@@ -474,7 +474,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0088_INTERVAL_ELAPSED"],5);
 			    $last_error = 0;
 				if ( isset($plugin_cfg["LAST_ERROR".$msno]) ) $last_error = $plugin_cfg["LAST_ERROR".$msno];
-			    if ( $last_error + 86400 >= time() )
+			    if ( intval($last_error) + 86400 >= intval(time()) )
 			    {
 					debug(__line__,"MS#".$msno." ".str_ireplace("<until>",date($date_time_format, $last_error + 86400),$L["MINISERVERBACKUP.INF_0154_SKIP_ON_PREVIOUS_ERROR"]),5);
 			    	continue;	
@@ -1734,7 +1734,7 @@ foreach ($summary as &$errors)
 #$err_html 	 = preg_replace('/\\r+/i','',$err_html);
 $err_html 	 = preg_replace('/\s\s+/i',' ',$err_html);
 $err_html 	 = preg_replace('/<HR>\s<br>+/i','<HR>',$err_html);
-$err_html 	 = preg_replace('/<HR><HR>+/i','<HR>',$err_html);
+$err_html	 = preg_replace("/(<HR>)\\1+/", "$1", $err_html);
 if (str_replace(array('<ALERT>', '<CRITICAL>','<ERROR>'),'', $err_html) != $err_html)
 {
 	$at_least_one_error = 1;
@@ -1781,7 +1781,7 @@ if ( ( $at_least_one_error == 1 || $at_least_one_warning == 1 || $at_least_one_s
 	}
 	else
 	{
-		debug(__line__,$L["MINISERVERBACKUP.INF_0118_EMAIL_CFG_OK"]." [".$mail_cfg['SMTP']['SMTPSERVER'].":".$mail_cfg['SMTP']['PORT']."]",6);
+		debug(__line__,$L["MINISERVERBACKUP.INF_0118_EMAIL_CFG_OK"],6);
 		if ( $mail_cfg['SMTP']['ISCONFIGURED'] == "0" )
 		{
 			debug(__line__,$L["MINISERVERBACKUP.INF_0119_EMAIL_NOT_CONFIGURED"],6);
@@ -1939,7 +1939,7 @@ exit;
 
 function get_connection_data($checkurl)
 {
-	global $different_cloudrequests,$connection_data_returncode,$all_cloudrequests,$known_for_today,$miniserver,$L,$msno,$workdir_tmp,$backupstate_file,$summary,$problematic_ms,$port,$prefix,$log,$date_time_format,$plugin_cfg,$cfg,$cloud_requests_file,$connection_data_returncode0;
+	global $different_cloudrequests,$connection_data_returncode,$all_cloudrequests,$known_for_today,$miniserver,$L,$msno,$workdir_tmp,$backupstate_file,$summary,$problematic_ms,$port,$prefix,$log,$date_time_format,$plugin_cfg,$cfg,$cloud_requests_file,$connection_data_returncode0,$manual_backup,$randomsleep;
 	$connection_data_returncode	= 0;
 	if ( $miniserver['UseCloudDNS'] == "on" || $miniserver['UseCloudDNS'] == "1" ) 
 	{
@@ -2090,7 +2090,8 @@ function get_connection_data($checkurl)
 				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0109_CLOUD_DNS_QUERY_RESULT"]." ".$miniserver['Name']." => IP: ".$response["IP".$HTTPS_mode]." Code: ".$response["Code"]." LastUpdated: ".$response["LastUpdated"]." PortOpen".$HTTPS_mode.": ".$response["PortOpen".$HTTPS_mode]." DNS-Status: ".$response["DNS-Status"]." RemoteConnect: ".$RemoteConnect,5);
 				if ( $response["Code"] == "405" )
 				{	
-					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0063_CLOUDDNS_ERROR_405"]." => ".$miniserver['Name']."\nURL: ".$checkurl." => Code ".$code,4);
+					debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0063_CLOUDDNS_ERROR_405"]." => ".$miniserver['Name'],3);
+					debug(__line__,"MS#".$msno." URL: ".$checkurl." => Code ".$code);
 					debug(__line__,"MS#".$msno." ".join(" ",$response));
 					$connection_data_returncode = 6;
 					break;
@@ -2120,7 +2121,7 @@ function get_connection_data($checkurl)
 				}
 				else
 				{
-					if ( $response["RemoteConnect"] != "true" && $HTTPS_mode == "HTTPS") 
+					if ( isset($response["RemoteConnect"]) &&  $response["RemoteConnect"] != "true" && $HTTPS_mode == "HTTPS") 
 					{
 						debug(__line__,"MS#".$msno." ".str_ireplace("<miniserver>",$miniserver['Name'],$L["ERRORS.ERR_0072_CLOUDDNS_REMOTE_CONNECT_NOT_TRUE"])." ".$response["LastUpdated"],3);
 						$connection_data_returncode = 4;
@@ -2129,7 +2130,7 @@ function get_connection_data($checkurl)
 				}
 				break;
 			case "403":
-				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0051_CLOUDDNS_ERROR_403"]." => ".$miniserver['Name'],4);
+				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0051_CLOUDDNS_ERROR_403"]." => ".$miniserver['Name'],3);
 				$connection_data_returncode = 6;
 				break;
 			case "0":
@@ -2157,9 +2158,9 @@ function get_connection_data($checkurl)
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0052_CLOUDDNS_UNEXPECTED_ERROR"]." => ".$miniserver['Name']."\nURL: ".$checkurl." => Code ".$code."\n".join("\n",$response),3);
 				$connection_data_returncode = 1;
 		}
-		curl_close($curl_dns);
 		if ( $connection_data_returncode >= 1 )
 		{
+			curl_close($curl_dns);
 			return $connection_data_returncode;
 		}
 		$connection_data_returncode0 = 0;
@@ -2175,11 +2176,9 @@ function get_connection_data($checkurl)
 		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0046_CLOUDDNS_IP_INVALID"]." => ".$miniserver['Name'],3);
 		array_push($summary,"<HR> ");
 		array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
-		curl_close($curl_dns);
 		$connection_data_returncode = 1;
 		return $connection_data_returncode;
 	}
-	curl_close($curl_dns);
 	$connection_data_returncode = 0;
 	return $connection_data_returncode;
 }
@@ -2684,3 +2683,4 @@ function cloud_requests_today($indata)
 		return(false);
 	}
 }
+
