@@ -2042,6 +2042,7 @@ function get_connection_data($checkurl)
 		if ( $different_cloudrequests >= 10 && $known_for_today != 1)
 		{
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0066_CLOUDDNS_TOO_MUCH_REQUESTS_FOR_TODAY"]." => ".$miniserver['Name'],5);
+				file_put_contents($cloud_requests_file,json_encode($cloud_requests_json_array_today));
 				$connection_data_returncode = 3;
 				return $connection_data_returncode;
 		}
