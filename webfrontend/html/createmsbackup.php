@@ -2683,4 +2683,3 @@ function cloud_requests_today($indata)
 		return(false);
 	}
 }
-
