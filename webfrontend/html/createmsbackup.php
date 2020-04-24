@@ -635,8 +635,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				3 = Too much errors for today
 				4 = Port not open / Remote connect disabled
 				5 = Error init cURL, stop retrying
-				6 = Error 405, stop retrying
-				7 = Error 403, stop retrying
+				6 = Error 403/405, stop retrying
 			*/
 			if ( $connection_data_returncode == 1)
 			{
@@ -656,7 +655,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		{
 			create_clean_workdir_tmp($workdir_tmp);
 			file_put_contents($backupstate_file,"-");
-			if ( $connection_data_returncode != 3 && $connection_data_returncode != 6 ) array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
+			array_push($summary,"<HR> ");
+			if ( $connection_data_returncode != 3 ) array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 			continue;
 		}
 	}
@@ -988,8 +988,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 							3 = Too much errors for today
 							4 = Port not open / Remote connect disabled
 							5 = Error init cURL
-							6 = Error 405, stop retrying
-							7 = Error 403, stop retrying
+							6 = Error 403/405, stop retrying
 						*/
 						if ( $connection_data_returncode == 1)
 						{
@@ -1009,7 +1008,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 					{
 						create_clean_workdir_tmp($workdir_tmp);
 						file_put_contents($backupstate_file,"-");
-						if ( $connection_data_returncode != 3 && $connection_data_returncode != 6 ) array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
+						array_push($summary,"<HR> ");
+						if ( $connection_data_returncode != 3 ) array_push($problematic_ms," #".$msno." (".$miniserver['Name'].")");
 						continue;
 					}
 				}
@@ -1734,6 +1734,7 @@ foreach ($summary as &$errors)
 #$err_html 	 = preg_replace('/\\r+/i','',$err_html);
 $err_html 	 = preg_replace('/\s\s+/i',' ',$err_html);
 $err_html 	 = preg_replace('/<HR>\s<br>+/i','<HR>',$err_html);
+$err_html 	 = preg_replace('/<HR><HR>+/i','<HR>',$err_html);
 if (str_replace(array('<ALERT>', '<CRITICAL>','<ERROR>'),'', $err_html) != $err_html)
 {
 	$at_least_one_error = 1;
@@ -2129,7 +2130,7 @@ function get_connection_data($checkurl)
 				break;
 			case "403":
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0051_CLOUDDNS_ERROR_403"]." => ".$miniserver['Name'],4);
-				$connection_data_returncode = 7;
+				$connection_data_returncode = 6;
 				break;
 			case "0":
 				if ( $connection_data_returncode0 > 3 )
@@ -2157,7 +2158,7 @@ function get_connection_data($checkurl)
 				$connection_data_returncode = 1;
 		}
 		curl_close($curl_dns);
-		if ( $connection_data_returncode == 1 || $connection_data_returncode >= 4 )
+		if ( $connection_data_returncode >= 1 )
 		{
 			return $connection_data_returncode;
 		}
