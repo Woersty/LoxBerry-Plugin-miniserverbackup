@@ -1445,9 +1445,20 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 					}
 					else
 					{
-						debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0156_ZIP_SEEMS_NOT_TO_BE_IN_OLD_FORMAT"],5);
-						copy($bkp_dest_dir.'/'.$bkpfolder.'/'.$latest_filename, $bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension); 
-						exec('7za u '.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension).' '.escapeshellcmd($savedir_path.'/'.$bkpfolder).'/* -ms=off -mx=9 -t7z -up0q3r2x2y2z0w2!'.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.'Incremental_'.$bkpdir.$fileformat_extension).' 2>&1', $seven_zip_output);
+						debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0164_ZIP_CHECK_INTEGRITY"],5);
+						exec('7za t '.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension).' 2>&1', $seven_zip_output);
+						$zipresult=end($seven_zip_output);
+						if ( $zipresult != "Everything is Ok" )
+						{
+							debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0073_ZIP_CHECK_INTEGRITY_FAIL"]." [".$zipresult."]",4);
+							exec('7za a '.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension).' '.escapeshellcmd($savedir_path.'/'.$bkpfolder).'/* -ms=off -mx=9 -t7z 2>&1', $seven_zip_output);							
+						}					
+						else
+						{	
+							debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0156_ZIP_SEEMS_NOT_TO_BE_IN_OLD_FORMAT"],5);
+							copy($bkp_dest_dir.'/'.$bkpfolder.'/'.$latest_filename, $bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension); 
+							exec('7za u '.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension).' '.escapeshellcmd($savedir_path.'/'.$bkpfolder).'/* -ms=off -mx=9 -t7z -up0q3r2x2y2z0w2!'.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.'Incremental_'.$bkpdir.$fileformat_extension).' 2>&1', $seven_zip_output);
+						}
 					}
 				}
 				else
