@@ -1446,18 +1446,20 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 					else
 					{
 						debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0164_ZIP_CHECK_INTEGRITY"],5);
-						exec('7za t '.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension).' 2>&1', $seven_zip_output);
-						$zipresult=end($seven_zip_output);
-						if ( $zipresult != "Everything is Ok" )
+						exec('7za t '.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$latest_filename).' 2>&1', $seven_zip_check_output);
+						$seven_zip_check_output = implode("\n",$seven_zip_check_output);
+						if (preg_match('~Everything\sis\sOk~', $seven_zip_check_output, $m ) == 1)
 						{
-							debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0073_ZIP_CHECK_INTEGRITY_FAIL"]." [".$zipresult."]",4);
-							exec('7za a '.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension).' '.escapeshellcmd($savedir_path.'/'.$bkpfolder).'/* -ms=off -mx=9 -t7z 2>&1', $seven_zip_output);							
-						}					
-						else
-						{	
+							debug(__line__,"MS#".$msno." OK: ".$seven_zip_check_output);
 							debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0156_ZIP_SEEMS_NOT_TO_BE_IN_OLD_FORMAT"],5);
 							copy($bkp_dest_dir.'/'.$bkpfolder.'/'.$latest_filename, $bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension); 
 							exec('7za u '.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension).' '.escapeshellcmd($savedir_path.'/'.$bkpfolder).'/* -ms=off -mx=9 -t7z -up0q3r2x2y2z0w2!'.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.'Incremental_'.$bkpdir.$fileformat_extension).' 2>&1', $seven_zip_output);
+						}					
+						else
+						{	
+							debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0073_ZIP_CHECK_INTEGRITY_FAIL"],4);
+							debug(__line__,"MS#".$msno." FAIL: ".$seven_zip_check_output,6);
+							exec('7za a '.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension).' '.escapeshellcmd($savedir_path.'/'.$bkpfolder).'/* -ms=off -mx=9 -t7z 2>&1', $seven_zip_output);							
 						}
 					}
 				}
