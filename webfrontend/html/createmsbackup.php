@@ -1309,6 +1309,8 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	}
 
 	debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0083_DEBUG_FINAL_TARGET"]." ".$finalstorage,5);
+	@exec('ls "'.$finalstorage.'"'); // Trigger an access to the target, needed for Samba shares
+	sleep(5); // To give the system time to spin up a HDD which is possibly in Standby...
 	if ( !is_writeable($finalstorage) )
 	{
 		debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0039_FINAL_STORAGE_NOT_WRITABLE"],3);
