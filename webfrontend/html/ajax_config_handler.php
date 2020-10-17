@@ -135,7 +135,18 @@ $plugin_cfg["VERSION"] = LBSystem::pluginversion();
 ksort($plugin_cfg);
 $plugin_cfg_handle = fopen($plugin_config_file, 'w');
 
-LBSystem::read_generalcfg();
+$lbversion = LBSystem::lbversion();
+if (version_compare($lbversion, '2.0.2.0') >= 0) 
+{
+	LOGINF("Version >= 2.0.2.0 (".$lbversion.")");
+	LBSystem::get_miniservers();
+}
+else
+{
+	LOGINF("Version < 2.0.2.0 (".$lbversion.")");
+	LBSystem::read_generalcfg();
+}
+
 $ms = $miniservers;
 
 if (!is_array($ms)) 
