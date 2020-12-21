@@ -620,7 +620,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	{
 		//Check for earlier Cloud DNS requests on RAM Disk
 		touch($cloud_requests_file); // Touch file to prevent errors if inexistent
-		$checkurl = "https://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
+		$checkurl = "http://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
 		$max_accepted_dns_errors 	= 10;
 		$dns_errors 				= 0;
 		do 
@@ -973,7 +973,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				{
 					//Check for earlier Cloud DNS requests on RAM Disk
 					touch($cloud_requests_file); // Touch file to prevent errors if inexistent
-					$checkurl = "https://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
+					$checkurl = "http://".$cfg['BASE']['CLOUDDNS']."/?getip&snr=".$miniserver['CloudURL']."&json=true";
 					$max_accepted_dns_errors 	= 10;
 					$dns_errors 				= 0;
 					do 
