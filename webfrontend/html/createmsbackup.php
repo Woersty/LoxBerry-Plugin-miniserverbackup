@@ -2513,6 +2513,11 @@ function read_ms_tree ($folder)
 					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0122_IGNORING_SYS_ZIP"]." ".$filename[5],6);
 					continue;
 				}
+				if ( $folder == "/sys/internal/" )
+				{
+					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0170_IGNORING_SYS_INTERNAL"]." ".$folder,6);
+					continue;
+				}
 				$dtime = DateTime::createFromFormat("M d H:i", $filename[2]." ".$filename[3]." ".$filename[4]);
 				$timestamp = $dtime->getTimestamp();
 				if ($timestamp > time() )
