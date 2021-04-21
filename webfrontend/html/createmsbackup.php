@@ -1101,7 +1101,14 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 			
 			if ( filesize($workdir_tmp."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)] && filesize($workdir_tmp."/".$bkpfolder.$file_to_save) != 122 )
 			{
-				debug(__line__,"MS#".$msno." ".str_ireplace("<file>",$bkpfolder.$file_to_save,str_ireplace("<dwl_size>",filesize($workdir_tmp."/".$bkpfolder.$file_to_save),str_ireplace("<ms_size>",$filetree["size"][array_search($file_to_save,$filetree["name"],true)],$L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]))),4);
+				if (  preg_match("/\/log\/remoteconnect/i", $file_to_save) )
+				{
+					debug(__line__,"MS#".$msno." ".str_ireplace("<file>",$bkpfolder.$file_to_save,str_ireplace("<dwl_size>",filesize($workdir_tmp."/".$bkpfolder.$file_to_save),str_ireplace("<ms_size>",$filetree["size"][array_search($file_to_save,$filetree["name"],true)],$L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]))),6);
+				}
+				else
+				{
+					debug(__line__,"MS#".$msno." ".str_ireplace("<file>",$bkpfolder.$file_to_save,str_ireplace("<dwl_size>",filesize($workdir_tmp."/".$bkpfolder.$file_to_save),str_ireplace("<ms_size>",$filetree["size"][array_search($file_to_save,$filetree["name"],true)],$L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]))),4);
+				}
 			}
 			if ( $data === FALSE )
 			{
@@ -1155,15 +1162,14 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				
 				if ( filesize($workdir_tmp."/".$bkpfolder.$file_to_save)  != $filetree["size"][array_search($file_to_save,$filetree["name"],true)])
 				{
-				if ( preg_match("/\/sys\/rem\//i", $file_to_save) )
-				{
-					debug(__line__,"MS#".$msno." ".str_ireplace("<file>",$bkpfolder.$file_to_save,str_ireplace("<dwl_size>",filesize($workdir_tmp."/".$bkpfolder.$file_to_save),str_ireplace("<ms_size>",$filetree["size"][array_search($file_to_save,$filetree["name"],true)],$L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]))),6);
-				}
-				else
-				{
-					debug(__line__,"MS#".$msno." ".str_ireplace("<file>",$bkpfolder.$file_to_save,str_ireplace("<dwl_size>",filesize($workdir_tmp."/".$bkpfolder.$file_to_save),str_ireplace("<ms_size>",$filetree["size"][array_search($file_to_save,$filetree["name"],true)],$L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]))),4);
-				}
-
+					if ( preg_match("/\/sys\/rem\//i", $file_to_save) || preg_match("/\/log\/remoteconnect/i", $file_to_save) )
+					{
+						debug(__line__,"MS#".$msno." ".str_ireplace("<file>",$bkpfolder.$file_to_save,str_ireplace("<dwl_size>",filesize($workdir_tmp."/".$bkpfolder.$file_to_save),str_ireplace("<ms_size>",$filetree["size"][array_search($file_to_save,$filetree["name"],true)],$L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]))),6);
+					}
+					else
+					{
+						debug(__line__,"MS#".$msno." ".str_ireplace("<file>",$bkpfolder.$file_to_save,str_ireplace("<dwl_size>",filesize($workdir_tmp."/".$bkpfolder.$file_to_save),str_ireplace("<ms_size>",$filetree["size"][array_search($file_to_save,$filetree["name"],true)],$L["ERRORS.ERR_0013_DIFFERENT_FILESIZE"]))),4);
+					}
 				}
 				else
 				{
