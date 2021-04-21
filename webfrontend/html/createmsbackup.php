@@ -2467,6 +2467,11 @@ function read_ms_tree ($folder)
 		}
 		else
 		{
+			if ( $folder == "/sys/internal/" )
+			{
+				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0170_IGNORING_SYS_INTERNAL"]." ".$folder,6);
+				return;
+			}
 			debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0005_CURL_GET_CONTENT_FAILED"]." ".$folder." ".curl_error($curl).$read_data,4); 
 			return;
 		}
