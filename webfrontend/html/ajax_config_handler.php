@@ -155,7 +155,7 @@ if (!is_array($ms))
 	LOGEND("");
 	die($L["ERRORS.ERR_0001_NO_MINISERVERS_CONFIGURED"]);
 }
-$max_ms = count($ms);
+$max_ms = max(array_keys($ms));
 if (flock($plugin_cfg_handle, LOCK_EX)) 
 { // exklusive Sperre
     ftruncate($plugin_cfg_handle, 0); // kürze Datei
