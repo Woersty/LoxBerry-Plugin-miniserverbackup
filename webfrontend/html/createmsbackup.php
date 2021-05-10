@@ -32,7 +32,6 @@ $logfileprefix			= LBPLOGDIR."/miniserver_backup_";
 $logfilesuffix			= ".txt";
 $logfilename			= $logfileprefix.date("Y-m-d_H\hi\ms\s",time()).$logfilesuffix;
 $L						= LBSystem::readlanguage("language.ini");
-$plugin_config_file 	= $lbpconfigdir."/miniserverbackup.cfg";
 $logfiles_to_keep		= 24;									 # Number of logfiles to keep (also done by LoxBerry Core /sbin/log_maint.pl)
 $resultarray 			= array();
 $params = [
