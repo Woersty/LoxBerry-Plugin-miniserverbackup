@@ -510,9 +510,6 @@ exit;
 	$maintemplate->param("TEMPLATE_ROW" => \@template_row);
 	$maintemplate->param("GENERAL_ROW" => \@general_row);
 	
-    # Parse some strings from language file into template 
-		our $str_tags    	  	= $L{"default.TXT_BLUETOOTH_TAGS"};
-	
 		# Parse page
 
 		# Parse page footer		

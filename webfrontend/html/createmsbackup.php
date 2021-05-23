@@ -314,7 +314,7 @@ if ( ! is_link($backupstate_file) )
 {
 	if ( is_file($backupstate_file) )
 	{
-		debug(__line__,$L["MINISERVERBACKUP.INF_0045_DEBUG_DELETE_FILE"]." -> ".$dir."/".$object);
+		debug(__line__,$L["MINISERVERBACKUP.INF_0045_DEBUG_DELETE_FILE"]." -> ".$backupstate_file);
 		@unlink($backupstate_file);
 	}
 	@symlink($backupstate_tmp, $backupstate_file);
@@ -579,7 +579,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 	}
 	else
 	{
-		debug(__line__,$L["ERRORS.ERR_0021_CANNOT_SET_WORKDIR_AS_SYMLINK_TO_RAMDISK"],3);
+		debug(__line__,$L["ERRORS.ERR_0021_CANNOT_SET_WORKDIR_AS_SYMLINK"],3);
 		$runtime = microtime(true) - $start;
 		sleep(3); // To prevent misdetection in createmsbackup.pl
 		file_put_contents($backupstate_file, "-");
@@ -1215,7 +1215,7 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		if ( round($runtime_dwl,1,PHP_ROUND_HALF_UP) < 0.5 ) $runtime_dwl = 0.5;
 		$size_dwl = array_sum($save_ok_list["size"]);
 		$size_dwl_kBs = round(  ($size_dwl / 1024) / $runtime_dwl ,2);
-		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0053_DOWNLOAD_TIME"]." ".secondsToTime(round($runtime_dwl,0,PHP_ROUND_HALF_UP))." ".$size_dwl." Bytes => ".$size_dwl_kBs." kB/s",5);
+		debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0053_DOWNLOAD_TIME"]." ".secondsToTime(round($runtime_dwl,0,PHP_ROUND_HALF_UP))." s ".$size_dwl." Bytes => ".$size_dwl_kBs." kB/s",5);
 	}
 	else
 	{
