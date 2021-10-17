@@ -226,12 +226,10 @@ if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 		{
 			$miniservers{$msnr}{IPAddress} = "CloudDNS";
 		}
-	
+		$error_message = $ERR{'ERRORS.ERR_0033_MS_CONFIG_NO_IP'}."<br>".$ERR{'ERRORS.ERR_0034_MS_CONFIG_NO_IP_SUGGESTION'};  
+		&error if (!$miniservers{$msnr}{IPAddress});	
 	}               
                
-$error_message = $ERR{'ERRORS.ERR_0033_MS_CONFIG_NO_IP'}."<br>".$ERR{'ERRORS.ERR_0034_MS_CONFIG_NO_IP_SUGGESTION'};  
-&error if (! %miniservers);
-
 LOGDEB "Miniserver config read.";
 if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 {
@@ -509,17 +507,12 @@ exit;
 	push(@general_row, \%row_gen);
 	$maintemplate->param("TEMPLATE_ROW" => \@template_row);
 	$maintemplate->param("GENERAL_ROW" => \@general_row);
-	
-		# Parse page
+	$maintemplate->param("HTMLPATH" => "/plugins/".$lbpplugindir."/");
+	$maintemplate->param("BACKUPSTATEFILE" => $backupstate_name);
+	$maintemplate->param("WORKDIR_FREE" => $workdirfree_name);
 
-		# Parse page footer		
-		#$maintemplate->param("TAGROW" => \@tagrow);
-		$maintemplate->param("HTMLPATH" => "/plugins/".$lbpplugindir."/");
-		$maintemplate->param("BACKUPSTATEFILE" => $backupstate_name);
-		$maintemplate->param("WORKDIR_FREE" => $workdirfree_name);
-	
-    	print $maintemplate->output();
-		LoxBerry::Web::lbfooter();
+	print $maintemplate->output();
+	LoxBerry::Web::lbfooter();
 	}
 
 #####################################################
@@ -535,6 +528,7 @@ sub error
 	$errortemplate->param('ERR_MESSAGE'		, $error_message);
 	$errortemplate->param('ERR_TITLE'		, $ERR{'ERRORS.ERR_TITLE'});
 	$errortemplate->param('ERR_BUTTON_BACK' , $ERR{'ERRORS.ERR_BUTTON_BACK'});
+	$errortemplate->param('ERR_NEXTURL'     , "/");
 	print $errortemplate->output();
 	LoxBerry::Web::lbfooter();
 	LOGEND "";

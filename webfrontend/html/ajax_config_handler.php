@@ -149,7 +149,7 @@ else
 
 $ms = $miniservers;
 
-if (!is_array($ms)) 
+if (!is_array($ms) or empty($ms)) 
 {
 	LOGERR($L["ERRORS.ERR_0001_NO_MINISERVERS_CONFIGURED"]);
 	LOGEND("");
@@ -223,31 +223,45 @@ foreach ($plugin_cfg as $config_key => $config_value)
 		$all_interval_used = $all_interval_used + $config_value;
 	}
 }
-#Create Cron-Job
-if ( is_link(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR)  ) unlink(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR) or LOGERR($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"]); #Delete obsolete 30 min Cronjob
+#Config Cron-Job
+if ( is_link(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR)  ) unlink(LBHOMEDIR."/system/cron/cron.30min/".LBPPLUGINDIR) or LOGERR("A".$L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"]); #Delete obsolete 30 min Cronjob
+$cron  = 'SHELL=/bin/sh'."\n";
+$cron .= 'PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin'."\n";
+$cron .= 'MAILTO=""'."\n";
+$cron .= '# m h dom mon dow user  command'."\n";
 if ( $all_interval_used > 0 )
 {
-	if ( ! is_link(LBHOMEDIR."/system/cron/cron.hourly/".LBPPLUGINDIR)  )
+	# At least on Miniserver to Backup - create Cronjob
+	$cron .= '*/30 * * * * loxberry '.LBPHTMLAUTHDIR.'/bin/createmsbackup.pl >/dev/null 2>&1'."\n";
+	@file_put_contents("/tmp/cron_".LBPPLUGINDIR, $cron);
+	$cmd = "sudo ".LBHOMEDIR."/sbin/installcrontab.sh ".$plugindata['PLUGINDB_NAME']." /tmp/cron_".LBPPLUGINDIR;
+	@exec($cmd, $cmd_output, $retval);
+	LOGDEB("Command: ".$cmd."\n".$cmd_output[0]);	
+	if ( $retval == 0 )
 	{
-		@symlink(LBPHTMLAUTHDIR."/bin/createmsbackup.pl", LBHOMEDIR."/system/cron/cron.hourly/".LBPPLUGINDIR);
-	}
-		
-	if ( ! is_link(LBHOMEDIR."/system/cron/cron.hourly/".LBPPLUGINDIR) )
-	{
-		LOGERR($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"]);	
+		LOGOK($L["MINISERVERBACKUP.INF_0084_INFO_CRON_JOB_ACTIVE"]);	
 	}
 	else
 	{
-		LOGINF($L["MINISERVERBACKUP.INF_0084_INFO_CRON_JOB_ACTIVE"]);	
+		LOGERR($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"]);	
 	}
 }
 else
 {
-	if ( is_link(LBHOMEDIR."/system/cron/cron.hourly/".LBPPLUGINDIR) )
+	# No Miniserver to Backup - create empty Cronjob
+	@file_put_contents("/tmp/cron_".LBPPLUGINDIR, $cron);
+
+	$cmd = "sudo ".LBHOMEDIR."/sbin/installcrontab.sh ".$plugindata['PLUGINDB_NAME']." /tmp/cron_".LBPPLUGINDIR;
+	@exec($cmd, $cmd_output, $retval);
+	LOGDEB("Command: ".$cmd."\n".$cmd_output[0]);	
+	if ( $retval == 0 )
 	{
-		unlink(LBHOMEDIR."/system/cron/cron.hourly/".LBPPLUGINDIR) or LOGERR($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"]);
+		LOGOK($L["MINISERVERBACKUP.INF_0085_INFO_CRON_JOB_STOPPED"]);	
 	}
-	LOGINF($L["MINISERVERBACKUP.INF_0085_INFO_CRON_JOB_STOPPED"]);	
+	else
+	{
+		LOGERR($L["ERRORS.ERR_0041_ERR_CFG_CRON_JOB"]);	
+	}
 }
 echo $output;
 LOGEND("");
