@@ -39,8 +39,8 @@
     position: fixed;
     background: rgba(70, 71, 72, 0.69);
 }
-#sub_alert_form { 
-	width: 240px;  
+#sub_alert_form {
+	width: 240px;
 	height: 110px;
     margin: 0 auto;
     background: white;
@@ -74,14 +74,14 @@ span#alert_form_close:hover {
 }
 
 @media screen and (max-width: 440px) {
-	#sub_alert_form { 
-		width: 290px; 
+	#sub_alert_form {
+		width: 290px;
 		padding: 35px;
 	}
 }
 </style>
-<div id="alert_form" > 
- 	 <div id="sub_alert_form"> 
+<div id="alert_form" >
+ 	 <div id="sub_alert_form">
   	 	<span id="alert_form_close"> X </span>
  	 	 	<div id="error_message"></div>
  	 </div>
@@ -102,7 +102,7 @@ span#alert_form_close:hover {
 	var miniservers=[];
 	// Documentation for client options:
 	// https://github.com/Studio-42/elFinder/wiki/Client-configuration-options
-	$(document).ready(function() 
+	$(document).ready(function()
 	{
 		$('#elfinder').elfinder(
 		{
@@ -110,31 +110,31 @@ span#alert_form_close:hover {
 			width: '100%',
 			sort: 'nameDirsFirst',
 			sortDirect: 'desc',
-			url : '<TMPL_VAR HTMLPATH>php/connector.minimal.php'  // connector URL 
-			 , lang: '<TMPL_VAR ELFINDER_LANG>'                    // language 
+			url : '<TMPL_VAR HTMLPATH>php/connector.minimal.php'  // connector URL
+			 , lang: '<TMPL_VAR ELFINDER_LANG>'                    // language
 		});
-		$("#msbackup_use-button").remove(); 
-		$("#msbackup_use").css('display','').selectmenu( "menuWidget" ); 
+		$("#msbackup_use-button").remove();
+		$("#msbackup_use").css('display','').selectmenu( "menuWidget" );
 		$("#msbackup_use").addClass( "ui-mini ui-btn ui-corner-all ui-shadow" );
-		$("#msbackup_use").val("<TMPL_VAR MSBACKUP_USE>"); 
+		$("#msbackup_use").val("<TMPL_VAR MSBACKUP_USE>");
 
-		$("#msbackup_use_notify-button").remove(); 
-		$("#msbackup_use_notify").css('display','').selectmenu( "menuWidget" ); 
+		$("#msbackup_use_notify-button").remove();
+		$("#msbackup_use_notify").css('display','').selectmenu( "menuWidget" );
 		$("#msbackup_use_notify").addClass( "ui-mini ui-btn ui-corner-all ui-shadow" );
-		$("#msbackup_use_notify").val("<TMPL_VAR MSBACKUP_USE_NOTIFY>"); 
+		$("#msbackup_use_notify").val("<TMPL_VAR MSBACKUP_USE_NOTIFY>");
 
-		$("#msbackup_use_emails-button").remove(); 
-		$("#msbackup_use_emails").css('display','').selectmenu( "menuWidget" ); 
+		$("#msbackup_use_emails-button").remove();
+		$("#msbackup_use_emails").css('display','').selectmenu( "menuWidget" );
 		$("#msbackup_use_emails").addClass( "ui-mini ui-btn ui-corner-all ui-shadow" );
-		$("#msbackup_use_emails").val("<TMPL_VAR MSBACKUP_USE_EMAILS>"); 
+		$("#msbackup_use_emails").val("<TMPL_VAR MSBACKUP_USE_EMAILS>");
 	});
 
 	function change_path(to_replace,msid)
 	{
-		$('#finalstorage'+msid+' option').each(function() 
+		$('#finalstorage'+msid+' option').each(function()
 		{
     	var text = $(this).attr('orgval');
-    	$(this).text(text.replace(to_replace, $('#ms_subdir'+msid).val())); 
+    	$(this).text(text.replace(to_replace, $('#ms_subdir'+msid).val()));
 		});
 	}
 
@@ -168,7 +168,7 @@ span#alert_form_close:hover {
 					      <optgroup label="<TMPL_VAR GENERAL.STORAGE_USB>">
 							<TMPL_LOOP USBDEVICES_WORKDIR>
 							<option value="<TMPL_VAR USBSTORAGE_DEVICEPATH>">#<TMPL_VAR USBSTORAGE_NO> <TMPL_VAR USBSTORAGE_DEVICE> <TMPL_VAR GENERAL.USB_STORAGE_ROOT_DROPDOWN_TEXT></option>
-							</TMPL_LOOP>	
+							</TMPL_LOOP>
 					      </optgroup>
 					    </select>
 					</DIV>
@@ -219,7 +219,7 @@ span#alert_form_close:hover {
 
 			<script>
 				$("#workdir_path").val('<TMPL_VAR WORKDIR_PATH>');
-				$( document ).ready(function() 
+				$( document ).ready(function()
 				{
 					$("#workdir_path-button").remove(); $("#workdir_path").css('display','').selectmenu( "menuWidget" ); $("#workdir_path").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
 					$("#workdir_path_subdir").val('<TMPL_VAR WORKDIR_PATH_SUBDIR>');
@@ -248,7 +248,7 @@ span#alert_form_close:hover {
 											<option value="0"><TMPL_VAR LOGGING.LOGLEVEL0></option>
 										<optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_NOTIFY>">
 											<option value="1"><TMPL_VAR LOGGING.LOGLEVEL1></option>
-											<option value="2"><TMPL_VAR LOGGING.LOGLEVEL2></option> 
+											<option value="2"><TMPL_VAR LOGGING.LOGLEVEL2></option>
 											<option value="3"><TMPL_VAR LOGGING.LOGLEVEL3></option>
 										</optgroup>
 										<optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_NORMAL>">
@@ -272,13 +272,13 @@ span#alert_form_close:hover {
 							function post_value (action, pluginmd5, value)
 							{
 								console.log("Action:", action, "Plugin-MD5:", pluginmd5, "Value:", value);
-								$.post ( '/admin/system/tools/ajax-config-handler.cgi', 
+								$.post ( '/admin/system/tools/ajax-config-handler.cgi',
 									{ 	action: action,
 										value: value,
 										pluginmd5: pluginmd5
 									});
 							}
-							$( document ).ready(function() 
+							$( document ).ready(function()
 							{
 								$("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>-button").remove();
 								$("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").css('display','').selectmenu( "menuWidget" );
@@ -288,7 +288,7 @@ span#alert_form_close:hover {
 								{
 									var val = $(this).val();
 									console.log("Loglevel", val);
-									post_value('plugin-loglevel', '<TMPL_VAR PLUGINDB_MD5_CHECKSUM>', val); 
+									post_value('plugin-loglevel', '<TMPL_VAR PLUGINDB_MD5_CHECKSUM>', val);
 								});
 							});
 						</script>
@@ -304,7 +304,7 @@ span#alert_form_close:hover {
 	</STYLE>
 	<TMPL_LOOP TEMPLATE_ROW>
 		<DIV style="display:inline-block; width:100%;" class="to_disable_on_save">
-			<DIV id="MS_LOOP_ROW<TMPL_VAR MSID>" style="text-align:left; display:inline-block; margin-bottom:5px; width:99%; padding:10px; border: 1px solid black; border-radius: 5px; background-color: rgba(228,228,228,.1);"> 
+			<DIV id="MS_LOOP_ROW<TMPL_VAR MSID>" style="text-align:left; display:inline-block; margin-bottom:5px; width:99%; padding:10px; border: 1px solid black; border-radius: 5px; background-color: rgba(228,228,228,.1);">
 				<DIV style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(0,228,228,.1);">
 					<TMPL_LOOP NAME="MSROW">
 						#<TMPL_VAR MSID> - <TMPL_VAR Name> <small>[<TMPL_VAR IPAddress>]</small> <span class="PreferHttps<TMPL_VAR PreferHttps>">HTTPS</span><BR>
@@ -329,7 +329,7 @@ span#alert_form_close:hover {
 						      <optgroup label="<TMPL_VAR GENERAL.STORAGE_USB>">
 								<TMPL_LOOP USBDEVICES>
 								<option orgval="[#<TMPL_VAR USBSTORAGE_NO> <TMPL_VAR USBSTORAGE_DEVICE>] <TMPL_VAR GENERAL.USB_STORAGE_ROOT_DROPDOWN_TEXT><TMPL_VAR USBSTORAGE_SUBFOLDER>" value="<TMPL_VAR USBSTORAGE_DEVICEPATH>">[#<TMPL_VAR USBSTORAGE_NO> <TMPL_VAR USBSTORAGE_DEVICE>] <TMPL_VAR GENERAL.USB_STORAGE_ROOT_DROPDOWN_TEXT><TMPL_VAR USBSTORAGE_SUBFOLDER></option>
-								</TMPL_LOOP>	
+								</TMPL_LOOP>
 						      </optgroup>
 						    </select>
 						</DIV>
@@ -391,7 +391,7 @@ span#alert_form_close:hover {
 					</DIV>
 				</DIV>
 				<script>
-					$( document ).ready(function() 
+					$( document ).ready(function()
 					{
 						$("#finalstorage<TMPL_VAR MSID>-button").remove(); $("#finalstorage<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#finalstorage<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
 						$("#backup_interval<TMPL_VAR MSID>-button").remove(); $("#backup_interval<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#backup_interval<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
@@ -407,7 +407,7 @@ span#alert_form_close:hover {
 							validate_clean_objects(['#ms_subdir<TMPL_VAR MSID>']);
 						}
 						else
-						{							
+						{
 							validate_enable('#ms_subdir<TMPL_VAR MSID>');
 						}
 					});
@@ -429,19 +429,19 @@ span#alert_form_close:hover {
 			{
 				if (data > 1)
 				{
-					if ( data > 1073741824 ) 
+					if ( data > 1073741824 )
 					{
 						data = data / 1024 / 1024 / 1024;
 						var displaystring = data.toFixed(2);
 						displaystring = displaystring  + " TB";
 					}
-					else if ( data > 1048576 ) 
+					else if ( data > 1048576 )
 					{
 						data = data / 1024 / 1024;
 						var displaystring = data.toFixed(2);
 						displaystring = displaystring  + " GB";
 					}
-					else if ( data > 1024 ) 
+					else if ( data > 1024 )
 					{
 						data = data / 1024;
 						var displaystring = data.toFixed(2);
@@ -460,7 +460,7 @@ span#alert_form_close:hover {
 			});
 		}
 	}
-	
+
 	function checkState()
 	{
 		if ( $("#msbackup_use_notify").val() == "on" )
@@ -508,7 +508,7 @@ span#alert_form_close:hover {
 				$('.btnbackup_single').addClass('ui-disabled');
 				$("#btnbackup").prop('innerHTML',"<font color='#FF0000'>"+data+"</font>");
 			}
-			else if (data == "-") 
+			else if (data == "-")
 			{
 				$('#btnbackup').removeClass('ui-disabled');
 				$('.btnbackup_single').removeClass('ui-disabled');
@@ -517,7 +517,7 @@ span#alert_form_close:hover {
 			}
 		});
 	}
-	
+
 	function checkNotifications()
 	{
 		if ( $("#notifdeleteall").attr('deleting') != 1 )
@@ -525,8 +525,8 @@ span#alert_form_close:hover {
 			$.ajax({url: '<TMPL_VAR HTMLPATH>/get_notifications.php', type: 'GET', data: { 'package':'<TMPL_VAR LBPPLUGINDIR>', 'name':'<TMPL_VAR GENERAL.MY_NAME>'} }).success(function(data) {  $( '#notifblock' ).html(data).trigger('create'); }) ;
 		}
 	}
-	
-	function make_random_name_for_workdir(length) 
+
+	function make_random_name_for_workdir(length)
 	{
 		var random_name = "";
 		var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -534,7 +534,7 @@ span#alert_form_close:hover {
 			random_name += possible.charAt(Math.floor(Math.random() * possible.length));
 		return random_name;
 	}
-	
+
 	function show_error(error)
 	{
 		// Modal form
@@ -542,7 +542,7 @@ span#alert_form_close:hover {
 		// Build and show....
 		$("#error_message").html("<table style='width:100%;'><tr><td style='width:100%; font-weight:bold;'><TMPL_VAR ERRORS.ERR_TITLE></td></tr><tr><td><hr></td></tr><tr><td>"+error+"</td></tr></table>");
 		$("#alert_form").show();
-		$("#alert_form_close").on('click', function(e){  // close button code. 
+		$("#alert_form_close").on('click', function(e){  // close button code.
 		$('#alert_form').fadeOut('slow');
 	});
 		return;
@@ -550,20 +550,20 @@ span#alert_form_close:hover {
 
 	function save_config()
 	{
-		setTimeout( function() 
-		{ 
+		setTimeout( function()
+		{
 			// Array with POST data to save
 			var postData = {};
-	
+
 			// Add random sleep value
 			postData['random_sleep'] = $('#random_sleep').val();
 
 			// Add general on/off switch
 			postData['msbackup_use'] = $('#msbackup_use').val();
-	
+
 			// Add notify on/off switch
 			postData['msbackup_use_notify'] = $('#msbackup_use_notify').val();
-	
+
 			// Add emails on/off switch
 			postData['msbackup_use_emails'] = $('#msbackup_use_emails').val();
 
@@ -585,7 +585,7 @@ span#alert_form_close:hover {
 
 			// Add workdir_path
 			postData['workdir_path'] = $('#workdir_path').val();
-	
+
 			// Check if workdir_path is a local workdir path (RAM Disk or Loxberry microSD card)
 			if ( $('#workdir_path optgroup[id=localwdp]').children('option:selected').val() == null )
 			{
@@ -593,13 +593,13 @@ span#alert_form_close:hover {
 				// Check, if subdir input field area is invisible
 				if ( $("#local_wdp_div").css('display') == "none" )
 					{
-						// Yes 
-						// Generate random name 
+						// Yes
+						// Generate random name
 						$("#workdir_path_subdir").val(make_random_name_for_workdir(10));
 						// Display the workdir subdir area
 						$("#local_wdp_div").fadeIn(500);
 					}
-				// Check, if subdir is empty 
+				// Check, if subdir is empty
 				if ( $('#workdir_path_subdir').val() == '' )
 				{
 					// Yes, subdir is empty => generate a random name
@@ -608,7 +608,7 @@ span#alert_form_close:hover {
 			}
 			else
 			{
-				// Yes, it's local 
+				// Yes, it's local
 				// Clear subdir
 				$("#workdir_path_subdir").val('');
 				// Hide error message
@@ -616,7 +616,7 @@ span#alert_form_close:hover {
 				// Hide workdir subdir area
 				$("#local_wdp_div").fadeOut(1500);
 			}
-			
+
 			// Retrigger check of correct subdir
 			if ( validate_chk_value('#workdir_path_subdir') )
 			{
@@ -629,10 +629,10 @@ span#alert_form_close:hover {
 				show_error('<TMPL_VAR GENERAL.WORKDIR_SUBDIR_VALIDATE_ERR_TXT>');
 				return;
 			}
-	
+
 			// Go through all miniservers
 			var early_error=0;
-			miniservers.forEach(function(miniserver_id) 
+			miniservers.forEach(function(miniserver_id)
 			{
 				// Add values per Miniserver
 				postData['backup_interval'+miniserver_id] = $('#backup_interval'+miniserver_id).val();
@@ -681,40 +681,40 @@ span#alert_form_close:hover {
 					postData['finalstorage'+miniserver_id] = $('#finalstorage'+miniserver_id).val();
 				}
 
-			});		
-	
+			});
+
 			if ( early_error == 1 )
 			{
 				return;
 			}
-	
-			// Disable input fields and buttons			
+
+			// Disable input fields and buttons
 			$('.to_disable_on_save').addClass('ui-disabled');
-	
+
 			// Empty variables
 	       	var object_to_be_saved = "";
-	       	
+
 	       	// Send datas
 			$.ajax({url: '<TMPL_VAR HTMLPATH>ajax_config_handler.php', type: 'POST', data : postData,
-	            success: function (data) 
+	            success: function (data)
 	            {
 		            eval(data);
 					// Enable input fields and buttons
 					$('.to_disable_on_save').removeClass('ui-disabled');
 	            },
-	            error: function (errorThrown) 
+	            error: function (errorThrown)
 	            {
 		            show_error('<TMPL_VAR ERRORS.ERR_SAVE_CONFIG_FILE>');
 	                console.log('<TMPL_VAR GENERAL.MY_NAME> function save_config failed: Error => ' + errorThrown.status + ' => ' + errorThrown.statusText);
 					// Enable input fields and buttons
 	    			$('.to_disable_on_save').removeClass('ui-disabled');
-			    }	
+			    }
 	        });
 	       	setTimeout( function() { checkSpace();  }, 500);
 		}, 500);
 	}
-	
-	$( document ).ready(function() 
+
+	$( document ).ready(function()
 	{
 		if(  $('#workdir_path optgroup[id=localwdp]').children("option:selected").val() != null)
 		{

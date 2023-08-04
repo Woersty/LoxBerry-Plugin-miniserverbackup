@@ -5,9 +5,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,7 +31,7 @@ use HTML::Entities;
 use warnings;
 no warnings 'uninitialized';
 use strict;
-no  strict "refs"; 
+no  strict "refs";
 require Time::Piece;
 
 ##########################################################################
@@ -69,7 +69,7 @@ my @tag_cfg_data;
 my @msrow;
 my @ms;
 my %row_gen;
-my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup Admin-UI' ); 
+my $log 						= LoxBerry::Log->new ( name => 'Miniserverbackup Admin-UI' );
 my $do="form";
 my $which="0";
 my $msDisabled;
@@ -81,7 +81,7 @@ our @language_strings;
 # Read Settings
 ##########################################################################
 
-# Version 
+# Version
 my $version = LoxBerry::System::pluginversion();
 my $plugin = LoxBerry::System::plugindata();
 $LoxBerry::System::DEBUG 	= 1 if $plugin->{PLUGINDB_LOGLEVEL} eq 7;
@@ -97,7 +97,7 @@ $cgi->import_names('R');
 if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 {
 	no strict 'subs';
-	foreach (sort keys %R::) 
+	foreach (sort keys %R::)
 	{
 		LOGDEB "Variable => R::$_ = " . eval '$'. R . "::$_"  ;
 	}
@@ -137,7 +137,7 @@ my $errortemplate = HTML::Template->new(
 $error_message = $ERR{'ERRORS.ERR_0029_PROBLEM_WITH_STATE_FILE'};
 if ( -f $backupstate_tmp_file )
 {
-	if ((time - (stat $backupstate_tmp_file)[9]) > (120 * 60)) 
+	if ((time - (stat $backupstate_tmp_file)[9]) > (120 * 60))
 	{
 	  	my $filename = $backupstate_tmp_file;
 		open(my $fh, '>', $filename) or &error;
@@ -162,10 +162,10 @@ if (! -l $backupstate_file)
 }
 
 stat($lbpconfigdir . "/" . $pluginconfigfile);
-if (!-r _ || -z _ ) 
+if (!-r _ || -z _ )
 {
 	$error_message = $ERR{'ERRORS.ERR_0030_ERROR_CREATE_CONFIG_DIRECTORY'};
-	mkdir $lbpconfigdir unless -d $lbpconfigdir or &error; 
+	mkdir $lbpconfigdir unless -d $lbpconfigdir or &error;
 	$error_message = $ERR{'ERRORS.ERR_0031_ERROR_CREATE_CONFIG_FILE'};
 	open my $configfileHandle, ">", $lbpconfigdir . "/" . $pluginconfigfile or &error;
 		print $configfileHandle "[MSBACKUP]\r\n";
@@ -177,7 +177,7 @@ if (!-r _ || -z _ )
 		print $configfileHandle "RANDOM_SLEEP=$random\r\n";
 	close $configfileHandle;
 	$error_message = $ERR{'MINISERVERBACKUP.INF_0070_CREATE_CONFIG_OK'};
-	&error; 
+	&error;
 }
 
 # Get plugin config
@@ -190,13 +190,13 @@ $error_message      = $ERR{'ERRORS.ERR_0028_ERROR_READING_CFG'}. "<br>" . Config
 LOGDEB "Plugin config read.";
 if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 {
-	foreach (sort keys %Config) 
-	{ 
-		LOGDEB "Plugin config line => ".$_."=".$Config{$_}; 
-	} 
+	foreach (sort keys %Config)
+	{
+		LOGDEB "Plugin config line => ".$_."=".$Config{$_};
+	}
 }
 	my $miniservercount;
-	
+
 	my %miniservers;
 	my $mscfg = new Config::Simple("$lbhomedir/config/system/general.cfg") or return undef;
 	$miniservercount = $mscfg->param("BASE.MINISERVERS") or Carp::carp ("BASE.MINISERVERS is 0 or not defined in general.cfg\n");
@@ -222,22 +222,22 @@ if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 		$miniservers{$msnr}{SecureGateway} = $mscfg->param("MINISERVER$msnr.SECUREGATEWAY");
 		$miniservers{$msnr}{EncryptResponse} = $mscfg->param("MINISERVER$msnr.ENCRYPTRESPONSE");
 
-		if ( ($miniservers{$msnr}{UseCloudDNS} eq "on" || $miniservers{$msnr}{UseCloudDNS} eq "1" ) && ( $miniservers{$msnr}{CloudURL} ne ""  || $miniservers{$msnr}{CloudURL} ne "0" )) 
+		if ( ($miniservers{$msnr}{UseCloudDNS} eq "on" || $miniservers{$msnr}{UseCloudDNS} eq "1" ) && ( $miniservers{$msnr}{CloudURL} ne ""  || $miniservers{$msnr}{CloudURL} ne "0" ))
 		{
 			$miniservers{$msnr}{IPAddress} = "CloudDNS";
 		}
-		$error_message = $ERR{'ERRORS.ERR_0033_MS_CONFIG_NO_IP'}."<br>".$ERR{'ERRORS.ERR_0034_MS_CONFIG_NO_IP_SUGGESTION'};  
-		&error if (!$miniservers{$msnr}{IPAddress});	
-	}               
-               
+		$error_message = $ERR{'ERRORS.ERR_0033_MS_CONFIG_NO_IP'}."<br>".$ERR{'ERRORS.ERR_0034_MS_CONFIG_NO_IP_SUGGESTION'};
+		&error if (!$miniservers{$msnr}{IPAddress});
+	}
+
 LOGDEB "Miniserver config read.";
 if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 {
-	foreach (sort keys %miniservers) 
-	{ 
+	foreach (sort keys %miniservers)
+	{
 		 LOGDEB "Miniserver #$_ Name => ".$miniservers{$_}{'Name'};
 		 LOGDEB "Miniserver #$_ IP   => ".$miniservers{$_}{'IPAddress'};
-	} 
+	}
 }
 my $maintemplate = HTML::Template->new(
 		filename => $lbptemplatedir . "/" . $maintemplatefilename,
@@ -316,7 +316,7 @@ LOGEND "";
 exit;
 
 #####################################################
-# 
+#
 # Subroutines
 #
 #####################################################
@@ -325,7 +325,7 @@ exit;
 # Form-Sub
 #####################################################
 
-	sub form 
+	sub form
 	{
 		# The page title read from language file + our name
 		$template_title = $L{"GENERAL.MY_NAME"};
@@ -335,19 +335,19 @@ exit;
 
 	my @template_row;
 	my @general_row;
-	for ($ms_id = 1; $ms_id<=$miniservercount; $ms_id++) 
-	{ 
+	for ($ms_id = 1; $ms_id<=$miniservercount; $ms_id++)
+	{
 	my @row;
 	my %row;
 	$backup_intervals = "";
 		 LOGDEB "Miniserver $ms_id Name => ".$miniservers{$ms_id}{'Name'};
 		 LOGDEB "Miniserver $ms_id IP   => ".$miniservers{$ms_id}{'IPAddress'};
-		
+
 		my %ms;
 		$ms{Name} 			= $miniservers{$ms_id}{'Name'};
 		$ms{IPAddress} 		= $miniservers{$ms_id}{'IPAddress'};
 		$ms{PreferHttps} 	= $miniservers{$ms_id}{'PreferHttps'};
-		
+
 		if ( $ms{PreferHttps} eq "1" )
 		{
 			$ms{Port} 		= $miniservers{$ms_id}{'PortHttps'};
@@ -377,7 +377,7 @@ exit;
 		my @netshares_subdir_subfolder;
 		my @netshares_workdir;
 		my @netshares_for_workdir;
-		foreach my $netshare (@netshares) 
+		foreach my $netshare (@netshares)
 		{
   			$netshares_plus_subfolder[$nsc]{NETSHARE_SHARENAME} = $netshare->{NETSHARE_SHARENAME};
   			$netshares_plus_subfolder[$nsc]{NETSHARE_SUBFOLDER} = "/".sprintf("%03d", $ms_id)."_".$ms{Name};
@@ -405,7 +405,7 @@ exit;
 		my @usbdevices_subdir_subfolder;
 		my @usbdevices_workdir;
 		my @usbdevices_for_workdir;
-		foreach my $usbdevice (@usbdevices) 
+		foreach my $usbdevice (@usbdevices)
 		{
   			$usbdevices_plus_subfolder[$udc]{USBSTORAGE_DEVICE} 	= $usbdevice->{USBSTORAGE_DEVICE};
   			$usbdevices_plus_subfolder[$udc]{USBSTORAGE_SUBFOLDER} 	= sprintf("%03d", $ms_id)."_".$ms{Name};
@@ -448,7 +448,7 @@ exit;
 			        $row_gen{'USBDEVICES_WORKDIR'} 				= \@usbdevices_workdir;
 					$row_gen{'AUTOSAVE_WORKDIR'}				= 1 if ( $Config{"MINISERVERBACKUP.WORKDIR_PATH"} eq "" );
 		}
-		
+
 		push @{ $row{'MSROW'} }					, \%ms;
 		        $row{'MSID'} 					= $ms_id;
 				$row{'NETSHARES'} 				= \@netshares_converted;
@@ -475,35 +475,35 @@ exit;
  				$row{'LAST_REBOOT'}				= $L{"GENERAL.NO_LAST_REBOOT_INFO"};
 	  			$row{'LAST_REBOOT'}				= $Config{"MINISERVERBACKUP.LAST_REBOOT".$ms_id} if ( $Config{"MINISERVERBACKUP.LAST_REBOOT".$ms_id} ne "" );
 
-				foreach  (  sort { $a <=> $b } @backup_interval_minutes) 
-				{ 
+				foreach  (  sort { $a <=> $b } @backup_interval_minutes)
+				{
 					$backup_intervals = $backup_intervals . '<OPTION value="'.$_.'"> '.$L{"MINISERVERBACKUP.INTERVAL".$_}.' </OPTION>' if ( $_ ne "" );
 				}
 				LOGDEB "Backup intervals for MS# $ms_id (".$ms{Name}."): ".join(',',@backup_interval_minutes)." current is: ".$row{'CURRENT_INTERVAL'};
 				$row{'BACKUP_INTERVAL_VALUE'} 	= $backup_intervals;
 
 				my $file_formats="";
-				foreach  (  sort { $a cmp $b } @file_formats) 
-				{ 
+				foreach  (  sort { $a cmp $b } @file_formats)
+				{
 					$file_formats = $file_formats . '<OPTION value="'.$_.'"> '.$L{"MINISERVERBACKUP.FILE_FORMAT_" . uc $_ }.' </OPTION>' if ( $_ ne "" );
 				}
 				LOGDEB "File formats for MS# $ms_id (".$ms{Name}."): ".join(',',@file_formats)." current is: ".$row{'CURRENT_FILE_FORMAT'};
 				$row{'BACKUP_FILE_FORMAT'} 	= $file_formats;
 
 				my $backups_to_keep=0;
-				foreach  (  sort { $a <=> $b } %backups_to_keep_values) 
-				{ 
+				foreach  (  sort { $a <=> $b } %backups_to_keep_values)
+				{
 					$backups_to_keep = $backups_to_keep . '<OPTION value="'.$_.'"> '.$_.' </OPTION>' if ( $_ ne "" );
 				}
 				LOGDEB "Backups to keep for MS# $ms_id (".$ms{Name}."): ".join(',',%backups_to_keep_values)." current is: ".$row{'CURRENT_BACKUPS_TO_KEEP'};
 				$row{'BACKUPS_TO_KEEP_VALUE'} 	= $backups_to_keep;
-				
+
 				LOGDEB "Current storage for MS# $ms_id (".$ms{Name}."): ".$row{'CURRENT_STORAGE'};
 				LOGDEB "Curren MS# $ms_id (".$ms{Name}.") is disabled because of invalid IP. Can happen if CloudDNS is not reachable." if ( $msDisabled eq "1" );
-				
+
 
 		push(@template_row, \%row);
-	}	
+	}
 	push(@general_row, \%row_gen);
 	$maintemplate->param("TEMPLATE_ROW" => \@template_row);
 	$maintemplate->param("GENERAL_ROW" => \@general_row);
@@ -518,7 +518,7 @@ exit;
 #####################################################
 # Error-Sub
 #####################################################
-sub error 
+sub error
 {
 	LOGDEB "Sub error";
 	LOGERR 	"[".localtime()."] ".$error_message;
@@ -540,7 +540,7 @@ sub error
 ## Manual backup-Sub
 ######################################################
 #
-	sub backup 
+	sub backup
 	{
 		print "Content-Type: text/plain\n\n";
 		# Create Backup
@@ -549,7 +549,7 @@ sub error
 		# background process via CGI
 		my $pid = fork();
 		die "Fork failed: $!" if !defined $pid;
-		if ($pid == 0) 
+		if ($pid == 0)
 		{
 			 # do this in the child
 			 open STDIN, "</dev/null";
