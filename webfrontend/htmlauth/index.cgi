@@ -463,6 +463,7 @@ exit;
 				$row{'CURRENT_INTERVAL'}		= $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} if ( $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} ne "" );
 				$row{'CURRENT_INTERVAL'}		= 60 if ( $Config{"MINISERVERBACKUP.BACKUP_INTERVAL".$ms_id} eq "30" );
 				$row{'CURRENT_FILE_FORMAT'}		= $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} if ( $Config{"MINISERVERBACKUP.FILE_FORMAT".$ms_id} ne "" );
+				$row{'CURRENT_COMPRESSION'}		= $Config{"MINISERVERBACKUP.COMPRESSION".$ms_id} if ( $Config{"MINISERVERBACKUP.COMPRESSION".$ms_id} ne "" );
 				$row{'CURRENT_BACKUPS_TO_KEEP'}	= $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} if ( $Config{"MINISERVERBACKUP.BACKUPS_TO_KEEP".$ms_id} ne "" );
 				$row{'MS_DISABLED'}	    		= $msDisabled;
 				$row{'CURRENT_MS_SUBDIR'}		= $L{"GENERAL.SUGGEST_MS_SUBDIR"};
@@ -489,6 +490,13 @@ exit;
 				}
 				LOGDEB "File formats for MS# $ms_id (".$ms{Name}."): ".join(',',@file_formats)." current is: ".$row{'CURRENT_FILE_FORMAT'};
 				$row{'BACKUP_FILE_FORMAT'} 	= $file_formats;
+
+				my $backup_compressions="";
+				$backup_compressions = $backup_compressions . '<OPTION value=""> '.$L{"MINISERVERBACKUP.COMPRESSION_DEFAULT" }.' </OPTION>';
+				$backup_compressions = $backup_compressions . '<OPTION value="0"> '.$L{"MINISERVERBACKUP.COMPRESSION_0" }.' </OPTION>';
+				$backup_compressions = $backup_compressions . '<OPTION value="5"> '.$L{"MINISERVERBACKUP.COMPRESSION_5" }.' </OPTION>';
+				$backup_compressions = $backup_compressions . '<OPTION value="9"> '.$L{"MINISERVERBACKUP.COMPRESSION_9" }.' </OPTION>';
+				$row{'BACKUP_COMPRESSION'}  = $backup_compressions;
 
 				my $backups_to_keep=0;
 				foreach  (  sort { $a <=> $b } %backups_to_keep_values)

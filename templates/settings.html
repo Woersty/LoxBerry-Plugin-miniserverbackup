@@ -363,6 +363,16 @@ span#alert_form_close:hover {
 					</DIV>
 					<DIV style="display:table-row;">
 						<DIV style="display:table-cell; text-align:right;">
+							<TMPL_VAR GENERAL.BACKUP_COMPRESSION_TXT>
+						</DIV>
+						<DIV style="display:table-cell; ">
+						    <select name="compression<TMPL_VAR MSID>" id="compression<TMPL_VAR MSID>" class="to_save">
+								<TMPL_VAR BACKUP_COMPRESSION>
+						    </select>
+						</DIV>
+					</DIV>
+					<DIV style="display:table-row;">
+						<DIV style="display:table-cell; text-align:right;">
 							<TMPL_VAR GENERAL.BACKUPS_TO_KEEP_TXT>
 						</DIV>
 						<DIV style="display:table-cell; ">
@@ -396,10 +406,12 @@ span#alert_form_close:hover {
 						$("#finalstorage<TMPL_VAR MSID>-button").remove(); $("#finalstorage<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#finalstorage<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
 						$("#backup_interval<TMPL_VAR MSID>-button").remove(); $("#backup_interval<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#backup_interval<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
 						$("#file_format<TMPL_VAR MSID>-button").remove(); $("#file_format<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#file_format<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
+						$("#compression<TMPL_VAR MSID>-button").remove(); $("#compression<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#compression<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
 						$("#backups_to_keep<TMPL_VAR MSID>-button").remove(); $("#backups_to_keep<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#backups_to_keep<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
 						$("#finalstorage<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_STORAGE>');
 						$("#backup_interval<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_INTERVAL>');
 						$("#file_format<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_FILE_FORMAT>');
+						$("#compression<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_COMPRESSION>');
 						$("#backups_to_keep<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_BACKUPS_TO_KEEP>');
 						if ( "<TMPL_VAR MS_DISABLED>" == "1" )
 						{
@@ -637,6 +649,7 @@ span#alert_form_close:hover {
 				// Add values per Miniserver
 				postData['backup_interval'+miniserver_id] = $('#backup_interval'+miniserver_id).val();
 				postData['file_format'+miniserver_id] = $('#file_format'+miniserver_id).val();
+				postData['compression'+miniserver_id] = $('#compression'+miniserver_id).val();
 				postData['backups_to_keep'+miniserver_id] = $('#backups_to_keep'+miniserver_id).val();
 				// Check of customized subdir
 

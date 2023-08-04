@@ -1383,6 +1383,22 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 		    case "7Z":
 		        $fileformat = "7Z";
 		        $fileformat_extension = ".7z";
+				switch (strtoupper($plugin_cfg["COMPRESSION".$msno]))
+				{
+					case "0":
+						$compression = "-m0=copy ";
+						break;
+					case "5":
+						$compression = "-mx5 ";
+						break;
+					case "9":
+						$compression = "-mx9 ";
+						break;
+					default:
+						$compression = "";
+						break;
+				}
+				debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0171_COMPRESSION"]." ".$L["MINISERVERBACKUP.COMPRESSION_".$plugin_cfg["COMPRESSION".$msno]],6);
 		        break;
 			default:
 				debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0036_UNKNOWN_FILE_FORMAT"]." ".strtoupper($plugin_cfg["FILE_FORMAT".$msno]),4);
@@ -1443,37 +1459,37 @@ for ( $msno = 1; $msno <= count($ms); $msno++ )
 				{
 					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0072_ZIP_PREVIOUS_BACKUP_FOUND"]." ".$latest_filename,5);
 					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0157_ZIP_CHECK_BACKUP_FOUND"]." ".$latest_filename,5);
-					exec('7za l '.$bkp_dest_dir.'/'.$bkpfolder.'/'.$latest_filename.' |grep -v "/" | grep '.$bkpfolder.'|wc -l', $seven_zip_check);
+					exec('7za l '.$compression.$bkp_dest_dir.'/'.$bkpfolder.'/'.$latest_filename.' | grep -v "/" | grep '.$bkpfolder.' | wc -l', $seven_zip_check);
 					debug(__line__,"MS#".$msno." Old Format=".intval(implode("\n",$seven_zip_check)));
 					if (intval(implode("\n",$seven_zip_check)) == 1)
 					{
 						debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0158_ZIP_CHECK_BACKUP_OLD_FORMAT"],4);
-						exec('7za a '.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension).' '.escapeshellcmd($savedir_path.'/'.$bkpfolder).'/* -ms=off -mx=9 -t7z 2>&1', $seven_zip_output);
+						exec('7za a '.$compression.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension).' '.escapeshellcmd($savedir_path.'/'.$bkpfolder).'/* -ms=off -mx=9 -t7z 2>&1', $seven_zip_output);
 					}
 					else
 					{
 						debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0164_ZIP_CHECK_INTEGRITY"],5);
-						exec('7za t '.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$latest_filename).' 2>&1', $seven_zip_check_output);
+						exec('7za t '.$compression.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$latest_filename).' 2>&1', $seven_zip_check_output);
 						$seven_zip_check_output = implode("\n",$seven_zip_check_output);
 						if (preg_match('~Everything\sis\sOk~', $seven_zip_check_output, $m ) == 1)
 						{
 							debug(__line__,"MS#".$msno." OK: ".$seven_zip_check_output);
 							debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0156_ZIP_SEEMS_NOT_TO_BE_IN_OLD_FORMAT"],5);
 							copy($bkp_dest_dir.'/'.$bkpfolder.'/'.$latest_filename, $bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension);
-							exec('7za u '.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension).' '.escapeshellcmd($savedir_path.'/'.$bkpfolder).'/* -ms=off -mx=9 -t7z -up0q3r2x2y2z0w2!'.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.'Incremental_'.$bkpdir.$fileformat_extension).' 2>&1', $seven_zip_output);
+							exec('7za u '.$compression.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension).' '.escapeshellcmd($savedir_path.'/'.$bkpfolder).'/* -ms=off -mx=9 -t7z -up0q3r2x2y2z0w2!'.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.'Incremental_'.$bkpdir.$fileformat_extension).' 2>&1', $seven_zip_output);
 						}
 						else
 						{
 							debug(__line__,"MS#".$msno." ".$L["ERRORS.ERR_0073_ZIP_CHECK_INTEGRITY_FAIL"],4);
 							debug(__line__,"MS#".$msno." FAIL: ".$seven_zip_check_output,6);
-							exec('7za a '.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension).' '.escapeshellcmd($savedir_path.'/'.$bkpfolder).'/* -ms=off -mx=9 -t7z 2>&1', $seven_zip_output);
+							exec('7za a '.$compression.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension).' '.escapeshellcmd($savedir_path.'/'.$bkpfolder).'/* -ms=off -mx=9 -t7z 2>&1', $seven_zip_output);
 						}
 					}
 				}
 				else
 				{
 					debug(__line__,"MS#".$msno." ".$L["MINISERVERBACKUP.INF_0073_ZIP_NO_PREVIOUS_BACKUP_FOUND"],5);
-					exec('7za a '.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension).' '.escapeshellcmd($savedir_path.'/'.$bkpfolder).'/* -ms=off -mx=9 -t7z 2>&1', $seven_zip_output);
+					exec('7za a '.$compression.escapeshellcmd($bkp_dest_dir.'/'.$bkpfolder.'/'.$bkpdir.$fileformat_extension).' '.escapeshellcmd($savedir_path.'/'.$bkpfolder).'/* -ms=off -mx=9 -t7z 2>&1', $seven_zip_output);
 				}
 				$zipresult=end($seven_zip_output);
 				if ( $zipresult != "Everything is Ok" )
@@ -2696,8 +2712,8 @@ function sort_by_mtime($file1,$file2)
 function get_free_space ( $path )
 {
 	$base=dirname($path);
-	$free = @exec("if [ -d '".escapeshellcmd($path)."' ]; then df -k --output=avail '".escapeshellcmd($path)."' 2>/dev/null |grep -v Avail; fi");
-	if ( $free == "" ) $free = @exec("if [ -d '".escapeshellcmd($base)."' ]; then df -k --output=avail '".escapeshellcmd($base)."' 2>/dev/null |grep -v Avail; fi");
+	$free = @exec("if [ -d '".escapeshellcmd($path)."' ]; then df -k --output=avail '".escapeshellcmd($path)."' 2>/dev/null | grep -v Avail; fi");
+	if ( $free == "" ) $free = @exec("if [ -d '".escapeshellcmd($base)."' ]; then df -k --output=avail '".escapeshellcmd($base)."' 2>/dev/null | grep -v Avail; fi");
 	if ( $free == "" ) $free = "0";
 	return $free*1024;
 }
