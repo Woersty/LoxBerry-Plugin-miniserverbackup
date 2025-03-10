@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright 2016-2019 Christian Woerstenfeld, git@loxberry.woerstenfeld.de
+# Copyright 2016-2025 github.com/mr-manuel
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
