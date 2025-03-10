@@ -8,12 +8,12 @@
 
 /* Fix transparency issue */
 .ui-dialog-titlebar {
-	background-color: #A0CC6A;
+    background-color: #A0CC6A;
 }
 .ui-dialog {
-	background: #FFFFFF !important;
+    background: #FFFFFF !important;
 }
 .ui-corner-all {
-    -webkit-border-radius: .6em; 
-    border-radius: .6em; 
+    -webkit-border-radius: .6em;
+    border-radius: .6em;
 }
