@@ -1,97 +1,118 @@
-<CENTER>
-    <IMG src="<TMPL_VAR LOGO_ICON>">
-    <BR>
-    <b><TMPL_VAR GENERAL.HEADER_TEXT></b>
-    <BR><BR>
-    <TABLE>
-        <TR>
-            <TD>
+<center>
+    <img src="<TMPL_VAR LOGO_ICON>">
+    <br>
+    <b>
+        <TMPL_VAR GENERAL.HEADER_TEXT>
+    </b>
+    <br><br>
+    <table>
+        <tr>
+            <td>
                 <select name="msbackup_use" id="msbackup_use" class="to_save">
-                    <option value="off"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_OFF></option>
-                    <option value="on"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_ON></option>
+                    <option value="off">
+                        <TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_OFF>
+                    </option>
+                    <option value="on">
+                        <TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_ON>
+                    </option>
                 </select>
-            </TD>
-            <TD>
+            </td>
+            <td>
                 <select name="msbackup_use_notify" id="msbackup_use_notify" class="to_save">
-                    <option value="off"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_NOTIFY_OFF></option>
-                    <option value="on"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_NOTIFY_ON></option>
+                    <option value="off">
+                        <TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_NOTIFY_OFF>
+                    </option>
+                    <option value="on">
+                        <TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_NOTIFY_ON>
+                    </option>
                 </select>
-            </TD>
-        </TR>
-    </TABLE>
- </CENTER>
-<BR>
-<DIV id="notifblock">
+            </td>
+        </tr>
+    </table>
+</center>
+<br>
+<div id="notifblock">
     <!-- NOTIFICATIONS //-->
-        <TMPL_VAR NOTIFICATIONS>
-    <!-- NOTIFICATIONS //-->
-</DIV>
-<style>
-#alert_form{ display:none; }
-#alert_form {
-    margin: 0 0 0 0;
-    left: 0px;
-    top: 0px;
-    width: 100%;
-    z-index: 2;
-    height: 100%;
-    max-height: 1080px;
-    position: fixed;
-    background: rgba(70, 71, 72, 0.69);
-}
-#sub_alert_form {
-    width: 240px;
-    height: 110px;
-    margin: 0 auto;
-    background: white;
-    margin-top: 75px;
-    padding: 45px;
-    border: 1px solid #9E9E9E;
-    border-radius: .25em .25em .4em .4em;
-    text-align: center;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-    background-color: rgba(255,225,225,.9);
-}
-#sub_alert_form span {
-    position: relative;
-    float: right;
-    font-weight: 700;
-    margin-top: -40px;
-    height: 15px;
-    font-size: 18px;
-    width: 15px;
-    line-height: 15px;
-    margin-right: -40px;
-    border: 2px solid #ffffff;
-    color: #ffffff;
-    padding: 7px;
-    background-color: rgba(255,128,128,.9);
-}
-
-span#alert_form_close:hover {
-    cursor:pointer;
-    color: #e0190b;
-}
-
-@media screen and (max-width: 440px) {
-    #sub_alert_form {
-        width: 290px;
-        padding: 35px;
-    }
-}
-</style>
-<div id="alert_form" >
-      <div id="sub_alert_form">
-           <span id="alert_form_close"> X </span>
-               <div id="error_message"></div>
-      </div>
+    <TMPL_VAR NOTIFICATIONS>
+        <!-- NOTIFICATIONS //-->
 </div>
-<CENTER>
-    <CENTER>
-        <a id="btnbackup" class="btnbackup_single to_disable_on_save ui-disabled" data-role="button" data-mini="true" onclick="$('.btnbackup_single').addClass('ui-disabled'); clearInterval(watchDog); $('#btnbackup').text('<TMPL_VAR GENERAL.PLEASE_WAIT>'); watchDog = setInterval(function() { checkState(); },2500); $.get('./index.cgi?do=backup');"><TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW></a>
-    </CENTER>
-    <BR><a id="btncancel" class="to_disable_on_save" data-role="button" data-inline="true" data-mini="true" data-icon="arrow-l" href="/admin/system/index.cgi"><TMPL_VAR GENERAL.LABEL_BUTTON_BACK></a>
-</CENTER>
+<style>
+    #alert_form {
+        display: none;
+    }
+
+    #alert_form {
+        margin: 0 0 0 0;
+        left: 0px;
+        top: 0px;
+        width: 100%;
+        z-index: 2;
+        height: 100%;
+        max-height: 1080px;
+        position: fixed;
+        background: rgba(70, 71, 72, 0.69);
+    }
+
+    #sub_alert_form {
+        width: 240px;
+        height: 110px;
+        margin: 0 auto;
+        background: white;
+        margin-top: 75px;
+        padding: 45px;
+        border: 1px solid #9E9E9E;
+        border-radius: .25em .25em .4em .4em;
+        text-align: center;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        background-color: rgba(255, 225, 225, .9);
+    }
+
+    #sub_alert_form span {
+        position: relative;
+        float: right;
+        font-weight: 700;
+        margin-top: -40px;
+        height: 15px;
+        font-size: 18px;
+        width: 15px;
+        line-height: 15px;
+        margin-right: -40px;
+        border: 2px solid #ffffff;
+        color: #ffffff;
+        padding: 7px;
+        background-color: rgba(255, 128, 128, .9);
+    }
+
+    span#alert_form_close:hover {
+        cursor: pointer;
+        color: #e0190b;
+    }
+
+    @media screen and (max-width: 440px) {
+        #sub_alert_form {
+            width: 290px;
+            padding: 35px;
+        }
+    }
+</style>
+<div id="alert_form">
+    <div id="sub_alert_form">
+        <span id="alert_form_close"> X </span>
+        <div id="error_message"></div>
+    </div>
+</div>
+<center>
+    <center>
+        <a id="btnbackup" class="btnbackup_single to_disable_on_save ui-disabled" data-role="button" data-mini="true"
+            onclick="$('.btnbackup_single').addClass('ui-disabled'); clearInterval(watchDog); $('#btnbackup').text('<TMPL_VAR GENERAL.PLEASE_WAIT>'); watchDog = setInterval(function() { checkState(); },2500); $.get('./index.cgi?do=backup');">
+            <TMPL_VAR GENERAL.LABEL_START_BACKUP_NOW>
+        </a>
+    </center>
+    <br><a id="btncancel" class="to_disable_on_save" data-role="button" data-inline="true" data-mini="true"
+        data-icon="arrow-l" href="/admin/system/index.cgi">
+        <TMPL_VAR GENERAL.LABEL_BUTTON_BACK>
+    </a>
+</center>
 <link rel="stylesheet" href="<TMPL_VAR HTMLPATH>style.css" />
 <link rel="stylesheet" type="text/css" href="<TMPL_VAR HTMLPATH>css/elfinder.min.css" />
 <link rel="stylesheet" type="text/css" href="<TMPL_VAR HTMLPATH>css/theme.css" />
@@ -99,129 +120,155 @@ span#alert_form_close:hover {
 <script src="<TMPL_VAR HTMLPATH>js/elfinder.min.js"></script>
 <script src="<TMPL_VAR HTMLPATH>js/i18n/elfinder.<TMPL_VAR ELFINDER_LANG>.js"></script>
 <script type="text/javascript" charset="utf-8">
-    var miniservers=[];
+    var miniservers = [];
     // Documentation for client options:
     // https://github.com/Studio-42/elFinder/wiki/Client-configuration-options
-    $(document).ready(function()
-    {
+    $(document).ready(function () {
         $('#elfinder').elfinder(
-        {
-            defaultView: 'list',
-            width: '100%',
-            sort: 'nameDirsFirst',
-            sortDirect: 'desc',
-            url : '<TMPL_VAR HTMLPATH>php/connector.minimal.php'  // connector URL
-             , lang: '<TMPL_VAR ELFINDER_LANG>'                    // language
-        });
+            {
+                defaultView: 'list',
+                width: '100%',
+                sort: 'nameDirsFirst',
+                sortDirect: 'desc',
+                url: '<TMPL_VAR HTMLPATH>php/connector.minimal.php'  // connector URL
+                , lang: '<TMPL_VAR ELFINDER_LANG>'                    // language
+            });
         $("#msbackup_use-button").remove();
-        $("#msbackup_use").css('display','').selectmenu( "menuWidget" );
-        $("#msbackup_use").addClass( "ui-mini ui-btn ui-corner-all ui-shadow" );
+        $("#msbackup_use").css('display', '').selectmenu("menuWidget");
+        $("#msbackup_use").addClass("ui-mini ui-btn ui-corner-all ui-shadow");
         $("#msbackup_use").val("<TMPL_VAR MSBACKUP_USE>");
 
         $("#msbackup_use_notify-button").remove();
-        $("#msbackup_use_notify").css('display','').selectmenu( "menuWidget" );
-        $("#msbackup_use_notify").addClass( "ui-mini ui-btn ui-corner-all ui-shadow" );
+        $("#msbackup_use_notify").css('display', '').selectmenu("menuWidget");
+        $("#msbackup_use_notify").addClass("ui-mini ui-btn ui-corner-all ui-shadow");
         $("#msbackup_use_notify").val("<TMPL_VAR MSBACKUP_USE_NOTIFY>");
 
         $("#msbackup_use_emails-button").remove();
-        $("#msbackup_use_emails").css('display','').selectmenu( "menuWidget" );
-        $("#msbackup_use_emails").addClass( "ui-mini ui-btn ui-corner-all ui-shadow" );
+        $("#msbackup_use_emails").css('display', '').selectmenu("menuWidget");
+        $("#msbackup_use_emails").addClass("ui-mini ui-btn ui-corner-all ui-shadow");
         $("#msbackup_use_emails").val("<TMPL_VAR MSBACKUP_USE_EMAILS>");
     });
 
-    function change_path(to_replace,msid)
-    {
-        $('#finalstorage'+msid+' option').each(function()
-        {
-        var text = $(this).attr('orgval');
-        $(this).text(text.replace(to_replace, $('#ms_subdir'+msid).val()));
+    function change_path(to_replace, msid) {
+        $('#finalstorage' + msid + ' option').each(function () {
+            var text = $(this).attr('orgval');
+            $(this).text(text.replace(to_replace, $('#ms_subdir' + msid).val()));
         });
     }
 
 </script>
 <!-- Filebrowser //-->
-<DIV id="elfinder"></DIV>
-<CENTER>
-    <BR>
+<div id="elfinder"></div>
+<center>
+    <br>
     <TMPL_LOOP GENERAL_ROW>
         <INPUT type="hidden" id="random_sleep" name="random_sleep" value="<TMPL_VAR RANDOM_SLEEP>">
-        <DIV id="workdir" class="to_disable_on_save" style="text-align:left; display:inline-block; margin-bottom:5px; width:99%; padding:10px; border: 1px solid black; border-radius: 5px; background-color: rgba(228,228,228,.1);">
-            <DIV style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(0,0,228,.1);">
+        <div id="workdir" class="to_disable_on_save"
+            style="text-align:left; display:inline-block; margin-bottom:5px; width:99%; padding:10px; border: 1px solid black; border-radius: 5px; background-color: rgba(228,228,228,.1);">
+            <div
+                style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(0,0,228,.1);">
                 <TMPL_VAR GENERAL.GLOBAL_PARAMETERS>
-            </DIV>
-            <DIV style="display:table;">
-                <DIV style="display:table-row;">
-                    <DIV style="display:table-cell; text-align:right;">
+            </div>
+            <div style="display:table;">
+                <div style="display:table-row;">
+                    <div style="display:table-cell; text-align:right;">
                         <TMPL_VAR GENERAL.WORKDIR_PATH_TXT>
-                    </DIV>
-                    <DIV style="display:table-cell; ">
+                    </div>
+                    <div style="display:table-cell; ">
                         <select name="workdir_path" id="workdir_path" class="to_save">
-                          <optgroup id="localwdp" label="<TMPL_VAR GENERAL.STORAGE_LOCAL>">
-                              <option value="<TMPL_VAR WORKDIR_RAMDISK_VAL>"><TMPL_VAR WORKDIR_RAMDISK_TXT></option>
-                              <option value="<TMPL_VAR WORKDIR_PLUGIN_DATADIR>"><TMPL_VAR WORKDIR_PLUGIN_DATADIR_TXT></option>
-                          </optgroup>
-                          <optgroup label="<TMPL_VAR GENERAL.STORAGE_SHARE>">
-                            <TMPL_LOOP NETSHARES_WORKDIR>
-                            <option value="<TMPL_VAR NETSHARE_SHAREPATH>">\\<TMPL_VAR NETSHARE_SERVER>\<TMPL_VAR NETSHARE_SHARENAME></option>
-                            </TMPL_LOOP>
-                          </optgroup>
-                          <optgroup label="<TMPL_VAR GENERAL.STORAGE_USB>">
-                            <TMPL_LOOP USBDEVICES_WORKDIR>
-                            <option value="<TMPL_VAR USBSTORAGE_DEVICEPATH>">#<TMPL_VAR USBSTORAGE_NO> <TMPL_VAR USBSTORAGE_DEVICE> <TMPL_VAR GENERAL.USB_STORAGE_ROOT_DROPDOWN_TEXT></option>
-                            </TMPL_LOOP>
-                          </optgroup>
+                            <optgroup id="localwdp" label="<TMPL_VAR GENERAL.STORAGE_LOCAL>">
+                                <option value="<TMPL_VAR WORKDIR_RAMDISK_VAL>">
+                                    <TMPL_VAR WORKDIR_RAMDISK_TXT>
+                                </option>
+                                <option value="<TMPL_VAR WORKDIR_PLUGIN_DATADIR>">
+                                    <TMPL_VAR WORKDIR_PLUGIN_DATADIR_TXT>
+                                </option>
+                            </optgroup>
+                            <optgroup label="<TMPL_VAR GENERAL.STORAGE_SHARE>">
+                                <TMPL_LOOP NETSHARES_WORKDIR>
+                                    <option value="<TMPL_VAR NETSHARE_SHAREPATH>">\\<TMPL_VAR NETSHARE_SERVER>\<TMPL_VAR
+                                                NETSHARE_SHARENAME>
+                                    </option>
+                                </TMPL_LOOP>
+                            </optgroup>
+                            <optgroup label="<TMPL_VAR GENERAL.STORAGE_USB>">
+                                <TMPL_LOOP USBDEVICES_WORKDIR>
+                                    <option value="<TMPL_VAR USBSTORAGE_DEVICEPATH>">#<TMPL_VAR USBSTORAGE_NO>
+                                            <TMPL_VAR USBSTORAGE_DEVICE>
+                                                <TMPL_VAR GENERAL.USB_STORAGE_ROOT_DROPDOWN_TEXT>
+                                    </option>
+                                </TMPL_LOOP>
+                            </optgroup>
                         </select>
-                    </DIV>
-                </DIV>
-                <DIV id="local_wdp_div" style="display:table-row;">
-                    <DIV style="display:table-cell; text-align:right; padding-right:5px;">
-                        <label id="label_workdir_path_subdir"><TMPL_VAR GENERAL.WORKDIR_SUBDIR_TXT></label>
-                    </DIV>
-                    <DIV style="display:table-cell; ">
-                        <input onblur="$('#workdir_path').trigger('change')" autocomplete="nope" data-validation-error-msg="<TMPL_VAR GENERAL.WORKDIR_SUBDIR_VALIDATE_ERR_TXT>" data-validation-rule="^[0-9a-zA-Z\ \_\-\.]*$" id="workdir_path_subdir" name="workdir_path_subdir" type="text" class="textfield to_save" placeholder="<TMPL_VAR GENERAL.SUGGEST_WORKDIR>" value="">
-                    </DIV>
-                </DIV>
-                <DIV style="display:table-row;">
-                    <DIV style="display:table-cell; text-align:right; padding-right:5px;">
-                        <br><TMPL_VAR GENERAL.WORKDIR_FREE_SPACE_TXT>
-                    </DIV>
-                    <DIV style="display:table-cell;"><br>
-                        <DIV id="workdir_free_space">?</DIV>
-                    </DIV>
-                </DIV>
-            </DIV>
+                    </div>
+                </div>
+                <div id="local_wdp_div" style="display:table-row;">
+                    <div style="display:table-cell; text-align:right; padding-right:5px;">
+                        <label id="label_workdir_path_subdir">
+                            <TMPL_VAR GENERAL.WORKDIR_SUBDIR_TXT>
+                        </label>
+                    </div>
+                    <div style="display:table-cell; ">
+                        <input onblur="$('#workdir_path').trigger('change')" autocomplete="nope"
+                            data-validation-error-msg="<TMPL_VAR GENERAL.WORKDIR_SUBDIR_VALIDATE_ERR_TXT>"
+                            data-validation-rule="^[0-9a-zA-Z\ \_\-\.]*$" id="workdir_path_subdir"
+                            name="workdir_path_subdir" type="text" class="textfield to_save"
+                            placeholder="<TMPL_VAR GENERAL.SUGGEST_WORKDIR>" value="">
+                    </div>
+                </div>
+                <div style="display:table-row;">
+                    <div style="display:table-cell; text-align:right; padding-right:5px;">
+                        <br>
+                        <TMPL_VAR GENERAL.WORKDIR_FREE_SPACE_TXT>
+                    </div>
+                    <div style="display:table-cell;"><br>
+                        <div id="workdir_free_space">?</div>
+                    </div>
+                </div>
+            </div>
             <hr>
-            <DIV style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(0,222,228,.1);">
+            <div
+                style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(0,222,228,.1);">
                 <TMPL_VAR GENERAL.EMAIL_PARAMETERS>
-            </DIV>
-            <DIV style="display:table;">
-                <DIV style="display:table-row;">
-                    <DIV style="display:table-cell; text-align:right;">
+            </div>
+            <div style="display:table;">
+                <div style="display:table-row;">
+                    <div style="display:table-cell; text-align:right;">
                         <TMPL_VAR GENERAL.SEND_SUMMARY_EMAILS_TXT>
-                    </DIV>
-                    <DIV style="display:table-cell; ">
+                    </div>
+                    <div style="display:table-cell; ">
                         <select name="msbackup_use_emails" id="msbackup_use_emails" class="to_save">
-                            <option value="off"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_OFF></option>
-                            <option value="on"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_ON></option>
-                            <option value="fail"><TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_ERROR></option>
+                            <option value="off">
+                                <TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_OFF>
+                            </option>
+                            <option value="on">
+                                <TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_ON>
+                            </option>
+                            <option value="fail">
+                                <TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_ERROR>
+                            </option>
                         </select>
-                    </DIV>
-                </DIV>
-                <DIV id="email_recipient_div" style="display:table-row;">
-                    <DIV style="display:table-cell; text-align:right; padding-right:5px;">
+                    </div>
+                </div>
+                <div id="email_recipient_div" style="display:table-row;">
+                    <div style="display:table-cell; text-align:right; padding-right:5px;">
                         <TMPL_VAR GENERAL.SUMMARY_EMAILS_RECIPIENT_TXT>
-                    </DIV>
-                    <DIV style="display:table-cell;">
-                        <input onblur="$('#email_recipient').trigger('change')" autocomplete="nope" data-validation-error-msg="<TMPL_VAR GENERAL.EMAIL_RECIPIENTS_VALIDATE_ERROR>" data-validation-rule="special:emails"  id="email_recipient" name="email_recipient" type="text" class="textfield to_save" placeholder="<TMPL_VAR GENERAL.EMAIL_RECIPIENTS_SUGGESTION>" value="<TMPL_VAR EMAIL_RECIPIENT>">
-                    </DIV>
-                </DIV>
-            </DIV>
+                    </div>
+                    <div style="display:table-cell;">
+                        <input onblur="$('#email_recipient').trigger('change')" autocomplete="nope"
+                            data-validation-error-msg="<TMPL_VAR GENERAL.EMAIL_RECIPIENTS_VALIDATE_ERROR>"
+                            data-validation-rule="special:emails" id="email_recipient" name="email_recipient"
+                            type="text" class="textfield to_save"
+                            placeholder="<TMPL_VAR GENERAL.EMAIL_RECIPIENTS_SUGGESTION>"
+                            value="<TMPL_VAR EMAIL_RECIPIENT>">
+                    </div>
+                </div>
+            </div>
 
             <script>
                 $("#workdir_path").val('<TMPL_VAR WORKDIR_PATH>');
-                $( document ).ready(function()
-                {
-                    $("#workdir_path-button").remove(); $("#workdir_path").css('display','').selectmenu( "menuWidget" ); $("#workdir_path").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
+                $(document).ready(function () {
+                    $("#workdir_path-button").remove(); $("#workdir_path").css('display', '').selectmenu("menuWidget"); $("#workdir_path").addClass("ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow");
                     $("#workdir_path_subdir").val('<TMPL_VAR WORKDIR_PATH_SUBDIR>');
                     $("#email_recipient").val('<TMPL_VAR EMAIL_RECIPIENT>');
                     validate_enable('#workdir_path_subdir');
@@ -232,194 +279,251 @@ span#alert_form_close:hover {
             </script>
             <hr>
 
-            <DIV style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(19,172,132,.2);">
+            <div
+                style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(19,172,132,.2);">
                 <TMPL_VAR LOGGING.LOG_AREA>
-            </DIV>
-            <DIV style="display:table;">
-                <DIV style="display:table-row;">
-                    <DIV style="display:table-cell; border-radius: 5px;">
+            </div>
+            <div style="display:table;">
+                <div style="display:table-row;">
+                    <div style="display:table-cell; border-radius: 5px;">
                         <table>
                             <tr>
                                 <td>
                                     <TMPL_VAR LOGGING.LOG_LEVEL>
                                 </td>
                                 <td>
-                                    <select name="loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>" id="loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>" data-mini="true">
-                                            <option value="0"><TMPL_VAR LOGGING.LOGLEVEL0></option>
+                                    <select name="loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>"
+                                        id="loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>" data-mini="true">
+                                        <option value="0">
+                                            <TMPL_VAR LOGGING.LOGLEVEL0>
+                                        </option>
                                         <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_NOTIFY>">
-                                            <option value="1"><TMPL_VAR LOGGING.LOGLEVEL1></option>
-                                            <option value="2"><TMPL_VAR LOGGING.LOGLEVEL2></option>
-                                            <option value="3"><TMPL_VAR LOGGING.LOGLEVEL3></option>
+                                            <option value="1">
+                                                <TMPL_VAR LOGGING.LOGLEVEL1>
+                                            </option>
+                                            <option value="2">
+                                                <TMPL_VAR LOGGING.LOGLEVEL2>
+                                            </option>
+                                            <option value="3">
+                                                <TMPL_VAR LOGGING.LOGLEVEL3>
+                                            </option>
                                         </optgroup>
                                         <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_NORMAL>">
-                                            <option value="4"><TMPL_VAR LOGGING.LOGLEVEL4></option>
-                                            <option value="5"><TMPL_VAR LOGGING.LOGLEVEL5></option>
+                                            <option value="4">
+                                                <TMPL_VAR LOGGING.LOGLEVEL4>
+                                            </option>
+                                            <option value="5">
+                                                <TMPL_VAR LOGGING.LOGLEVEL5>
+                                            </option>
                                         </optgroup>
                                         <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_FREAKS>">
-                                            <option value="6"><TMPL_VAR LOGGING.LOGLEVEL6></option>
+                                            <option value="6">
+                                                <TMPL_VAR LOGGING.LOGLEVEL6>
+                                            </option>
                                         </optgroup>
                                         <optgroup label="<TMPL_VAR LOGGING.LOGLEVEL_GROUP_DEVELOPMENT>">
-                                            <option value="7"><TMPL_VAR LOGGING.LOGLEVEL7></option>
+                                            <option value="7">
+                                                <TMPL_VAR LOGGING.LOGLEVEL7>
+                                            </option>
                                         </optgroup>
                                     </select>
                                 </td>
                                 <td>
-                                    <button onclick="window.open('/admin/system/logmanager.cgi?package=miniserverbackup-ng', 'log'); return false;" id="logview" data-role="button" data-inline="true" data-mini="true"><TMPL_VAR LOGGING.LOG_MGR></button>
+                                    <button
+                                        onclick="window.open('/admin/system/logmanager.cgi?package=miniserverbackup-ng', 'log'); return false;"
+                                        id="logview" data-role="button" data-inline="true" data-mini="true">
+                                        <TMPL_VAR LOGGING.LOG_MGR>
+                                    </button>
                                 </td>
                             </tr>
                         </table>
                         <script>
-                            function post_value (action, pluginmd5, value)
-                            {
+                            function post_value(action, pluginmd5, value) {
                                 console.log("Action:", action, "Plugin-MD5:", pluginmd5, "Value:", value);
-                                $.post ( '/admin/system/tools/ajax-config-handler.cgi',
-                                    {     action: action,
+                                $.post('/admin/system/tools/ajax-config-handler.cgi',
+                                    {
+                                        action: action,
                                         value: value,
                                         pluginmd5: pluginmd5
                                     });
                             }
-                            $( document ).ready(function()
-                            {
+                            $(document).ready(function () {
                                 $("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>-button").remove();
-                                $("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").css('display','').selectmenu( "menuWidget" );
-                                $("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
+                                $("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").css('display', '').selectmenu("menuWidget");
+                                $("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").addClass("ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow");
                                 $("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").val("<TMPL_VAR LOGLEVEL>");
-                                $("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").change(function()
-                                {
+                                $("#loglevel<TMPL_VAR PLUGINDB_MD5_CHECKSUM>").change(function () {
                                     var val = $(this).val();
                                     console.log("Loglevel", val);
                                     post_value('plugin-loglevel', '<TMPL_VAR PLUGINDB_MD5_CHECKSUM>', val);
                                 });
                             });
                         </script>
-                     </DIV>
-                </DIV>
-            </DIV>
-        </DIV>
+                    </div>
+                </div>
+            </div>
+        </div>
     </TMPL_LOOP>
     <br><br>
-    <STYLE>
-    .PreferHttps1 {    border-style: solid; border-width: thin; border-radius: 5px; background: #C0FFC0; padding: 2px; font-size:10px; }
-    .PreferHttps0 {    visibility: hidden; }
-    </STYLE>
+    <style>
+        .PreferHttps1 {
+            border-style: solid;
+            border-width: thin;
+            border-radius: 5px;
+            background: #C0FFC0;
+            padding: 2px;
+            font-size: 10px;
+        }
+
+        .PreferHttps0 {
+            visibility: hidden;
+        }
+    </style>
     <TMPL_LOOP TEMPLATE_ROW>
-        <DIV style="display:inline-block; width:100%;" class="to_disable_on_save">
-            <DIV id="MS_LOOP_ROW<TMPL_VAR MSID>" style="text-align:left; display:inline-block; margin-bottom:5px; width:99%; padding:10px; border: 1px solid black; border-radius: 5px; background-color: rgba(228,228,228,.1);">
-                <DIV style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(0,228,228,.1);">
+        <div style="display:inline-block; width:100%;" class="to_disable_on_save">
+            <div id="MS_LOOP_ROW<TMPL_VAR MSID>"
+                style="text-align:left; display:inline-block; margin-bottom:5px; width:99%; padding:10px; border: 1px solid black; border-radius: 5px; background-color: rgba(228,228,228,.1);">
+                <div
+                    style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(0,228,228,.1);">
                     <TMPL_LOOP NAME="MSROW">
-                        #<TMPL_VAR MSID> - <TMPL_VAR Name> <small>[<TMPL_VAR IPAddress>]</small> <span class="PreferHttps<TMPL_VAR PreferHttps>">HTTPS</span><BR>
+                        #<TMPL_VAR MSID> - <TMPL_VAR Name> <small>[<TMPL_VAR IPAddress>]</small> <span
+                                    class="PreferHttps<TMPL_VAR PreferHttps>">HTTPS</span><br>
                     </TMPL_LOOP>
-                    <a id="btnbackup_single<TMPL_VAR MSID>" class="ui-disabled btnbackup_single to_disable_on_save" data-role="button" data-icon="clock" data-mini="true" onclick="$('.btnbackup_single').addClass('ui-disabled'); clearInterval(watchDog); $('#btnbackup').text('<TMPL_VAR GENERAL.PLEASE_WAIT>'); watchDog = setInterval(function() { checkState(); },2500); $.get('./index.cgi?do=backup&which=<TMPL_VAR MSID>'); "><TMPL_VAR GENERAL.LABEL_START_ONE_BACKUP_NOW></a>
-                </DIV>
-                <DIV style="display:table;">
-                    <DIV style="display:table-row;">
-                        <DIV style="display:table-cell; text-align:right;">
+                    <a id="btnbackup_single<TMPL_VAR MSID>" class="ui-disabled btnbackup_single to_disable_on_save"
+                        data-role="button" data-icon="clock" data-mini="true"
+                        onclick="$('.btnbackup_single').addClass('ui-disabled'); clearInterval(watchDog); $('#btnbackup').text('<TMPL_VAR GENERAL.PLEASE_WAIT>'); watchDog = setInterval(function() { checkState(); },2500); $.get('./index.cgi?do=backup&which=<TMPL_VAR MSID>'); ">
+                        <TMPL_VAR GENERAL.LABEL_START_ONE_BACKUP_NOW>
+                    </a>
+                </div>
+                <div style="display:table;">
+                    <div style="display:table-row;">
+                        <div style="display:table-cell; text-align:right;">
                             <TMPL_VAR GENERAL.FINAL_STORAGE_TXT>
-                        </DIV>
-                        <DIV style="display:table-cell; ">
+                        </div>
+                        <div style="display:table-cell; ">
                             <select name="finalstorage<TMPL_VAR MSID>" id="finalstorage<TMPL_VAR MSID>" class="to_save">
-                              <optgroup label="<TMPL_VAR GENERAL.STORAGE_LOCAL>">
-                                  <option orgval="<TMPL_VAR LOCALSTORAGENAME>" value="<TMPL_VAR LOCALSTORAGE>"><TMPL_VAR LOCALSTORAGENAME></option>
-                              </optgroup>
-                              <optgroup label="<TMPL_VAR GENERAL.STORAGE_SHARE>">
-                                <TMPL_LOOP NETSHARES>
-                                <option orgval="[<TMPL_VAR NETSHARE_SERVER>] /<TMPL_VAR NETSHARE_SHARENAME><TMPL_VAR NETSHARE_SUBFOLDER>" value="<TMPL_VAR NETSHARE_SHAREPATH>">[<TMPL_VAR NETSHARE_SERVER>] /<TMPL_VAR NETSHARE_SHARENAME><TMPL_VAR NETSHARE_SUBFOLDER></option>
-                                </TMPL_LOOP>
-                              </optgroup>
-                              <optgroup label="<TMPL_VAR GENERAL.STORAGE_USB>">
-                                <TMPL_LOOP USBDEVICES>
-                                <option orgval="[#<TMPL_VAR USBSTORAGE_NO> <TMPL_VAR USBSTORAGE_DEVICE>] <TMPL_VAR GENERAL.USB_STORAGE_ROOT_DROPDOWN_TEXT><TMPL_VAR USBSTORAGE_SUBFOLDER>" value="<TMPL_VAR USBSTORAGE_DEVICEPATH>">[#<TMPL_VAR USBSTORAGE_NO> <TMPL_VAR USBSTORAGE_DEVICE>] <TMPL_VAR GENERAL.USB_STORAGE_ROOT_DROPDOWN_TEXT><TMPL_VAR USBSTORAGE_SUBFOLDER></option>
-                                </TMPL_LOOP>
-                              </optgroup>
+                                <optgroup label="<TMPL_VAR GENERAL.STORAGE_LOCAL>">
+                                    <option orgval="<TMPL_VAR LOCALSTORAGENAME>" value="<TMPL_VAR LOCALSTORAGE>">
+                                        <TMPL_VAR LOCALSTORAGENAME>
+                                    </option>
+                                </optgroup>
+                                <optgroup label="<TMPL_VAR GENERAL.STORAGE_SHARE>">
+                                    <TMPL_LOOP NETSHARES>
+                                        <option
+                                            orgval="[<TMPL_VAR NETSHARE_SERVER>] /<TMPL_VAR NETSHARE_SHARENAME><TMPL_VAR NETSHARE_SUBFOLDER>"
+                                            value="<TMPL_VAR NETSHARE_SHAREPATH>">[<TMPL_VAR NETSHARE_SERVER>] /
+                                                <TMPL_VAR NETSHARE_SHARENAME>
+                                                    <TMPL_VAR NETSHARE_SUBFOLDER>
+                                        </option>
+                                    </TMPL_LOOP>
+                                </optgroup>
+                                <optgroup label="<TMPL_VAR GENERAL.STORAGE_USB>">
+                                    <TMPL_LOOP USBDEVICES>
+                                        <option
+                                            orgval="[#<TMPL_VAR USBSTORAGE_NO> <TMPL_VAR USBSTORAGE_DEVICE>] <TMPL_VAR GENERAL.USB_STORAGE_ROOT_DROPDOWN_TEXT><TMPL_VAR USBSTORAGE_SUBFOLDER>"
+                                            value="<TMPL_VAR USBSTORAGE_DEVICEPATH>">[#<TMPL_VAR USBSTORAGE_NO>
+                                                <TMPL_VAR USBSTORAGE_DEVICE>] <TMPL_VAR
+                                                        GENERAL.USB_STORAGE_ROOT_DROPDOWN_TEXT>
+                                                        <TMPL_VAR USBSTORAGE_SUBFOLDER>
+                                        </option>
+                                    </TMPL_LOOP>
+                                </optgroup>
                             </select>
-                        </DIV>
-                    </DIV>
-                    <DIV id="ms_subdir_div<TMPL_VAR MSID>" style="display:table-row;">
-                        <DIV style="display:table-cell; ">
-                        </DIV>
-                        <DIV style="display:table-cell; ">
-                            <input onchange="change_path('<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>','<TMPL_VAR MSID>');" onblur="$('#ms_subdir<TMPL_VAR MSID>').trigger('change')" autocomplete="nope" data-validation-error-msg="<TMPL_VAR GENERAL.MS_SUBDIR_VALIDATE_ERR_TXT>" data-validation-rule="^[0-9a-zA-Z\_\-\.]{1}[0-9a-zA-Z\$\/\ \_\-\.]{0,198}[0-9a-zA-Z\_\-\.]{1}$" id="ms_subdir<TMPL_VAR MSID>" name="ms_subdir<TMPL_VAR MSID>" type="text" class="textfield to_save" placeholder="<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>" value="<TMPL_VAR CURRENT_MS_SUBDIR>">
-                        </DIV>
-                    </DIV>
-                    <DIV style="display:table-row;">
-                        <DIV style="display:table-cell; text-align:right;">
+                        </div>
+                    </div>
+                    <div id="ms_subdir_div<TMPL_VAR MSID>" style="display:table-row;">
+                        <div style="display:table-cell; ">
+                        </div>
+                        <div style="display:table-cell; ">
+                            <input onchange="change_path('<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>','<TMPL_VAR MSID>');"
+                                onblur="$('#ms_subdir<TMPL_VAR MSID>').trigger('change')" autocomplete="nope"
+                                data-validation-error-msg="<TMPL_VAR GENERAL.MS_SUBDIR_VALIDATE_ERR_TXT>"
+                                data-validation-rule="^[0-9a-zA-Z\_\-\.]{1}[0-9a-zA-Z\$\/\ \_\-\.]{0,198}[0-9a-zA-Z\_\-\.]{1}$"
+                                id="ms_subdir<TMPL_VAR MSID>" name="ms_subdir<TMPL_VAR MSID>" type="text"
+                                class="textfield to_save" placeholder="<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>"
+                                value="<TMPL_VAR CURRENT_MS_SUBDIR>">
+                        </div>
+                    </div>
+                    <div style="display:table-row;">
+                        <div style="display:table-cell; text-align:right;">
                             <TMPL_VAR GENERAL.BACKUP_INTERVAL_TXT>
-                        </DIV>
-                        <DIV style="display:table-cell; ">
-                            <select name="backup_interval<TMPL_VAR MSID>" id="backup_interval<TMPL_VAR MSID>" class="to_save">
+                        </div>
+                        <div style="display:table-cell; ">
+                            <select name="backup_interval<TMPL_VAR MSID>" id="backup_interval<TMPL_VAR MSID>"
+                                class="to_save">
                                 <TMPL_VAR BACKUP_INTERVAL_VALUE>
                             </select>
-                        </DIV>
-                    </DIV>
-                    <DIV style="display:table-row;">
-                        <DIV style="display:table-cell; text-align:right;">
+                        </div>
+                    </div>
+                    <div style="display:table-row;">
+                        <div style="display:table-cell; text-align:right;">
                             <TMPL_VAR GENERAL.BACKUP_TYPE_TXT>
-                        </DIV>
-                        <DIV style="display:table-cell; ">
+                        </div>
+                        <div style="display:table-cell; ">
                             <select name="file_format<TMPL_VAR MSID>" id="file_format<TMPL_VAR MSID>" class="to_save">
                                 <TMPL_VAR BACKUP_FILE_FORMAT>
                             </select>
-                        </DIV>
-                    </DIV>
-                    <DIV style="display:table-row;">
-                        <DIV style="display:table-cell; text-align:right;">
+                        </div>
+                    </div>
+                    <div style="display:table-row;">
+                        <div style="display:table-cell; text-align:right;">
                             <TMPL_VAR GENERAL.BACKUP_COMPRESSION_TXT>
-                        </DIV>
-                        <DIV style="display:table-cell; ">
+                        </div>
+                        <div style="display:table-cell; ">
                             <select name="compression<TMPL_VAR MSID>" id="compression<TMPL_VAR MSID>" class="to_save">
                                 <TMPL_VAR BACKUP_COMPRESSION>
                             </select>
-                        </DIV>
-                    </DIV>
-                    <DIV style="display:table-row;">
-                        <DIV style="display:table-cell; text-align:right;">
+                        </div>
+                    </div>
+                    <div style="display:table-row;">
+                        <div style="display:table-cell; text-align:right;">
                             <TMPL_VAR GENERAL.BACKUPS_TO_KEEP_TXT>
-                        </DIV>
-                        <DIV style="display:table-cell; ">
-                            <select name="backups_to_keep<TMPL_VAR MSID>" id="backups_to_keep<TMPL_VAR MSID>" class="to_save">
+                        </div>
+                        <div style="display:table-cell; ">
+                            <select name="backups_to_keep<TMPL_VAR MSID>" id="backups_to_keep<TMPL_VAR MSID>"
+                                class="to_save">
                                 <TMPL_VAR BACKUPS_TO_KEEP_VALUE>
                             </select>
-                        </DIV>
-                    </DIV>
-                    <DIV style="display:table-row;">
-                        <DIV style="display:table-cell; text-align:right;">
+                        </div>
+                    </div>
+                    <div style="display:table-row;">
+                        <div style="display:table-cell; text-align:right;">
                             <TMPL_VAR GENERAL.LAST_SAVE_TIME_TXT>
-                        </DIV>
-                        <DIV style="display:table-cell; ">
-                            <DIV name="last_save<TMPL_VAR MSID>" id="last_save<TMPL_VAR MSID>">&nbsp;<TMPL_VAR LAST_SAVE>
-                            </DIV>
-                        </DIV>
-                    </DIV>
-                    <DIV style="display:table-row;">
-                        <DIV style="display:table-cell; text-align:right;">
+                        </div>
+                        <div style="display:table-cell; ">
+                            <div name="last_save<TMPL_VAR MSID>" id="last_save<TMPL_VAR MSID>">&nbsp;<TMPL_VAR
+                                    LAST_SAVE>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:table-row;">
+                        <div style="display:table-cell; text-align:right;">
                             <TMPL_VAR GENERAL.LAST_REBOOT_TXT>
-                        </DIV>
-                        <DIV style="display:table-cell; ">
-                            <DIV name="last_reboot<TMPL_VAR MSID>" id="last_reboot<TMPL_VAR MSID>">&nbsp;<TMPL_VAR LAST_REBOOT>
-                            </DIV>
-                        </DIV>
-                    </DIV>
-                </DIV>
+                        </div>
+                        <div style="display:table-cell; ">
+                            <div name="last_reboot<TMPL_VAR MSID>" id="last_reboot<TMPL_VAR MSID>">&nbsp;<TMPL_VAR
+                                    LAST_REBOOT>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <script>
-                    $( document ).ready(function()
-                    {
-                        $("#finalstorage<TMPL_VAR MSID>-button").remove(); $("#finalstorage<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#finalstorage<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
-                        $("#backup_interval<TMPL_VAR MSID>-button").remove(); $("#backup_interval<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#backup_interval<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
-                        $("#file_format<TMPL_VAR MSID>-button").remove(); $("#file_format<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#file_format<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
-                        $("#compression<TMPL_VAR MSID>-button").remove(); $("#compression<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#compression<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
-                        $("#backups_to_keep<TMPL_VAR MSID>-button").remove(); $("#backups_to_keep<TMPL_VAR MSID>").css('display','').selectmenu( "menuWidget" ); $("#backups_to_keep<TMPL_VAR MSID>").addClass( "ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow" );
+                    $(document).ready(function () {
+                        $("#finalstorage<TMPL_VAR MSID>-button").remove(); $("#finalstorage<TMPL_VAR MSID>").css('display', '').selectmenu("menuWidget"); $("#finalstorage<TMPL_VAR MSID>").addClass("ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow");
+                        $("#backup_interval<TMPL_VAR MSID>-button").remove(); $("#backup_interval<TMPL_VAR MSID>").css('display', '').selectmenu("menuWidget"); $("#backup_interval<TMPL_VAR MSID>").addClass("ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow");
+                        $("#file_format<TMPL_VAR MSID>-button").remove(); $("#file_format<TMPL_VAR MSID>").css('display', '').selectmenu("menuWidget"); $("#file_format<TMPL_VAR MSID>").addClass("ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow");
+                        $("#compression<TMPL_VAR MSID>-button").remove(); $("#compression<TMPL_VAR MSID>").css('display', '').selectmenu("menuWidget"); $("#compression<TMPL_VAR MSID>").addClass("ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow");
+                        $("#backups_to_keep<TMPL_VAR MSID>-button").remove(); $("#backups_to_keep<TMPL_VAR MSID>").css('display', '').selectmenu("menuWidget"); $("#backups_to_keep<TMPL_VAR MSID>").addClass("ui-mini ui-btn ui-icon-carat-d ui-btn-icon-right ui-corner-all ui-shadow");
                         $("#finalstorage<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_STORAGE>');
                         $("#backup_interval<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_INTERVAL>');
                         $("#file_format<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_FILE_FORMAT>');
                         $("#compression<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_COMPRESSION>');
                         $("#backups_to_keep<TMPL_VAR MSID>").val('<TMPL_VAR CURRENT_BACKUPS_TO_KEEP>');
-                        if ( "<TMPL_VAR MS_DISABLED>" == "1" )
-                        {
+                        if ("<TMPL_VAR MS_DISABLED>" == "1") {
                             $("#MS_LOOP_ROW<TMPL_VAR MSID>").css("background-color", "#ffc0c0"); //.addClass('ui-disabled');
                             validate_clean_objects(['#ms_subdir<TMPL_VAR MSID>']);
                         }
-                        else
-                        {
+                        else {
                             validate_enable('#ms_subdir<TMPL_VAR MSID>');
                         }
                     });
@@ -427,101 +531,82 @@ span#alert_form_close:hover {
                     var nbr_miniservers = miniservers.push('<TMPL_VAR MSID>');
                 </script>
 
-            </DIV>
-        </DIV>
-        <BR>
+            </div>
+        </div>
+        <br>
     </TMPL_LOOP>
-</CENTER>
+</center>
 <script>
-    function checkSpace()
-    {
-        if ( "<TMPL_VAR WORKDIR_FREE>" != "" )
-        {
-            $.get('<TMPL_VAR HTMLPATH>free.php', function(data)
-            {
-                if (data > 1)
-                {
-                    if ( data > 1073741824 )
-                    {
+    function checkSpace() {
+        if ("<TMPL_VAR WORKDIR_FREE>" != "") {
+            $.get('<TMPL_VAR HTMLPATH>free.php', function (data) {
+                if (data > 1) {
+                    if (data > 1073741824) {
                         data = data / 1024 / 1024 / 1024;
                         var displaystring = data.toFixed(2);
-                        displaystring = displaystring  + " TB";
+                        displaystring = displaystring + " TB";
                     }
-                    else if ( data > 1048576 )
-                    {
+                    else if (data > 1048576) {
                         data = data / 1024 / 1024;
                         var displaystring = data.toFixed(2);
-                        displaystring = displaystring  + " GB";
+                        displaystring = displaystring + " GB";
                     }
-                    else if ( data > 1024 )
-                    {
+                    else if (data > 1024) {
                         data = data / 1024;
                         var displaystring = data.toFixed(2);
-                        displaystring = displaystring  + " MB";
+                        displaystring = displaystring + " MB";
                     }
-                    else
-                    {
+                    else {
                         displaystring = data + " kB";
                     }
                     $("#workdir_free_space").html(displaystring);
                 }
-                else
-                {
+                else {
                     $("#workdir_free_space").html("?");
                 }
             });
         }
     }
 
-    function checkState()
-    {
-        if ( $("#msbackup_use_notify").val() == "on" )
-        {
-            $("#msbackup_use_notify").css('background-color','rgba(128,255,128,.2)');
+    function checkState() {
+        if ($("#msbackup_use_notify").val() == "on") {
+            $("#msbackup_use_notify").css('background-color', 'rgba(128,255,128,.2)');
         }
-        else
-        {
-            $("#msbackup_use_notify").css('background-color','rgba(255,255,128,.2)');
+        else {
+            $("#msbackup_use_notify").css('background-color', 'rgba(255,255,128,.2)');
         }
 
-        if ( $("#msbackup_use_emails").val() == "on" || $("#msbackup_use_emails").val() == "fail" )
-        {
-            $("#msbackup_use_emails").css('background-color','rgba(128,255,128,.2)');
+        if ($("#msbackup_use_emails").val() == "on" || $("#msbackup_use_emails").val() == "fail") {
+            $("#msbackup_use_emails").css('background-color', 'rgba(128,255,128,.2)');
             $('#email_recipient_div').fadeIn('slow');
         }
-        else
-        {
-            $("#msbackup_use_emails").css('background-color','rgba(255,255,128,.2)');
+        else {
+            $("#msbackup_use_emails").css('background-color', 'rgba(255,255,128,.2)');
             $('#email_recipient_div').fadeOut('slow');
             $('#email_recipient_div').val('');
         }
 
-        if ( $("#msbackup_use").val() == "on" )
-        {
-            $("#msbackup_use").css('background-color','rgba(128,255,128,.2)');
+        if ($("#msbackup_use").val() == "on") {
+            $("#msbackup_use").css('background-color', 'rgba(128,255,128,.2)');
         }
-        else
-        {
+        else {
             $('#btnbackup').addClass('ui-disabled');
             $('.btnbackup_single').addClass('ui-disabled');
             $('.btnbackup_single').text("<TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_OFF>");
             $("#btnbackup").text("<TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_OFF>");
-            $("#msbackup_use").css('background-color','rgba(255,255,128,.2)');
+            $("#msbackup_use").css('background-color', 'rgba(255,255,128,.2)');
             return;
         }
 
-        if ( $('#btncancel').hasClass('ui-disabled') ) return;
+        if ($('#btncancel').hasClass('ui-disabled')) return;
 
-        $.get('<TMPL_VAR HTMLPATH><TMPL_VAR BACKUPSTATEFILE>', function(data)
-        {
-            if (data.length > 1)
-            {
+        $.get('<TMPL_VAR HTMLPATH><TMPL_VAR BACKUPSTATEFILE>', function (data) {
+            if (data.length > 1) {
                 $('#btnbackup').addClass('ui-disabled');
                 $('.btnbackup_single').addClass('ui-disabled');
-                $("#btnbackup").prop('innerHTML',"<font color='#FF0000'>"+data+"</font>");
+                $("#btnbackup").prop('innerHTML', "<font color='#FF0000'>" + data + "</font>");
             }
-            else if (data == "-")
-            {
+            else if (data == "-") {
                 $('#btnbackup').removeClass('ui-disabled');
                 $('.btnbackup_single').removeClass('ui-disabled');
                 $(".btnbackup_single").text("<TMPL_VAR GENERAL.LABEL_START_ONE_BACKUP_NOW>");
@@ -530,16 +615,13 @@ span#alert_form_close:hover {
         });
     }
 
-    function checkNotifications()
-    {
-        if ( $("#notifdeleteall").attr('deleting') != 1 )
-        {
-            $.ajax({url: '<TMPL_VAR HTMLPATH>/get_notifications.php', type: 'GET', data: { 'package':'<TMPL_VAR LBPPLUGINDIR>', 'name':'<TMPL_VAR GENERAL.MY_NAME>'} }).success(function(data) {  $( '#notifblock' ).html(data).trigger('create'); }) ;
+    function checkNotifications() {
+        if ($("#notifdeleteall").attr('deleting') != 1) {
+            $.ajax({ url: '<TMPL_VAR HTMLPATH>/get_notifications.php', type: 'GET', data: { 'package': '<TMPL_VAR LBPPLUGINDIR>', 'name': '<TMPL_VAR GENERAL.MY_NAME>' } }).success(function (data) { $('#notifblock').html(data).trigger('create'); });
         }
     }
 
-    function make_random_name_for_workdir(length)
-    {
+    function make_random_name_for_workdir(length) {
         var random_name = "";
         var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         for (var i = 0; i < length; i++)
@@ -547,23 +629,20 @@ span#alert_form_close:hover {
         return random_name;
     }
 
-    function show_error(error)
-    {
+    function show_error(error) {
         // Modal form
-         $("#alert_form").on('click', function(e){ if (e.target !== this) return; });
+        $("#alert_form").on('click', function (e) { if (e.target !== this) return; });
         // Build and show....
-        $("#error_message").html("<table style='width:100%;'><tr><td style='width:100%; font-weight:bold;'><TMPL_VAR ERRORS.ERR_TITLE></td></tr><tr><td><hr></td></tr><tr><td>"+error+"</td></tr></table>");
+        $("#error_message").html("<table style='width:100%;'><tr><td style='width:100%; font-weight:bold;'><TMPL_VAR ERRORS.ERR_TITLE></td></tr><tr><td><hr></td></tr><tr><td>" + error + "</td></tr></table>");
         $("#alert_form").show();
-        $("#alert_form_close").on('click', function(e){  // close button code.
-        $('#alert_form').fadeOut('slow');
-    });
+        $("#alert_form_close").on('click', function (e) {  // close button code.
+            $('#alert_form').fadeOut('slow');
+        });
         return;
     }
 
-    function save_config()
-    {
-        setTimeout( function()
-        {
+    function save_config() {
+        setTimeout(function () {
             // Array with POST data to save
             var postData = {};
 
@@ -579,17 +658,14 @@ span#alert_form_close:hover {
             // Add emails on/off switch
             postData['msbackup_use_emails'] = $('#msbackup_use_emails').val();
 
-            if ( $('#msbackup_use_emails').val() == "on" || $('#msbackup_use_emails').val() == "fail" )
-            {
+            if ($('#msbackup_use_emails').val() == "on" || $('#msbackup_use_emails').val() == "fail") {
                 // Retrigger check of correct email_recipient
-                if ( validate_chk_value('#email_recipient') )
-                {
+                if (validate_chk_value('#email_recipient')) {
                     // Add email_recipient
                     postData['email_recipient'] = $("#email_recipient").val();
                 }
-                else
-                {
-                    $('#email_recipient').css('background-color','#FFC0C0');
+                else {
+                    $('#email_recipient').css('background-color', '#FFC0C0');
                     show_error('<TMPL_VAR GENERAL.EMAIL_RECIPIENTS_VALIDATE_ERROR>');
                     return;
                 }
@@ -599,105 +675,89 @@ span#alert_form_close:hover {
             postData['workdir_path'] = $('#workdir_path').val();
 
             // Check if workdir_path is a local workdir path (RAM Disk or Loxberry microSD card)
-            if ( $('#workdir_path optgroup[id=localwdp]').children('option:selected').val() == null )
-            {
+            if ($('#workdir_path optgroup[id=localwdp]').children('option:selected').val() == null) {
                 // No, it's not local
                 // Check, if subdir input field area is invisible
-                if ( $("#local_wdp_div").css('display') == "none" )
-                    {
-                        // Yes
-                        // Generate random name
-                        $("#workdir_path_subdir").val(make_random_name_for_workdir(10));
-                        // Display the workdir subdir area
-                        $("#local_wdp_div").fadeIn(500);
-                    }
+                if ($("#local_wdp_div").css('display') == "none") {
+                    // Yes
+                    // Generate random name
+                    $("#workdir_path_subdir").val(make_random_name_for_workdir(10));
+                    // Display the workdir subdir area
+                    $("#local_wdp_div").fadeIn(500);
+                }
                 // Check, if subdir is empty
-                if ( $('#workdir_path_subdir').val() == '' )
-                {
+                if ($('#workdir_path_subdir').val() == '') {
                     // Yes, subdir is empty => generate a random name
                     $('#workdir_path_subdir').val(make_random_name_for_workdir(10));
                 }
             }
-            else
-            {
+            else {
                 // Yes, it's local
                 // Clear subdir
                 $("#workdir_path_subdir").val('');
                 // Hide error message
-                $("#error-msg-workdir_path_subdir").css('display','none')
+                $("#error-msg-workdir_path_subdir").css('display', 'none')
                 // Hide workdir subdir area
                 $("#local_wdp_div").fadeOut(1500);
             }
 
             // Retrigger check of correct subdir
-            if ( validate_chk_value('#workdir_path_subdir') )
-            {
+            if (validate_chk_value('#workdir_path_subdir')) {
                 // Add workdir_path_subdir
                 postData['workdir_path_subdir'] = $("#workdir_path_subdir").val();
             }
-            else
-            {
-                $('#workdir_path_subdir').css('background-color','#FFC0C0');
+            else {
+                $('#workdir_path_subdir').css('background-color', '#FFC0C0');
                 show_error('<TMPL_VAR GENERAL.WORKDIR_SUBDIR_VALIDATE_ERR_TXT>');
                 return;
             }
 
             // Go through all miniservers
-            var early_error=0;
-            miniservers.forEach(function(miniserver_id)
-            {
+            var early_error = 0;
+            miniservers.forEach(function (miniserver_id) {
                 // Add values per Miniserver
-                postData['backup_interval'+miniserver_id] = $('#backup_interval'+miniserver_id).val();
-                postData['file_format'+miniserver_id] = $('#file_format'+miniserver_id).val();
-                postData['compression'+miniserver_id] = $('#compression'+miniserver_id).val();
-                postData['backups_to_keep'+miniserver_id] = $('#backups_to_keep'+miniserver_id).val();
+                postData['backup_interval' + miniserver_id] = $('#backup_interval' + miniserver_id).val();
+                postData['file_format' + miniserver_id] = $('#file_format' + miniserver_id).val();
+                postData['compression' + miniserver_id] = $('#compression' + miniserver_id).val();
+                postData['backups_to_keep' + miniserver_id] = $('#backups_to_keep' + miniserver_id).val();
                 // Check of customized subdir
 
-                if ( $('#finalstorage'+miniserver_id+' option:selected').val().substr(-1) == "~" )
-                {
-                    $('#ms_subdir_div'+miniserver_id).fadeIn('fast');
-                    if ( $('#ms_subdir'+miniserver_id).val() == '<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>' )
-                    {
-                        $('#ms_subdir'+miniserver_id).css('background-color','#FFC0C0');
-                        early_error=1;
+                if ($('#finalstorage' + miniserver_id + ' option:selected').val().substr(-1) == "~") {
+                    $('#ms_subdir_div' + miniserver_id).fadeIn('fast');
+                    if ($('#ms_subdir' + miniserver_id).val() == '<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>') {
+                        $('#ms_subdir' + miniserver_id).css('background-color', '#FFC0C0');
+                        early_error = 1;
                     }
-                    else
-                    {
-                        if ( $('#ms_subdir'+miniserver_id).val() == '' )
-                        {
+                    else {
+                        if ($('#ms_subdir' + miniserver_id).val() == '') {
                             // Yes, subdir is empty or / => generate a random name
-                            $('#ms_subdir'+miniserver_id).val(make_random_name_for_workdir(10));
-                            change_path('<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>',miniserver_id);
-                            early_error=1;
+                            $('#ms_subdir' + miniserver_id).val(make_random_name_for_workdir(10));
+                            change_path('<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>', miniserver_id);
+                            early_error = 1;
                         }
-                        else
-                        {
-                            if ( validate_chk_value('#ms_subdir'+miniserver_id) && $('#ms_subdir'+miniserver_id).val() != '<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>' )
-                            {
+                        else {
+                            if (validate_chk_value('#ms_subdir' + miniserver_id) && $('#ms_subdir' + miniserver_id).val() != '<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>') {
                                 // Add workdir_path_subdir
-                                postData['ms_subdir'+miniserver_id] = $('#ms_subdir'+miniserver_id).val();
-                                postData['finalstorage'+miniserver_id] = $('#finalstorage'+miniserver_id).val();
+                                postData['ms_subdir' + miniserver_id] = $('#ms_subdir' + miniserver_id).val();
+                                postData['finalstorage' + miniserver_id] = $('#finalstorage' + miniserver_id).val();
                             }
-                            else
-                            {
-                                $('#ms_subdir'+miniserver_id).css('background-color','#FFC0C0');
-                                early_error=1;
+                            else {
+                                $('#ms_subdir' + miniserver_id).css('background-color', '#FFC0C0');
+                                early_error = 1;
                             }
                         }
                     }
                 }
-                else
-                {
-                    $('#ms_subdir_div'+miniserver_id).fadeOut('fast');
-                    postData['ms_subdir'+miniserver_id] = "";
-                    $('#ms_subdir'+miniserver_id).val('<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>');
-                    postData['finalstorage'+miniserver_id] = $('#finalstorage'+miniserver_id).val();
+                else {
+                    $('#ms_subdir_div' + miniserver_id).fadeOut('fast');
+                    postData['ms_subdir' + miniserver_id] = "";
+                    $('#ms_subdir' + miniserver_id).val('<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>');
+                    postData['finalstorage' + miniserver_id] = $('#finalstorage' + miniserver_id).val();
                 }
 
             });
 
-            if ( early_error == 1 )
-            {
+            if (early_error == 1) {
                 return;
             }
 
@@ -705,45 +765,46 @@ span#alert_form_close:hover {
             $('.to_disable_on_save').addClass('ui-disabled');
 
             // Empty variables
-               var object_to_be_saved = "";
+            var object_to_be_saved = "";
 
-               // Send datas
-            $.ajax({url: '<TMPL_VAR HTMLPATH>ajax_config_handler.php', type: 'POST', data : postData,
-                success: function (data)
-                {
+            // Send datas
+            $.ajax({
+                url: '<TMPL_VAR HTMLPATH>ajax_config_handler.php', type: 'POST', data: postData,
+                success: function (data) {
                     eval(data);
                     // Enable input fields and buttons
                     $('.to_disable_on_save').removeClass('ui-disabled');
                 },
-                error: function (errorThrown)
-                {
+                error: function (errorThrown) {
                     show_error('<TMPL_VAR ERRORS.ERR_SAVE_CONFIG_FILE>');
                     console.log('<TMPL_VAR GENERAL.MY_NAME> function save_config failed: Error => ' + errorThrown.status + ' => ' + errorThrown.statusText);
                     // Enable input fields and buttons
                     $('.to_disable_on_save').removeClass('ui-disabled');
                 }
             });
-               setTimeout( function() { checkSpace();  }, 500);
+            setTimeout(function () { checkSpace(); }, 500);
         }, 500);
     }
 
-    $( document ).ready(function()
-    {
-        if(  $('#workdir_path optgroup[id=localwdp]').children("option:selected").val() != null)
-        {
+    $(document).ready(function () {
+        if ($('#workdir_path optgroup[id=localwdp]').children("option:selected").val() != null) {
             $("#workdir_path_subdir").val('');
-            $("#error-msg-workdir_path_subdir").css('display','none')
+            $("#error-msg-workdir_path_subdir").css('display', 'none')
             $("#local_wdp_div").fadeOut(500);
         }
-        watchDog = setInterval(function() { checkState(); },2500);
-        notify = setInterval(function() { checkNotifications(); },15000);
-        elfinderreload = setInterval(function() { jQuery('#elfinder').elfinder('instance').exec('reload'); checkSpace(); },30000);
+        watchDog = setInterval(function () { checkState(); }, 2500);
+        notify = setInterval(function () { checkNotifications(); }, 15000);
+        elfinderreload = setInterval(function () { jQuery('#elfinder').elfinder('instance').exec('reload'); checkSpace(); }, 30000);
         checkState();
         checkSpace();
         checkNotifications();
         // Event handler for save
-        $('.to_save').on("change", function(){ save_config(); });
+        $('.to_save').on("change", function () { save_config(); });
         save_config();
     });
 </script>
-<small><small><TMPL_VAR VERSION></small></small>
+<small>
+    <small>
+        <TMPL_VAR VERSION>
+    </small>
+</small>
