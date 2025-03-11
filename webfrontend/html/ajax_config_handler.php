@@ -5,7 +5,7 @@ require_once "loxberry_system.php";
 require_once "loxberry_log.php";
 // Read language
 $L = LBSystem::readlanguage("language.ini");
-$plugin_config_file = $lbpconfigdir."/miniserverbackup.cfg";
+$plugin_config_file = $lbpconfigdir."/miniserverbackup-ng.cfg";
 $params = [
     "name" => $L["MINISERVERBACKUP.INF_0132_CFG_HANDLER_NAME"]." "
 ];

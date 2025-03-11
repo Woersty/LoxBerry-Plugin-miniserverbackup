@@ -2,7 +2,7 @@
 
 # Bash script which is executed in case of an update (if this plugin is already
 # installed on the system). This script is executed as very first step (*BEFORE*
-# preinstall.sh) and can be used e.g. to save existing configfiles to /tmp 
+# preinstall.sh) and can be used e.g. to save existing configfiles to /tmp
 # during installation. Use with caution and remember, that all systems may be
 # different!
 #
@@ -41,24 +41,22 @@ ARGV4=$4 # Forth argument is Plugin version
 ARGV5=$5 # Fifth argument is Base folder of LoxBerry
 #echo "<INFO> Installation folder is: $ARGV5"
 
- while :
- do
-  if [ -r /tmp/backupstate.txt ]
-  then
-    state=`head -c 1 /tmp/backupstate.txt`
-    if [[ "$state" = "-" || "$state" = "" ]]  
-    then
-     echo "<OK> No backup seems in progress. Continue..."
-     break
+while :
+do
+  if [ -r /tmp/miniserverbackup-ng_state.txt ]; then
+    state=$(head -c 1 /tmp/miniserverbackup-ng_state.txt)
+    if [[ "$state" = "-" || "$state" = "" ]]; then
+      echo "<OK> No backup seems in progress. Continue..."
+      break
     else
-     echo "<INFO> Backup seems in progress. Wait 10 s..."
-     cat /tmp/backupstate.txt
-     echo
+      echo "<INFO> Backup seems in progress. Wait 10 s..."
+      cat /tmp/miniserverbackup-ng_state.txt
+      echo
     fi
     sleep 10
   else
-   echo "<OK> No backup state file. Continue..."
-   break
+    echo "<OK> No backup state file. Continue..."
+    break
   fi
 done
 

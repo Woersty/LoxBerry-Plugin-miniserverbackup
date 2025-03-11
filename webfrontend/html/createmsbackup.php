@@ -1,5 +1,5 @@
 <?php
-// LoxBerry Miniserverbackup Plugin
+// LoxBerry Miniserverbackup NG Plugin
 // Christian Woerstenfeld - git@loxberry.woerstenfeld.de
 
 // Header output
@@ -16,24 +16,24 @@ chdir(dirname($_SERVER['PHP_SELF']));
 require_once "loxberry_system.php";
 require_once "loxberry_log.php";
 
-$inc_backups_to_keep    = 0;                                       # Keep this number of incremental backups when 7z format is used
-$plugin_config_file     = $lbpconfigdir."/miniserverbackup.cfg"; # Plugin config
-$workdir_data            = $lbpdatadir."/workdir";                # Working directory, on RAM-Disk by default due to $workdir_tmp
-$savedir_path             = $lbpdatadir."/.currentbackup";         # Directory to hold latest backup to compare with
-$backup_file_prefix        = "Backup_";                             # Backup name prefix
-$workdir_tmp            = "/tmp/miniserverbackup";               # The $workdir_data folder will be linked to this target
-$minimum_free_workdir    = 134217728;                             # In Bytes. Let minumum 128 MB free on workdir (RAMdisk in $workdir_tmp by default)
-$bkp_dest_dir             = $lbphtmldir."/backups";                # Where the browser on admin page points to
-$default_finalstorage    = $lbpdatadir."/backups_storage";        # Default localstorage
-$backupstate_file        = $lbphtmldir."/"."backupstate.txt";     # State file, do not change! Linked to $backupstate_tmp
-$backupstate_tmp        = "/tmp"."/"."backupstate.txt";          # State file on RAMdisk, do not change!
-$cloud_requests_file    = "/tmp/cloudrequests.txt";                # Request file on RAMdisk, do not change!
-$logfileprefix            = LBPLOGDIR."/miniserver_backup_";
-$logfilesuffix            = ".txt";
+$inc_backups_to_keep    = 0;                                                   # Keep this number of incremental backups when 7z format is used
+$plugin_config_file     = $lbpconfigdir."/miniserverbackup-ng.cfg";            # Plugin config
+$workdir_data           = $lbpdatadir."/workdir";                              # Working directory, on RAM-Disk by default due to $workdir_tmp
+$savedir_path           = $lbpdatadir."/.currentbackup";                       # Directory to hold latest backup to compare with
+$backup_file_prefix     = "Backup_";                                           # Backup name prefix
+$workdir_tmp            = "/tmp/miniserverbackup-ng";                          # The $workdir_data folder will be linked to this target
+$minimum_free_workdir   = 134217728;                                           # In Bytes. Let minumum 128 MB free on workdir (RAMdisk in $workdir_tmp by default)
+$bkp_dest_dir           = $lbphtmldir."/backups";                              # Where the browser on admin page points to
+$default_finalstorage   = $lbpdatadir."/backups_storage";                      # Default localstorage
+$backupstate_file       = $lbphtmldir."/miniserverbackup-ng_state.txt";        # State file, do not change! Linked to $backupstate_tmp
+$backupstate_tmp        = "/tmp/miniserverbackup-ng_state.txt";                # State file on RAMdisk, do not change!
+$cloud_requests_file    = "/tmp/miniserverbackup-ng_cloudrequests.txt";        # Request file on RAMdisk, do not change!
+$logfileprefix          = LBPLOGDIR."/miniserverbackup-ng_";
+$logfilesuffix          = ".txt";
 $logfilename            = $logfileprefix.date("Y-m-d_H\hi\ms\s",time()).$logfilesuffix;
-$L                        = LBSystem::readlanguage("language.ini");
-$logfiles_to_keep        = 24;                                     # Number of logfiles to keep (also done by LoxBerry Core /sbin/log_maint.pl)
-$resultarray             = array();
+$L                      = LBSystem::readlanguage("language.ini");
+$logfiles_to_keep       = 24;                                                  # Number of logfiles to keep (also done by LoxBerry Core /sbin/log_maint.pl)
+$resultarray            = array();
 $params = [
     "name" => $L["MINISERVERBACKUP.INF_0131_BACKUP_NAME"],
     "filename" => $logfilename,

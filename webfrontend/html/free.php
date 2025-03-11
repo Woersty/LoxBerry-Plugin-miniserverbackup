@@ -1,5 +1,5 @@
 <?php
-// LoxBerry Miniserverbackup Plugin
+// LoxBerry Miniserverbackup NG Plugin
 // Christian Woerstenfeld - git@loxberry.woerstenfeld.de
 // Free space in workdir
 error_reporting(0);

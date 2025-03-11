@@ -1,6 +1,6 @@
 <?php
 ######################################################################################
-#    Miniserverbackup API                                                            #
+#    Miniserverbackup NG API                                                            #
 #                                                                                    #
 # Usage:                                                                             #
 # http://loxberry/plugins/miniserverbackup/API.php?search=504F94ABCDEF               #
@@ -13,7 +13,7 @@ require_once "loxberry_system.php";
 require_once "loxberry_log.php";
 // Read language
 $L = LBSystem::readlanguage("language.ini");
-$plugin_config_file = $lbpconfigdir."/miniserverbackup.cfg";
+$plugin_config_file = $lbpconfigdir."/miniserverbackup-ng.cfg";
 $params = ["name" => $L["MINISERVERBACKUP.INF_0165_API_NAME"]." "];
 $log = LBLog::newLog ($params);
 LOGSTART ($L["MINISERVERBACKUP.INF_0166_API_CALLED"]);

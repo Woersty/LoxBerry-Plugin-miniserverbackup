@@ -38,38 +38,38 @@ require Time::Piece;
 # Variables
 ##########################################################################
 my %Config;
-my $pluginconfigfile             = "miniserverbackup.cfg";
+my $pluginconfigfile            = "miniserverbackup-ng.cfg";
 my $languagefile                = "language.ini";
-my $maintemplatefilename         = "settings.html";
+my $maintemplatefilename        = "settings.html";
 my $helptemplatefilename        = "help.html";
-my $errortemplatefilename         = "error.html";
+my $errortemplatefilename       = "error.html";
 my $successtemplatefilename     = "success.html";
-my $backupstate_name             = "backupstate.txt";
-my $workdirfree_name             = "workdir.free";
+my $backupstate_name            = "miniserverbackup-ng_state.txt";
+my $workdirfree_name            = "workdir.free";
 my $loxberry_ramdisk            = "/tmp/miniserverbackup";
 my $loxberry_datadir            = $lbpdatadir."/.tmp_local_workdir";
-my $backupstate_file             = $lbphtmldir."/".$backupstate_name;
-my $backupstate_tmp_file         = "/tmp/".$backupstate_name;
-my @netshares                     = LoxBerry::Storage::get_netshares();
-my @usbdevices                     = LoxBerry::Storage::get_usbstorage();
+my $backupstate_file            = $lbphtmldir."/".$backupstate_name;
+my $backupstate_tmp_file        = "/tmp/".$backupstate_name;
+my @netshares                   = LoxBerry::Storage::get_netshares();
+my @usbdevices                  = LoxBerry::Storage::get_usbstorage();
 my $localstorage                = $lbpdatadir."/backup_storage";
-my @backup_interval_minutes        = (0,120,240,480,720,1440,10080,20160,43200,-1);
-my %backups_to_keep_values        = (1,3,7,14,30,60,90,365);
+my @backup_interval_minutes     = (0,120,240,480,720,1440,10080,20160,43200,-1);
+my %backups_to_keep_values      = (1,3,7,14,30,60,90,365);
 my @file_formats                = ('7z','zip','uncompressed');
 my $backup_intervals            = "";
 my $finalstorage;
-my $error_message                = "";
-my $no_error_template_message    = "<b>Miniserver-Backup:</b> The error template is not readable. We must abort here. Please try to reinstall the plugin.";
+my $error_message               = "";
+my $no_error_template_message   = "<b>Miniserver-Backup:</b> The error template is not readable. We must abort here. Please try to reinstall the plugin.";
 my @pluginconfig_bletags;
 my $template_title;
-my $helpurl                     = "http://www.loxwiki.eu/display/LOXBERRY/Miniserverbackup";
+my $helpurl                     = "https://wiki.loxberry.de/plugins/miniserverbackup-ng/start";
 my @tagrow;
 my @tag;
 my @tag_cfg_data;
 my @msrow;
 my @ms;
 my %row_gen;
-my $log                         = LoxBerry::Log->new ( name => 'Miniserverbackup Admin-UI' );
+my $log                         = LoxBerry::Log->new ( name => 'Miniserverbackup NG Admin-UI' );
 my $do="form";
 my $which="0";
 my $msDisabled;
@@ -139,7 +139,7 @@ if ( -f $backupstate_tmp_file )
 {
     if ((time - (stat $backupstate_tmp_file)[9]) > (120 * 60))
     {
-          my $filename = $backupstate_tmp_file;
+        my $filename = $backupstate_tmp_file;
         open(my $fh, '>', $filename) or &error;
         print $fh "-";
         close $fh;
@@ -147,7 +147,7 @@ if ( -f $backupstate_tmp_file )
 }
 else
 {
-      my $filename = $backupstate_tmp_file;
+    my $filename = $backupstate_tmp_file;
     open(my $fh, '>', $filename) or &error;
     print $fh "-";
     close $fh;
@@ -235,8 +235,8 @@ if ( $plugin->{PLUGINDB_LOGLEVEL} eq 7 )
 {
     foreach (sort keys %miniservers)
     {
-         LOGDEB "Miniserver #$_ Name => ".$miniservers{$_}{'Name'};
-         LOGDEB "Miniserver #$_ IP   => ".$miniservers{$_}{'IPAddress'};
+        LOGDEB "Miniserver #$_ Name => ".$miniservers{$_}{'Name'};
+        LOGDEB "Miniserver #$_ IP   => ".$miniservers{$_}{'IPAddress'};
     }
 }
 my $maintemplate = HTML::Template->new(
