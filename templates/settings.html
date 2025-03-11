@@ -88,6 +88,17 @@
         color: #e0190b;
     }
 
+    .table {
+        display:table;
+    }
+    .table > div {
+        display:table-row;
+    }
+    .table > div > div {
+        display:table-cell;
+        vertical-align: middle;
+    }
+
     @media screen and (max-width: 440px) {
         #sub_alert_form {
             width: 290px;
@@ -169,12 +180,12 @@
                 style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(0,0,228,.1);">
                 <TMPL_VAR GENERAL.GLOBAL_PARAMETERS>
             </div>
-            <div style="display:table;">
-                <div style="display:table-row;">
-                    <div style="display:table-cell; text-align:right;">
+            <div class="table">
+                <div>
+                    <div style="text-align:right;">
                         <TMPL_VAR GENERAL.WORKDIR_PATH_TXT>
                     </div>
-                    <div style="display:table-cell; ">
+                    <div>
                         <select name="workdir_path" id="workdir_path" class="to_save">
                             <optgroup id="localwdp" label="<TMPL_VAR GENERAL.STORAGE_LOCAL>">
                                 <option value="<TMPL_VAR WORKDIR_RAMDISK_VAL>">
@@ -202,13 +213,13 @@
                         </select>
                     </div>
                 </div>
-                <div id="local_wdp_div" style="display:table-row;">
-                    <div style="display:table-cell; text-align:right; padding-right:5px;">
+                <div id="local_wdp_div">
+                    <div style="text-align:right; padding-right:5px;">
                         <label id="label_workdir_path_subdir">
                             <TMPL_VAR GENERAL.WORKDIR_SUBDIR_TXT>
                         </label>
                     </div>
-                    <div style="display:table-cell; ">
+                    <div>
                         <input onblur="$('#workdir_path').trigger('change')" autocomplete="nope"
                             data-validation-error-msg="<TMPL_VAR GENERAL.WORKDIR_SUBDIR_VALIDATE_ERR_TXT>"
                             data-validation-rule="^[0-9a-zA-Z\ \_\-\.]*$" id="workdir_path_subdir"
@@ -216,12 +227,12 @@
                             placeholder="<TMPL_VAR GENERAL.SUGGEST_WORKDIR>" value="">
                     </div>
                 </div>
-                <div style="display:table-row;">
-                    <div style="display:table-cell; text-align:right; padding-right:5px;">
+                <div>
+                    <div style="text-align:right; padding-right:5px;">
                         <br>
                         <TMPL_VAR GENERAL.WORKDIR_FREE_SPACE_TXT>
                     </div>
-                    <div style="display:table-cell;"><br>
+                    <div><br>
                         <div id="workdir_free_space">?</div>
                     </div>
                 </div>
@@ -231,12 +242,12 @@
                 style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(0,222,228,.1);">
                 <TMPL_VAR GENERAL.EMAIL_PARAMETERS>
             </div>
-            <div style="display:table;">
-                <div style="display:table-row;">
-                    <div style="display:table-cell; text-align:right;">
+            <div class="table">
+                <div>
+                    <div style="text-align:right;">
                         <TMPL_VAR GENERAL.SEND_SUMMARY_EMAILS_TXT>
                     </div>
-                    <div style="display:table-cell; ">
+                    <div>
                         <select name="msbackup_use_emails" id="msbackup_use_emails" class="to_save">
                             <option value="off">
                                 <TMPL_VAR GENERAL.TXT_LABEL_MSBACKUP_USE_EMAILS_OFF>
@@ -250,11 +261,11 @@
                         </select>
                     </div>
                 </div>
-                <div id="email_recipient_div" style="display:table-row;">
-                    <div style="display:table-cell; text-align:right; padding-right:5px;">
+                <div id="email_recipient_div">
+                    <div style="text-align:right; padding-right:5px;">
                         <TMPL_VAR GENERAL.SUMMARY_EMAILS_RECIPIENT_TXT>
                     </div>
-                    <div style="display:table-cell;">
+                    <div>
                         <input onblur="$('#email_recipient').trigger('change')" autocomplete="nope"
                             data-validation-error-msg="<TMPL_VAR GENERAL.EMAIL_RECIPIENTS_VALIDATE_ERROR>"
                             data-validation-rule="special:emails" id="email_recipient" name="email_recipient"
@@ -283,9 +294,9 @@
                 style="display:inline-block; padding:5px; border: 1px solid black; border-radius: 5px; background-color: rgba(19,172,132,.2);">
                 <TMPL_VAR LOGGING.LOG_AREA>
             </div>
-            <div style="display:table;">
-                <div style="display:table-row;">
-                    <div style="display:table-cell; border-radius: 5px;">
+            <div class="table">
+                <div>
+                    <div style="border-radius: 5px;">
                         <table>
                             <tr>
                                 <td>
@@ -340,7 +351,7 @@
                         <script>
                             function post_value(action, pluginmd5, value) {
                                 console.log("Action:", action, "Plugin-MD5:", pluginmd5, "Value:", value);
-                                $.post('/admin/system/tools/ajax-config-handler.cgi',
+                                $.post('/admin/system/ajax/ajax-config-handler.cgi',
                                     {
                                         action: action,
                                         value: value,
@@ -395,12 +406,12 @@
                         <TMPL_VAR GENERAL.LABEL_START_ONE_BACKUP_NOW>
                     </a>
                 </div>
-                <div style="display:table;">
-                    <div style="display:table-row;">
-                        <div style="display:table-cell; text-align:right;">
+                <div class="table">
+                    <div>
+                        <div style="text-align:right;">
                             <TMPL_VAR GENERAL.FINAL_STORAGE_TXT>
                         </div>
-                        <div style="display:table-cell; ">
+                        <div>
                             <select name="finalstorage<TMPL_VAR MSID>" id="finalstorage<TMPL_VAR MSID>" class="to_save">
                                 <optgroup label="<TMPL_VAR GENERAL.STORAGE_LOCAL>">
                                     <option orgval="<TMPL_VAR LOCALSTORAGENAME>" value="<TMPL_VAR LOCALSTORAGE>">
@@ -431,10 +442,10 @@
                             </select>
                         </div>
                     </div>
-                    <div id="ms_subdir_div<TMPL_VAR MSID>" style="display:table-row;">
-                        <div style="display:table-cell; ">
+                    <div id="ms_subdir_div<TMPL_VAR MSID>">
+                        <div>
                         </div>
-                        <div style="display:table-cell; ">
+                        <div>
                             <input onchange="change_path('<TMPL_VAR GENERAL.SUGGEST_MS_SUBDIR>','<TMPL_VAR MSID>');"
                                 onblur="$('#ms_subdir<TMPL_VAR MSID>').trigger('change')" autocomplete="nope"
                                 data-validation-error-msg="<TMPL_VAR GENERAL.MS_SUBDIR_VALIDATE_ERR_TXT>"
@@ -444,63 +455,63 @@
                                 value="<TMPL_VAR CURRENT_MS_SUBDIR>">
                         </div>
                     </div>
-                    <div style="display:table-row;">
-                        <div style="display:table-cell; text-align:right;">
+                    <div>
+                        <div style="text-align:right;">
                             <TMPL_VAR GENERAL.BACKUP_INTERVAL_TXT>
                         </div>
-                        <div style="display:table-cell; ">
+                        <div>
                             <select name="backup_interval<TMPL_VAR MSID>" id="backup_interval<TMPL_VAR MSID>"
                                 class="to_save">
                                 <TMPL_VAR BACKUP_INTERVAL_VALUE>
                             </select>
                         </div>
                     </div>
-                    <div style="display:table-row;">
-                        <div style="display:table-cell; text-align:right;">
+                    <div>
+                        <div style="text-align:right;">
                             <TMPL_VAR GENERAL.BACKUP_TYPE_TXT>
                         </div>
-                        <div style="display:table-cell; ">
+                        <div>
                             <select name="file_format<TMPL_VAR MSID>" id="file_format<TMPL_VAR MSID>" class="to_save">
                                 <TMPL_VAR BACKUP_FILE_FORMAT>
                             </select>
                         </div>
                     </div>
-                    <div style="display:table-row;">
-                        <div style="display:table-cell; text-align:right;">
+                    <div>
+                        <div style="text-align:right;">
                             <TMPL_VAR GENERAL.BACKUP_COMPRESSION_TXT>
                         </div>
-                        <div style="display:table-cell; ">
+                        <div>
                             <select name="compression<TMPL_VAR MSID>" id="compression<TMPL_VAR MSID>" class="to_save">
                                 <TMPL_VAR BACKUP_COMPRESSION>
                             </select>
                         </div>
                     </div>
-                    <div style="display:table-row;">
-                        <div style="display:table-cell; text-align:right;">
+                    <div>
+                        <div style="text-align:right;">
                             <TMPL_VAR GENERAL.BACKUPS_TO_KEEP_TXT>
                         </div>
-                        <div style="display:table-cell; ">
+                        <div>
                             <select name="backups_to_keep<TMPL_VAR MSID>" id="backups_to_keep<TMPL_VAR MSID>"
                                 class="to_save">
                                 <TMPL_VAR BACKUPS_TO_KEEP_VALUE>
                             </select>
                         </div>
                     </div>
-                    <div style="display:table-row;">
-                        <div style="display:table-cell; text-align:right;">
+                    <div>
+                        <div style="text-align:right;">
                             <TMPL_VAR GENERAL.LAST_SAVE_TIME_TXT>
                         </div>
-                        <div style="display:table-cell; ">
+                        <div>
                             <div name="last_save<TMPL_VAR MSID>" id="last_save<TMPL_VAR MSID>">&nbsp;<TMPL_VAR
                                     LAST_SAVE>
                             </div>
                         </div>
                     </div>
-                    <div style="display:table-row;">
-                        <div style="display:table-cell; text-align:right;">
+                    <div>
+                        <div style="text-align:right;">
                             <TMPL_VAR GENERAL.LAST_REBOOT_TXT>
                         </div>
-                        <div style="display:table-cell; ">
+                        <div>
                             <div name="last_reboot<TMPL_VAR MSID>" id="last_reboot<TMPL_VAR MSID>">&nbsp;<TMPL_VAR
                                     LAST_REBOOT>
                             </div>
